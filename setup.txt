@@ -11,3 +11,7 @@ Sign in w/ attacker creds
 Machine-runtime app is not installed. So you can only build things by default, not run them remotely. Actually, cannot even run them.
 Need to create an env per victim otherwise they see each other.
 Reuse session (on cloud)
+
+https://powerautomate.microsoft.com/en-us/blog/use-power-automate-self-assisted-premium-trials-to-run-both-attended-and-unattended-rpa/
+two trials
+assign to user and to env
