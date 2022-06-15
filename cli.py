@@ -5,9 +5,10 @@ from enum import Enum
 
 class CommandType(Enum):
     PYTHON = "python"
-    VISUALBASIC = "vb"
+    VISUALBASIC = "visualbasic"
     JAVASCRIPT = "javascript"
     POWERSHELL = "powershell"
+    COMMANDLINE = "cmd"
 
 
 class RunType(Enum):
@@ -50,14 +51,17 @@ class PowerPwnClient:
             raise
 
 
-    def run_python2(self, command: str) -> CommandResponse:
+    def run_py2(self, command: str) -> CommandResponse:
         return self.run_command(command_type=CommandType.PYTHON, command=command)
 
-    def run_visualbasic(self, command: str) -> CommandResponse:
+    def run_vb(self, command: str) -> CommandResponse:
         return self.run_command(command_type=CommandType.VISUALBASIC, command=command)
 
-    def run_javascript(self, command: str) -> CommandResponse:
+    def run_js(self, command: str) -> CommandResponse:
         return self.run_command(command_type=CommandType.JAVASCRIPT, command=command)
 
-    def run_powershell(self, command: str) -> CommandResponse:
+    def run_ps(self, command: str) -> CommandResponse:
         return self.run_command(command_type=CommandType.POWERSHELL, command=command)
+
+    def run_cmd(self, command: str) -> CommandResponse:
+        return self.run_command(command_type=CommandType.COMMANDLINE, command=command)
