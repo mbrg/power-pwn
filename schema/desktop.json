@@ -1,0 +1,40 @@
+{
+    "Exfil": {
+        "input": {
+            "TargetFile": {"type":  "string"}
+        },
+        "output": {
+            "Success": {"type":  "boolean"},
+            "FileContents": {"type":  "string"}
+        }
+    },
+    "Ransomware": {
+        "input": {
+            "CrawlDepth": {"type":  "string", "example":  "2"},
+            "DirectoriesToInitCrawl": {"type":  "string", "example": "C:\\,D:\\"},
+            "EncryptionKey": {"type":  "string"}
+        },
+        "output": {
+            "FilesFound": {"type":  "integer"},
+            "FilesAccessed": {"type":  "integer"},
+            "FilesProcessed": {"type":  "integer"}
+        }
+    },
+    "CodeExec": {
+        "input": {
+            "Command": {"type":  "string"},
+            "CommandType": {"type":  "string"}
+        },
+        "output": {
+            "ScriptOutput": {"type":  "string"},
+            "ScriptError": {"type":  "string"}
+        }
+    },
+    "Cleanup": {
+        "input": {},
+        "output": {
+            "LogFilesFound": {"type":  "integer"},
+            "LogFilesDeleted": {"type":  "integer"}
+        }
+    }
+}
