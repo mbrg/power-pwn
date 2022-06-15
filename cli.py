@@ -1,7 +1,6 @@
 import requests
 import pydantic
 from enum import Enum
-from typing import Optional
 
 
 class CommandType(Enum):
@@ -17,29 +16,26 @@ class RunType(Enum):
     empty = ""
 
 
+class RunErrors(pydantic.BaseModel):
+    attendedRunError: dict
+    unattendedRunError: dict
+
+
 class CommandResponse(pydantic.BaseModel):
-    success: bool
+    runSuccess: bool
     runType: RunType
-    attendedError: str
-    unattendedError: str
+    runErrors: RunErrors
     scriptOutput: str
     scriptError: str
 
 
 class PowerPwnClient:
-    def __init__(self, url: str, sig: str):
-        self.url = url
-        self.params = {
-            "api-version": "2016-06-01",
-            "sp": "/triggers/manual/run",
-            "sv": "1.0",
-            "sig": sig
-        }
+    def __init__(self, post_url: str):
+        self.post_url = post_url
 
     def run_command(self, command_type: CommandType, command: str) -> CommandResponse:
         resp = requests.post(
-            url=self.url,
-            params=self.params,
+            url=self.post_url,
             json={
                 "command": command,
                 "commandType": command_type.value
@@ -50,11 +46,11 @@ class PowerPwnClient:
             command_response = CommandResponse.parse_obj(resp.json())
             return command_response
         except pydantic.error_wrappers.ValidationError:
-            print("Bad response. Raw content: {resp.content}")
+            print(f"Bad response. Raw content: {resp.content}")
             raise
 
 
-    def run_python(self, command: str) -> CommandResponse:
+    def run_python2(self, command: str) -> CommandResponse:
         return self.run_command(command_type=CommandType.PYTHON, command=command)
 
     def run_visualbasic(self, command: str) -> CommandResponse:
