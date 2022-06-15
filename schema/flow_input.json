@@ -1,0 +1,26 @@
+{
+    "type": "object",
+    "properties": {
+        "FlowToRun": {
+            "type": "string"
+        },
+        "ExfilTargetFile": {
+            "type": "string"
+        },
+        "RansomwareCrawlDepth": {
+            "type": "string"
+        },
+        "RansomwareDirectoriesToInitCrawl": {
+            "type": "string"
+        },
+        "RansomwareEncryptionKey": {
+            "type": "string"
+        },
+        "CodeExecCommand": {
+            "type": "string"
+        },
+        "CodeExecCommandType": {
+            "type": "string"
+        }
+    }
+}

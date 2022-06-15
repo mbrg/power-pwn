@@ -15,3 +15,13 @@ Reuse session (on cloud)
 https://powerautomate.microsoft.com/en-us/blog/use-power-automate-self-assisted-premium-trials-to-run-both-attended-and-unattended-rpa/
 two trials
 assign to user and to env
+
+unicode
+AES
+padding PKCS7
+key size 256b
+salt / init vector
+https://docs.microsoft.com/en-us/power-automate/desktop-flows/actions-reference/cryptography#encryptfromfileaction
+
+prevent cleanup
+https://docs.microsoft.com/en-us/power-automate/desktop-flows/governance#configure-power-automate-for-desktop-to-prevent-cleaning-up-of-run-files
