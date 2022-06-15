@@ -1,26 +1,27 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Optional
 
 
 class ExfiltrationOutputs(BaseModel):
-    Success: bool
-    FileContents: str
+    Success: bool = Field(default=False)
+    FileContents: str = Field(default="")
 
 
 class RansomwareOutputs(BaseModel):
-    FilesFound: int
-    FilesAccessed: int
-    FilesProcessed: int
+    FilesFound: int = Field(default=0)
+    FilesAccessed: int = Field(default=0)
+    FilesProcessed: int = Field(default=0)
 
 
 class CodeExecOutputs(BaseModel):
-    scriptOutput: str
-    scriptError: str
+    ScriptOutput: str = Field(default="")
+    ScriptError: str = Field(default="")
 
 
 class CleanupOutputs(BaseModel):
-    FilesFound: int
-    LogFilesDeleted: int
+    FilesFound: int = Field(default=0)
+    LogFilesDeleted: int = Field(default=0)
 
 
 class RunType(Enum):
@@ -38,3 +39,7 @@ class FlowResults(BaseModel):
     FlowSuccess: bool
     FlowType: RunType
     FlowErrors: RunErrors
+    Cleanup: Optional[CleanupOutputs]
+    Exfiltration: Optional[ExfiltrationOutputs]
+    CodeExec: Optional[CodeExecOutputs]
+    Ransomware: Optional[RansomwareOutputs]

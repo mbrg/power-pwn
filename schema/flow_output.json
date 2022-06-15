@@ -1,0 +1,57 @@
+{
+    "type": "object",
+    "properties": {
+        "FlowSuccess": {
+            "type": "boolean"
+        },
+        "FlowType": {
+            "type": "string"
+        },
+        "FlowErrors": {
+            "type": "object",
+            "properties": {
+                "AttendedRunError": {
+                    "type": "object",
+                    "properties": {}
+                },
+                "UnattendedRunError": {
+                    "type": "object",
+                    "properties": {}
+                }
+            }
+        },
+        "CodeExec": {
+            "type": "object",
+            "properties": {
+                "ScriptOutput": {
+                    "type": "string"
+                },
+                "ScriptError": {
+                    "type": "string"
+                }
+            }
+        },
+        "Exfil": {
+            "type": "object",
+            "properties": {
+                "Success": {"type":  "boolean"},
+                "FileContents": {"type":  "string"}
+            }
+        },
+        "Ransomware": {
+            "type": "object",
+            "properties": {
+                "FilesFound": {"type":  "integer"},
+                "FilesAccessed": {"type":  "integer"},
+                "FilesProcessed": {"type":  "integer"}
+            }
+        },
+        "Cleanup": {
+            "type": "object",
+            "properties": {
+                "LogFilesFound": {"type":  "integer"},
+                "LogFilesDeleted": {"type":  "integer"}
+            }
+        }
+    }
+}
