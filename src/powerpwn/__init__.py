@@ -1,0 +1,1 @@
+from powerpwn.cli import PowerPwn
