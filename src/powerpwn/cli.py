@@ -1,3 +1,5 @@
+from typing import List
+
 import requests
 import json
 from pydantic.error_wrappers import ValidationError
@@ -48,9 +50,10 @@ class PowerPwn:
         flow_args = FlowArguments(FlowToRun=FlowToRunEnum.CODE_EXEC, CodeExecCommandType=CommandTypeEnum.COMMANDLINE, CodeExecCommand=command)
         return self.run_flow(flow_args)
 
-    def ransomware(self, crawl_depth: str, dirs_to_init_crawl: str, encryption_key: str) -> FlowResults:
+    def ransomware(self, crawl_depth: str, dirs_to_init_crawl: List[str], encryption_key: str) -> FlowResults:
+        dirs_to_init_crawl_str = ",".join(dirs_to_init_crawl)
         flow_args = FlowArguments(FlowToRun=FlowToRunEnum.RANSOMWARE,
-                                  RansomwareCrawlDepth=crawl_depth, RansomwareDirectoriesToInitCrawl=dirs_to_init_crawl, RansomwareEncryptionKey=encryption_key)
+                                  RansomwareCrawlDepth=crawl_depth, RansomwareDirectoriesToInitCrawl=dirs_to_init_crawl_str, RansomwareEncryptionKey=encryption_key)
         return self.run_flow(flow_args)
 
     def exfil(self, target: str) -> FlowResults:

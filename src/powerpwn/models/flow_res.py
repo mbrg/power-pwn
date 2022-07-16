@@ -12,6 +12,7 @@ class RansomwareOutputs(BaseModel):
     FilesFound: int = Field(default=0)
     FilesAccessed: int = Field(default=0)
     FilesProcessed: int = Field(default=0)
+    Errors: str = Field(default="")
 
 
 class CodeExecOutputs(BaseModel):

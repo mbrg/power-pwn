@@ -17,7 +17,8 @@
         "output": {
             "FilesFound": {"type":  "integer"},
             "FilesAccessed": {"type":  "integer"},
-            "FilesProcessed": {"type":  "integer"}
+            "FilesProcessed": {"type":  "integer"},
+            "Errors": {"type":  "string"}
         }
     },
     "CodeExec": {
