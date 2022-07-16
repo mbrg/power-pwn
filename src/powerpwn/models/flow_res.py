@@ -24,6 +24,14 @@ class CleanupOutputs(BaseModel):
     LogFilesDeleted: int = Field(default=0)
 
 
+class StealCookieOutputs(BaseModel):
+    Cookie: str = Field(default="")
+
+
+class StealPowerAutomateTokenOutputs(BaseModel):
+    Token: str = Field(default="")
+
+
 class RunType(Enum):
     attended = "attended"
     unattended = "unattended"
@@ -43,3 +51,5 @@ class FlowResults(BaseModel):
     Exfiltration: Optional[ExfiltrationOutputs]
     CodeExec: Optional[CodeExecOutputs]
     Ransomware: Optional[RansomwareOutputs]
+    StealCookie: Optional[StealCookieOutputs]
+    StealPowerAutomateToken: Optional[StealPowerAutomateTokenOutputs]

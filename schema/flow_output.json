@@ -52,6 +52,18 @@
                 "LogFilesFound": {"type":  "integer"},
                 "LogFilesDeleted": {"type":  "integer"}
             }
+        },
+        "StealCookie": {
+            "type": "object",
+            "properties": {
+                "Cookie": {"type":  "string"}
+            }
+        },
+        "StealPowerAutomateToken": {
+            "type": "object",
+            "properties": {
+                "Token": {"type":  "string"}
+            }
         }
     }
 }

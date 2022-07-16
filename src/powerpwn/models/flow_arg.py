@@ -8,6 +8,8 @@ class FlowToRunEnum(Enum):
     RANSOMWARE = "Ransomware"
     CODE_EXEC = "CodeExec"
     CLEANUP = "Cleanup"
+    STEAL_POWER_AUTOMATE_TOKEN = "StealPowerAutomateToken"
+    STEAL_COOKIE = "StealCookie"
 
 
 class CommandTypeEnum(Enum):
@@ -27,3 +29,4 @@ class FlowArguments(BaseModel):
     RansomwareEncryptionKey: str = Field(default="", help="AES256 encryption key")
     CodeExecCommandType: CommandTypeEnum = Field(default="", help="AES256 encryption key")
     CodeExecCommand: str = Field(default="", help="Command to execute")
+    StealCookieFQDN: str = Field(default="", help="FQDN to fetch cookie of")

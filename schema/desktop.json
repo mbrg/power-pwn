@@ -36,5 +36,19 @@
             "LogFilesFound": {"type":  "integer"},
             "LogFilesDeleted": {"type":  "integer"}
         }
+    },
+    "StealCookie": {
+        "input": {
+            "FQDN": {"type":  "string"}
+        },
+        "output": {
+            "Cookie": {"type":  "string"}
+        }
+    },
+    "StealPowerAutomateToken": {
+        "input": {},
+        "output": {
+            "Token": {"type":  "string"}
+        }
     }
 }
