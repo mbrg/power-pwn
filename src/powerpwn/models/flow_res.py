@@ -49,7 +49,7 @@ class FlowResults(BaseModel):
     FlowType: RunType
     FlowErrors: RunErrors
     Cleanup: Optional[CleanupOutputs]
-    Exfiltration: Optional[ExfiltrationOutputs]
+    Exfil: Optional[ExfiltrationOutputs]
     CodeExec: Optional[CodeExecOutputs]
     Ransomware: Optional[RansomwareOutputs]
     StealCookie: Optional[StealCookieOutputs]
