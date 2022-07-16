@@ -21,7 +21,7 @@ class CodeExecOutputs(BaseModel):
 
 
 class CleanupOutputs(BaseModel):
-    FilesFound: int = Field(default=0)
+    LogFilesFound: int = Field(default=0)
     LogFilesDeleted: int = Field(default=0)
 
 
