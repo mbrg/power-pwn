@@ -8,20 +8,24 @@ from powerpwn.models.flow_res import FlowResults
 
 
 class PowerPwn:
-    def __init__(self, post_url: str):
+    def __init__(self, post_url: str, debug: bool = False):
         self.post_url = post_url
+        self.debug = debug
 
     def run_flow(self, arguments: FlowArguments) -> FlowResults:
         try:
             flow_args = json.loads(arguments.json())
         except json.JSONDecodeError:
-            print(f"Bad command. Raw content: {FlowArguments}")
+            print(f"Bad command. Raw content: {arguments}")
             raise
 
         resp = requests.post(
             url=self.post_url,
             json=flow_args
         )
+
+        if self.debug:
+            print(f"Raw content: {resp.content}")
 
         try:
             flow_res = FlowResults.parse_obj(resp.json())
