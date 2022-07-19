@@ -49,3 +49,5 @@
    Click on _Edit_ and then on _When a HTTP request is received_ and copy the URL under _HTTP POST URL_
 
    ![HTTP Post URL](../assets/post_url.png)
+
+5. Note the _HTTP Post URL_ for use with the Python module.
