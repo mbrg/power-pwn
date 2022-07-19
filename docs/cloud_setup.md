@@ -18,13 +18,17 @@
 
 4. Create a Service Principal by following [Microsoft guidelines](https://docs.microsoft.com/en-us/power-automate/desktop-flows/machines-silent-registration#using-a-service-principal-account) and note the _tenantId_, _applicationId_ and _secret_. 
 
-### Infect a test machine victim machines
+### Infect a test victim machines
 
-1. To register a victim machine, run the following command
+1. Infect a test machine by following the [How to infect a victim machine guide](infect_machine.md).
 
-   `echo <secret> | C:\Program Files (x86)\Power Automate Desktop\PAD.MachineRegistration.Silent.exe -register -applicationid <applicationId> -tenantid <tenantId> -clientsecret -force`
+2. Verify that the machine has been onboarded
 
-2. That's it! For troubleshooting, refer to [Microsoft Docs](https://docs.microsoft.com/en-us/power-automate/desktop-flows/machines-silent-registration#silently-register-a-new-machine).
+   1. Log into https://flow.microsoft.com as the malicious user
+
+   2. Click Go to _Monitor_ and then _Machines_ and verify that the test victim machine is there
+
+   ![Victim machines](../assets/victim_machines.png)
 
 ### Upload pwntoso to your Power Automate cloud environment
 
@@ -35,6 +39,8 @@
    ![Import pwntoso solution](../assets/import_solution.png)
 
 3. Zip the content of [pwntoso_1_0_0_1](../solution/pwntoso_1_0_0_1) and select it when asked to provide a solution file. Follow the guided process to completion.
+
+   1. When asked to provide a connection, following the guided process to create a new machine connection. Use the test victim machine credentials. 
 
 4. Go to _My flows_ and search for _Endpoint_
 

