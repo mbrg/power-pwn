@@ -3,8 +3,8 @@ from typing import List
 import requests
 import json
 from pydantic.error_wrappers import ValidationError
-from powerpwn.models.flow_arg import *
-from powerpwn.models.flow_res import FlowResults
+from powerpwn.desktop.models.flow_arg import *
+from powerpwn.desktop.models.flow_res import FlowResults
 
 
 class PowerPwn:
