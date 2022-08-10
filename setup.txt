@@ -1,0 +1,27 @@
+Create a new AAD tenant
+Create a new user on that tenant and make them global admin
+Turn off security default
+Get an E3 license trial
+Got to Power Automate -> Monitor > Machine, and set up a new Dataverse
+Go to Desktop flow runs -> start trial
+
+Win 11 ent
+Power Automate Desktop was already there. Did need an update.
+Sign in w/ attacker creds
+Machine-runtime app is not installed. So you can only build things by default, not run them remotely. Actually, cannot even run them.
+Need to create an env per victim otherwise they see each other.
+Reuse session (on cloud)
+
+https://powerautomate.microsoft.com/en-us/blog/use-power-automate-self-assisted-premium-trials-to-run-both-attended-and-unattended-rpa/
+two trials
+assign to user and to env
+
+unicode
+AES
+padding PKCS7
+key size 256b
+salt / init vector
+https://docs.microsoft.com/en-us/power-automate/desktop-flows/actions-reference/cryptography#encryptfromfileaction
+
+prevent cleanup
+https://docs.microsoft.com/en-us/power-automate/desktop-flows/governance#configure-power-automate-for-desktop-to-prevent-cleaning-up-of-run-files
