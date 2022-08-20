@@ -4,10 +4,6 @@ Power Pwn is a demo showing how to repurpose Microsoft-trusted executables, serv
 
 <a href="https://powerautomate.microsoft.com/en-us/robotic-process-automation/"><img src="https://docs.microsoft.com/en-us/power-pages/media/overview/power-platform.png" alt="Power Pwn" width="500" height="250" /></a>
 
-----
-
-This tool was released as part of DEFCON30. For more details, see [No-Code Malware: Windows 11 At Your Service](https://github.com/mbrg/defcon30/blob/main/No_Code_Malware/readme.md).
-
 Disclaimer: these materials are presented from an attacker’s perspective with the goal of raising awareness to the risks of underestimating the security impact of No Code/Low Code. No Code/Low Code is awesome.
 
 ## Usage
