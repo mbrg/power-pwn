@@ -1,0 +1,6 @@
+[run]
+source = src/powerpwn/
+omit =
+    tests/*
+    docs/*
+    src/malicious_msft/*

@@ -1,0 +1,12 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Use text conventions for commonly used text extensions.
+*.csv text
+*.ini text
+*.json text
+*.yml text
+*.txt text
+*.xml text
+*.py text
+*.sh text
