@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List
+from typing import List
 
 import requests
 from pydantic.error_wrappers import ValidationError
