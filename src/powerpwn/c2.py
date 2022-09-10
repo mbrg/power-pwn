@@ -19,20 +19,28 @@ class PowerPwnC2:
         self.debug = debug
 
     def run_cmd(self, arguments: CommandArguments) -> CommandResults:
+        if self.debug:
+            print(f"Raw command: {arguments}")
+
         try:
-            flow_args = json.loads(arguments.json())
+            cmd_args = json.loads(arguments.json())
         except json.JSONDecodeError:
             print(f"Bad command. Raw content: {arguments}")
             raise
 
-        resp = requests.post(url=self.post_url, json=flow_args)
+        results = self._run_cmd(arguments_as_dict=cmd_args)
+
+        cmd_res = CommandResults.parse_obj(results)
+        return cmd_res
+
+    def _run_cmd(self, arguments_as_dict: dict) -> dict:
+        resp = requests.post(url=self.post_url, json=arguments_as_dict)
 
         if self.debug:
             print(f"Raw content: {resp.content}")
 
         try:
-            flow_res = CommandResults.parse_obj(resp.json())
-            return flow_res
+            return resp.json()
         except ValidationError:
             print(f"Bad response. Raw content: {resp.content}")
             raise
