@@ -1,3 +1,4 @@
+import json
 from typing import Dict, List, Optional, cast
 
 import pytest
@@ -47,7 +48,7 @@ class DummyPowerPwnC2(PowerPwnC2):
         else:
             raise ValueError(f"command_to_run has invalid value: {self.command_to_run}.")
 
-        cmd_res_as_dict = cast(dict, cmd_res.json())  # type: ignore
+        cmd_res_as_dict = json.loads(cmd_res.json())
         return cmd_res_as_dict
 
 
