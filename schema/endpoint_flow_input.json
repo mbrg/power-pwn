@@ -1,28 +1,28 @@
 {
     "type": "object",
     "properties": {
-        "FlowToRun": {
+        "command_to_run": {
             "type": "string"
         },
-        "ExfilTargetFile": {
+        "exfiltrate_target_file": {
             "type": "string"
         },
-        "RansomwareCrawlDepth": {
+        "ransomware_crawl_depth": {
             "type": "string"
         },
-        "RansomwareDirectoriesToInitCrawl": {
+        "ransomware_directories_to_init_crawl": {
             "type": "string"
         },
-        "RansomwareEncryptionKey": {
+        "ransomware_encryption_key": {
             "type": "string"
         },
-        "CodeExecCommand": {
+        "code_exec_command_type": {
             "type": "string"
         },
-        "CodeExecCommandType": {
+        "code_exec_command": {
             "type": "string"
         },
-        "StealCookieFQDN": {
+        "steal_cookie_fqdn": {
             "type": "string"
         }
     }

@@ -1,56 +1,57 @@
-from pydantic import BaseModel, Field
 from enum import Enum
 from typing import Optional
 
+from pydantic import BaseModel, Field
+
 
 class ExfiltrationOutputs(BaseModel):
-    Success: bool = Field(default=False)
-    FileContents: str = Field(default="")
+    success: bool = Field(default=False)
+    file_contents: str = Field(default="")
 
 
 class RansomwareOutputs(BaseModel):
-    FilesFound: int = Field(default=0)
-    FilesAccessed: int = Field(default=0)
-    FilesProcessed: int = Field(default=0)
-    Errors: str = Field(default="")
+    files_found: int = Field(default=0)
+    files_accessed: int = Field(default=0)
+    files_processed: int = Field(default=0)
+    errors: str = Field(default="")
 
 
 class CodeExecOutputs(BaseModel):
-    ScriptOutput: str = Field(default="")
-    ScriptError: str = Field(default="")
+    script_output: str = Field(default="")
+    script_error: str = Field(default="")
 
 
 class CleanupOutputs(BaseModel):
-    LogFilesFound: int = Field(default=0)
-    LogFilesDeleted: int = Field(default=0)
+    log_files_found: int = Field(default=0)
+    log_files_deleted: int = Field(default=0)
 
 
 class StealCookieOutputs(BaseModel):
-    Cookie: str = Field(default="")
+    cookies: str = Field(default="")
 
 
 class StealPowerAutomateTokenOutputs(BaseModel):
-    Token: str = Field(default="")
+    token: str = Field(default="")
 
 
-class RunType(Enum):
+class AgentRunType(Enum):
     attended = "attended"
     unattended = "unattended"
     empty = ""
 
 
-class RunErrors(BaseModel):
-    AttendedRunError: dict
-    UnattendedRunError: dict
+class AgentRunErrors(BaseModel):
+    attended_run_error: dict
+    unattended_run_error: dict
 
 
-class FlowResults(BaseModel):
-    FlowSuccess: bool
-    FlowType: RunType
-    FlowErrors: RunErrors
-    Cleanup: Optional[CleanupOutputs]
-    Exfil: Optional[ExfiltrationOutputs]
-    CodeExec: Optional[CodeExecOutputs]
-    Ransomware: Optional[RansomwareOutputs]
-    StealCookie: Optional[StealCookieOutputs]
-    StealPowerAutomateToken: Optional[StealPowerAutomateTokenOutputs]
+class CommandResults(BaseModel):
+    is_success: bool
+    agent_run_type: AgentRunType
+    agent_run_errors: AgentRunErrors
+    cmd_exfiltration: Optional[ExfiltrationOutputs]
+    cmd_code_execution: Optional[CodeExecOutputs]
+    cmd_ransomware: Optional[RansomwareOutputs]
+    cmd_cleanup: Optional[CleanupOutputs]
+    cmd_steal_cookie: Optional[StealCookieOutputs]
+    cmd_steal_power_automate_token: Optional[StealPowerAutomateTokenOutputs]

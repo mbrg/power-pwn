@@ -1,69 +1,69 @@
 {
     "type": "object",
     "properties": {
-        "FlowSuccess": {
+        "is_success": {
             "type": "boolean"
         },
-        "FlowType": {
+        "agent_run_type": {
             "type": "string"
         },
-        "FlowErrors": {
+        "agent_run_errors": {
             "type": "object",
             "properties": {
-                "AttendedRunError": {
+                "attended_run_error": {
                     "type": "object",
                     "properties": {}
                 },
-                "UnattendedRunError": {
+                "unattended_run_error": {
                     "type": "object",
                     "properties": {}
                 }
             }
         },
-        "CodeExec": {
-            "type": "object",
-            "properties": {
-                "ScriptOutput": {
-                    "type": "string"
-                },
-                "ScriptError": {
-                    "type": "string"
-                }
-            }
-        },
-        "Exfil": {
+        "cmd_exfiltration": {
             "type": "object",
             "properties": {
                 "Success": {"type":  "boolean"},
                 "FileContents": {"type":  "string"}
             }
         },
-        "Ransomware": {
+        "cmd_code_execution": {
             "type": "object",
             "properties": {
-                "FilesFound": {"type":  "integer"},
-                "FilesAccessed": {"type":  "integer"},
-                "FilesProcessed": {"type":  "integer"},
-                "Errors": {"type":  "string"}
+                "script_output": {
+                    "type": "string"
+                },
+                "script_error": {
+                    "type": "string"
+                }
             }
         },
-        "Cleanup": {
+        "cmd_ransomware": {
             "type": "object",
             "properties": {
-                "LogFilesFound": {"type":  "integer"},
-                "LogFilesDeleted": {"type":  "integer"}
+                "files_found": {"type":  "integer"},
+                "files_accessed": {"type":  "integer"},
+                "files_processed": {"type":  "integer"},
+                "errors": {"type":  "string"}
             }
         },
-        "StealCookie": {
+        "cmd_cleanup": {
             "type": "object",
             "properties": {
-                "Cookie": {"type":  "string"}
+                "log_files_found": {"type":  "integer"},
+                "log_files_deleted": {"type":  "integer"}
             }
         },
-        "StealPowerAutomateToken": {
+        "cmd_steal_cookie": {
             "type": "object",
             "properties": {
-                "Token": {"type":  "string"}
+                "cookies": {"type":  "string"}
+            }
+        },
+        "cmd_steal_power_automate_token": {
+            "type": "object",
+            "properties": {
+                "token": {"type":  "string"}
             }
         }
     }
