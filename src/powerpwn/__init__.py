@@ -1,1 +1,0 @@
-from powerpwn.c2 import PowerPwnC2
