@@ -10,6 +10,11 @@ from powerpwn.models.cmd_results import CommandResults
 
 class PowerPwnC2:
     def __init__(self, post_url: str, debug: bool = False):
+        """
+        Power Pwn client to run commands through Microsoft infrastructure
+        :param post_url: a URL on the malicious Microsoft instance to post commands to
+        :param debug: whether to print debug messages
+        """
         self.post_url = post_url
         self.debug = debug
 
