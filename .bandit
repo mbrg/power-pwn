@@ -1,5 +1,4 @@
 [bandit]
-skips: B101[flake8]
 ignore = E203, E266, E501, W503
 max-line-length = 150
 max-complexity = 18

@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Optional
+from typing import Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -41,8 +41,8 @@ class AgentRunType(Enum):
 
 
 class AgentRunErrors(BaseModel):
-    attended_run_error: dict
-    unattended_run_error: dict
+    attended_run_error: dict  # type: ignore
+    unattended_run_error: dict  # type: ignore
 
 
 class CommandResults(BaseModel):

@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import Dict, List
 
 import requests
 from pydantic.error_wrappers import ValidationError
@@ -33,16 +33,17 @@ class PowerPwnC2:
         cmd_res = CommandResults.parse_obj(results)
         return cmd_res
 
-    def _run_cmd(self, arguments_as_dict: dict) -> dict:
-        resp = requests.post(url=self.post_url, json=arguments_as_dict)  # type: ignore
+    def _run_cmd(self, arguments_as_dict: dict) -> dict:  # type: ignore
+        # noinspection PyTypeChecker
+        resp = requests.post(url=self.post_url, json=arguments_as_dict)
 
         if self.debug:
-            print(f"Raw content: {resp.content}")
+            print(f"Raw content: {resp.content.decode('utf8')}")
 
         try:
             return resp.json()
         except ValidationError:
-            print(f"Bad response. Raw content: {resp.content}")
+            print(f"Bad response. Raw content: {resp.content.decode('utf8')}")
             raise
 
     def exec_py2(self, command: str) -> CommandResults:
