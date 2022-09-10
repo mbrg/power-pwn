@@ -34,7 +34,7 @@ class PowerPwnC2:
         return cmd_res
 
     def _run_cmd(self, arguments_as_dict: dict) -> dict:
-        resp = requests.post(url=self.post_url, json=arguments_as_dict)
+        resp = requests.post(url=self.post_url, json=arguments_as_dict)  # type: ignore
 
         if self.debug:
             print(f"Raw content: {resp.content}")
