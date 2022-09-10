@@ -1,23 +1,23 @@
-from enum import Enum
+from enum import Enum, auto
 
 from pydantic import BaseModel, Field
 
 
 class CommandToRunEnum(Enum):
-    EXFILTRATION = "Exfil"
-    RANSOMWARE = "Ransomware"
-    CODE_EXEC = "CodeExec"
-    CLEANUP = "Cleanup"
-    STEAL_POWER_AUTOMATE_TOKEN = "StealPowerAutomateToken"
-    STEAL_COOKIE = "StealCookie"
+    EXFILTRATION = auto()
+    RANSOMWARE = auto()
+    CODE_EXEC = auto()
+    CLEANUP = auto()
+    STEAL_POWER_AUTOMATE_TOKEN = auto()
+    STEAL_COOKIE = auto()
 
 
 class CodeExecTypeEnum(Enum):
-    PYTHON = "python"
-    VISUALBASIC = "visualbasic"
-    JAVASCRIPT = "javascript"
-    POWERSHELL = "powershell"
-    COMMANDLINE = "commandline"
+    PYTHON = auto()
+    VISUALBASIC = auto()
+    JAVASCRIPT = auto()
+    POWERSHELL = auto()
+    COMMANDLINE = auto()
     EMPTY = ""
 
 

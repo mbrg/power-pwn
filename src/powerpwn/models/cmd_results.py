@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -35,8 +35,8 @@ class StealPowerAutomateTokenOutputs(BaseModel):
 
 
 class AgentRunType(Enum):
-    attended = "attended"
-    unattended = "unattended"
+    attended = auto()
+    unattended = auto()
     empty = ""
 
 
