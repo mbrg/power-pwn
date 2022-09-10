@@ -52,7 +52,7 @@ class DummyPowerPwnC2(PowerPwnC2):
         return cmd_res_as_dict
 
 
-@pytest.mark.parametrize("exec_env", ["exec_py2", "exec_vb" "exec_js", "exec_ps", "exec_cmd"])
+@pytest.mark.parametrize("exec_env", ["exec_py2", "exec_vb", "exec_js", "exec_ps", "exec_cmd"])
 def test_code_exec(exec_env: str, command: str = "") -> None:
     c2 = DummyPowerPwnC2(post_url=POST_URL, debug=DEBUG, command_to_run=CommandToRunEnum.CODE_EXEC)
 
