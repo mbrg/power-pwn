@@ -1,1 +1,1 @@
-from powerpwn.cli import PowerPwn
+from powerpwn.c2 import PowerPwn

@@ -13,9 +13,10 @@ Disclaimer: these materials are presented from an attacker’s perspective with 
 ## Usage
 
 ```python
-from powerpwn.cli import PowerPwn
+from powerpwn.c2 import PowerPwn
+
 POST_URL = ""
-pp=PowerPwn(post_url=POST_URL)
+pp = PowerPwn(post_url=POST_URL)
 
 ### code execution
 
