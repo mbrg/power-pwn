@@ -58,12 +58,14 @@ def test_code_exec(exec_env: str, command: str = ""):
     exec_env_command(command=command)
 
 
-def test_ransomware(crawl_depth: str, dirs_to_init_crawl: List[str], encryption_key: str):
+def test_ransomware(crawl_depth: str = 0, dirs_to_init_crawl: List[str] = None, encryption_key: str = ""):
+    if dirs_to_init_crawl is None:
+        dirs_to_init_crawl = []
     c2 = DummyPowerPwnC2(post_url=POST_URL, debug=DEBUG, command_to_run=CommandToRunEnum.RANSOMWARE)
     c2.ransomware(crawl_depth=crawl_depth, dirs_to_init_crawl=dirs_to_init_crawl, encryption_key=encryption_key)
 
 
-def test_exfiltration(target_file_path: str):
+def test_exfiltration(target_file_path: str = ""):
     c2 = DummyPowerPwnC2(post_url=POST_URL, debug=DEBUG, command_to_run=CommandToRunEnum.EXFILTRATION)
     c2.exfiltrate(target_file_path=target_file_path)
 
