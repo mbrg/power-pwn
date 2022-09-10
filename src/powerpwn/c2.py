@@ -4,8 +4,8 @@ from typing import List
 import requests
 from pydantic.error_wrappers import ValidationError
 
-from powerpwn.models.flow_arguments import CodeExecTypeEnum, CommandArguments, CommandToRunEnum
-from powerpwn.models.flow_results import CommandResults
+from powerpwn.models.cmd_arguments import CodeExecTypeEnum, CommandArguments, CommandToRunEnum
+from powerpwn.models.cmd_results import CommandResults
 
 
 class PowerPwnC2:
