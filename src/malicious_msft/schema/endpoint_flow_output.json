@@ -1,0 +1,70 @@
+{
+    "type": "object",
+    "properties": {
+        "is_success": {
+            "type": "boolean"
+        },
+        "agent_run_type": {
+            "type": "string"
+        },
+        "agent_run_errors": {
+            "type": "object",
+            "properties": {
+                "attended_run_error": {
+                    "type": "object",
+                    "properties": {}
+                },
+                "unattended_run_error": {
+                    "type": "object",
+                    "properties": {}
+                }
+            }
+        },
+        "cmd_exfiltration": {
+            "type": "object",
+            "properties": {
+                "Success": {"type":  "boolean"},
+                "FileContents": {"type":  "string"}
+            }
+        },
+        "cmd_code_execution": {
+            "type": "object",
+            "properties": {
+                "script_output": {
+                    "type": "string"
+                },
+                "script_error": {
+                    "type": "string"
+                }
+            }
+        },
+        "cmd_ransomware": {
+            "type": "object",
+            "properties": {
+                "files_found": {"type":  "integer"},
+                "files_accessed": {"type":  "integer"},
+                "files_processed": {"type":  "integer"},
+                "errors": {"type":  "string"}
+            }
+        },
+        "cmd_cleanup": {
+            "type": "object",
+            "properties": {
+                "log_files_found": {"type":  "integer"},
+                "log_files_deleted": {"type":  "integer"}
+            }
+        },
+        "cmd_steal_cookie": {
+            "type": "object",
+            "properties": {
+                "cookies": {"type":  "string"}
+            }
+        },
+        "cmd_steal_power_automate_token": {
+            "type": "object",
+            "properties": {
+                "token": {"type":  "string"}
+            }
+        }
+    }
+}

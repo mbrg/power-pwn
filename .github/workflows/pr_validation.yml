@@ -1,0 +1,128 @@
+name: PR validation
+
+on: [pull_request]
+
+jobs:
+
+  do-unit-tests:
+    name: Do unit tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.9]
+    steps:
+    - name: Checkout main repo
+      uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        find . -name '*requirements.txt' | while read file; do pip install -r "$file"; done
+    - name: Test and check coverage pytest
+      run: |
+        export PYTHONPATH=$PYTHONPATH:./src:
+        pytest tests/ -n auto --cov --cov-fail-under=90 --ignore=./tests
+
+  do-flake8:
+    name: Do flake8
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        find . -name '*requirements.txt' | while read file; do pip install -r "$file"; done
+    - name: Lint with flake8
+      run: |
+        flake8 src  --count --show-source --statistics
+
+  do-mypy:
+    name: Do Mypy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        find . -name '*requirements.txt' | while read file; do pip install -r "$file"; done
+    - name: Lint with mypy
+      run: |
+        mypy .
+
+  do-isort:
+    name: Do isort
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        find . -name '*requirements.txt' | while read file; do pip install -r "$file"; done
+    - name: Run isort
+      run: |
+        isort --check --diff .
+
+  do-black:
+    name: Do black
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        find . -name '*requirements.txt' | while read file; do pip install -r "$file"; done
+    - name: Run black
+      run: |
+        black --check --diff -C -l 150 .
+
+  do-security-check:
+    name: Do security check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          find . -name '*requirements.txt' | while read file; do pip install -r "$file"; done
+      - name: Run bandit
+        run: |
+          bandit -r .
