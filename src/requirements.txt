@@ -1,7 +1,7 @@
 requests~=2.25.1
 pydantic~=1.9.0
 bandit~=1.7.2
-black~=21.12b0
+black~=22.3.0
 flake8~=4.0.1
 isort~=5.10.1
 mypy~=0.931
