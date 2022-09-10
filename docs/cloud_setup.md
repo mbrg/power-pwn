@@ -38,7 +38,7 @@
 
    ![Import pwntoso solution](assets/import_solution.png)
 
-3. Zip the content of [pwntoso_1_0_0_1](../solution/pwntoso_1_0_0_1) and select it when asked to provide a solution file. Follow the guided process to completion.
+3. Zip the content of [pwntoso_1_0_0_1](../src/power_automate_setup/solution/pwntoso_1_0_0_1) and select it when asked to provide a solution file. Follow the guided process to completion.
 
    1. When asked to provide a connection, following the guided process to create a new machine connection. Use the test victim machine credentials. 
 
