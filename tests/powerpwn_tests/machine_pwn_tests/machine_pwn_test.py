@@ -1,11 +1,11 @@
 import json
-from typing import Dict, List, Optional, cast
+from typing import List, Optional
 
 import pytest
 
-from powerpwn.c2 import PowerPwnC2
-from powerpwn.models.cmd_arguments import CommandToRunEnum
-from powerpwn.models.cmd_results import (
+from powerpwn.machinepwn.machine_pwn import MachinePwn
+from powerpwn.machinepwn.models.cmd_arguments import CommandToRunEnum
+from powerpwn.machinepwn.models.cmd_results import (
     AgentRunErrors,
     AgentRunType,
     CleanupOutputs,
@@ -21,7 +21,7 @@ POST_URL = ""
 DEBUG = True
 
 
-class DummyPowerPwnC2(PowerPwnC2):
+class DummyPowerPwnC2(MachinePwn):
     def __init__(self, post_url: str, debug: bool, command_to_run: CommandToRunEnum):
         super().__init__(post_url, debug)
         self.command_to_run = command_to_run
