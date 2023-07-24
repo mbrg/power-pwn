@@ -1,4 +1,4 @@
-# powerdump 
+# PowerDump
 
 
 powerdump is a tool for exploring information in Microsoft PowerPlatform from a Red Team perspective. In short, this is what it does:
