@@ -65,7 +65,7 @@ jobs:
         find . -name '*requirements.txt' | while read file; do pip install -r "$file"; done
     - name: Lint with mypy
       run: |
-        mypy .
+        mypy ./src/powerpwn/machinepwn/
 
   do-isort:
     name: Do isort
