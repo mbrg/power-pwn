@@ -47,8 +47,9 @@ class AgentRunErrors(BaseModel):
 
 class CommandResults(BaseModel):
     is_success: bool
-    agent_run_type: AgentRunType
-    agent_run_errors: AgentRunErrors
+    error_message: Optional[str]
+    agent_run_type: Optional[AgentRunType]
+    agent_run_errors: Optional[AgentRunErrors]
     cmd_exfiltration: Optional[ExfiltrationOutputs]
     cmd_code_execution: Optional[CodeExecOutputs]
     cmd_ransomware: Optional[RansomwareOutputs]
