@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <table id="data" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Display name</th>
+        <th>Version</th>
+        <th>Created by</th>
+        <th>Created at </th>
+        <th>Last modified at </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for connector in resources %}
+        <tr>
+          <td>{{ connector.display_name }}</td>
+          <td>{{ connector.version }}</td>
+          <td>{{ connector.created_by }}</td>
+          <td>{{ connector.created_at }}</td>
+          <td>{{ connector.last_modified_at }}</td>
+          <td><a href="/{{ connector.entity_type}}/{{ connector.environment_id }}/{{ connector.entity_id }}">Raw</a> </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable({
+        scrollX: true
+      });
+    });
+  </script>
+{% endblock %}

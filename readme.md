@@ -11,3 +11,7 @@ Power Pwn is a demo showing how to repurpose Microsoft-trusted executables, serv
 Disclaimer: these materials are presented from an attacker’s perspective with the goal of raising awareness to the risks of underestimating the security impact of No Code/Low Code. No Code/Low Code is awesome.
 
 # TODO: organize powerpwn toolset docs
+
+[LCNC Malware](docs/machinepwn/machine_pwn.md)
+[PowerDump](docs/powerdump/readme.md)
+[PowerDoor](docs/powerdoor/readme.md)

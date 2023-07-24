@@ -1,0 +1,178 @@
+{
+    "flow_display_name": "PWN-sas",
+    "flow_definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "contentVersion": "1.0.0.0",
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            },
+            "$authentication": {
+                "defaultValue": {},
+                "type": "SecureObject"
+            }
+        },
+        "triggers": {
+            "manual": {
+                "metadata": {
+                    "operationMetadataId": "7c96bdde-e787-483c-8317-95a80548eed6"
+                },
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {}
+            }
+        },
+        "actions": {
+            "Response": {
+                "runAfter": {
+                    "Generate_SAS_URI_for_each_blob": [
+                        "Succeeded"
+                    ]
+                },
+                "metadata": {
+                    "operationMetadataId": "c8311fdf-7d58-4e84-aabe-7ab71a160bd7"
+                },
+                "type": "Response",
+                "kind": "Http",
+                "inputs": {
+                    "statusCode": 200,
+                    "body": "@variables('sas_urls')"
+                }
+            },
+            "Lists_blobs_in_the_root_folder__(V2)": {
+                "runAfter": {
+                    "init_sas_urls_var": [
+                        "Succeeded"
+                    ]
+                },
+                "metadata": {
+                    "operationMetadataId": "bce1a151-25ef-4614-909d-3d23e480883c"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                    "host": {
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_azureblob",
+                        "connectionName": "shared_azureblob",
+                        "operationId": "ListRootFolder_V4"
+                    },
+                    "parameters": {
+                        "dataset": "AccountNameFromSettings",
+                        "nextPageMarker": ""
+                    },
+                    "authentication": "@parameters('$authentication')"
+                }
+            },
+            "init_sas_urls_var": {
+                "runAfter": {},
+                "metadata": {
+                    "operationMetadataId": "240e2cae-525e-4b77-8887-cb73e5cb0b41"
+                },
+                "type": "InitializeVariable",
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "sas_urls",
+                            "type": "array"
+                        }
+                    ]
+                }
+            },
+            "Filter_non_folders": {
+                "runAfter": {
+                    "Lists_blobs_in_the_root_folder__(V2)": [
+                        "Succeeded"
+                    ]
+                },
+                "metadata": {
+                    "operationMetadataId": "0060d743-b87c-4d1c-83c7-91d57fdc7077"
+                },
+                "type": "Query",
+                "inputs": {
+                    "from": "@outputs('Lists_blobs_in_the_root_folder__(V2)')?['body/value']",
+                    "where": "@equals(item()?['IsFolder'], True)"
+                }
+            },
+            "Generate_SAS_URI_for_each_blob": {
+                "foreach": "@body('Filter_non_folders')",
+                "actions": {
+                    "Create_SAS_URI_by_path_(V2)": {
+                        "runAfter": {},
+                        "metadata": {
+                            "operationMetadataId": "26c4c390-0558-4f70-bea9-0baae1fa6dd5"
+                        },
+                        "type": "OpenApiConnection",
+                        "inputs": {
+                            "host": {
+                                "apiId": "/providers/Microsoft.PowerApps/apis/shared_azureblob",
+                                "connectionName": "shared_azureblob",
+                                "operationId": "CreateShareLinkByPath_V2"
+                            },
+                            "parameters": {
+                                "storageAccountName": "AccountNameFromSettings",
+                                "path": "@items('Generate_SAS_URI_for_each_blob')?['Name']",
+                                "policy/Permissions": "Read"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                        }
+                    },
+                    "Append_to_array_variable": {
+                        "runAfter": {
+                            "Create_SAS_URI_by_path_(V2)": [
+                                "Succeeded"
+                            ]
+                        },
+                        "metadata": {
+                            "operationMetadataId": "9f16953c-74c6-4ff6-a8c8-5db6a2d09fac"
+                        },
+                        "type": "AppendToArrayVariable",
+                        "inputs": {
+                            "name": "sas_urls",
+                            "value": "@outputs('Create_SAS_URI_by_path_(V2)')?['body/WebUrl']"
+                        }
+                    }
+                },
+                "runAfter": {
+                    "Create_SAS_URI_by_path_(V2)_2": [
+                        "Succeeded"
+                    ]
+                },
+                "metadata": {
+                    "operationMetadataId": "9cdc070e-fd34-486d-95de-b9be46b01525"
+                },
+                "type": "Foreach"
+            },
+            "Create_SAS_URI_by_path_(V2)_2": {
+                "runAfter": {
+                    "Filter_non_folders": [
+                        "Succeeded"
+                    ]
+                },
+                "metadata": {
+                    "operationMetadataId": "492672b1-bc80-4906-aa52-e630f43804b3"
+                },
+                "type": "OpenApiConnection",
+                "inputs": {
+                    "host": {
+                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_azureblob",
+                        "connectionName": "shared_azureblob",
+                        "operationId": "CreateShareLinkByPath_V2"
+                    },
+                    "parameters": {
+                        "storageAccountName": "AccountNameFromSettings",
+                        "path": "*",
+                        "policy/Permissions": "Read"
+                    },
+                    "authentication": "@parameters('$authentication')"
+                }
+            }
+        }
+    },
+    "connection_references": [
+        {
+            "connectionName": "683ac0107c34470d9629ebb662c45d09",
+            "id": "/providers/Microsoft.PowerApps/apis/shared_azureblob"
+        }
+    ],
+    "flow_state": "Started"
+}

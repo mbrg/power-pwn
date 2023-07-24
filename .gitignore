@@ -145,3 +145,6 @@ cov.xml
 
 # MacOS files
 .DS_Store
+
+tokens.json
+*.zip
