@@ -1,8 +1,6 @@
 import argparse
 import json
 import logging
-import os
-import shutil
 
 from art import tprint
 
@@ -12,30 +10,8 @@ from powerpwn.machinepwn.enums.command_to_run_enum import CommandToRunEnum
 from powerpwn.machinepwn.machine_pwn import MachinePwn
 from powerpwn.powerdoor.backdoor_flow import BackdoorFlow
 from powerpwn.powerdoor.enums.action_type import ActionType
-from powerpwn.powerdump.collect.data_collectors.data_collector import DataCollector
-from powerpwn.powerdump.collect.resources_collectors.resources_collector import ResourcesCollector
-from powerpwn.powerdump.gui.gui import Gui
-from powerpwn.powerdump.utils.auth import acquire_token, acquire_token_from_cached_refresh_token
-from powerpwn.powerdump.utils.const import API_HUB_SCOPE, CACHE_PATH, POWER_APPS_SCOPE
 
 logger = logging.getLogger(LOGGER_NAME)
-
-
-def register_gui_parser(sub_parser: argparse.ArgumentParser):
-    gui_parser = sub_parser.add_parser("gui", description="Show collected resources and data.", help="Show collected resources and data via GUI.")
-    gui_parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
-    gui_parser.add_argument("--cache-path", default=CACHE_PATH, type=str, help="Path to cached resources.")
-
-
-def register_collect_parser(sub_parser: argparse.ArgumentParser):
-    explore_parser = sub_parser.add_parser(
-        "dump", description="Collect all available data in tenant", help="Get all available resources in tenant and dump data."
-    )
-    explore_parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
-    explore_parser.add_argument("-c", "--clear-cache", action="store_true", help="Clear local disk cache")
-    explore_parser.add_argument("--cache-path", default=CACHE_PATH, help="Path to store collected resources and data.")
-    explore_parser.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
-    explore_parser.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
 
 
 def register_machine_pwn_common_args(sub_parser: argparse.ArgumentParser):
@@ -99,8 +75,6 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
     command_subparsers = parser.add_subparsers(help="command", dest="command")
-    register_collect_parser(command_subparsers)
-    register_gui_parser(command_subparsers)
 
     ## Delete Flow parser ##
     delete_flow_parser = command_subparsers.add_parser("delete-flow", description="Deletes flow.", help="Deletes flow using installed backdoor flow.")
@@ -125,38 +99,6 @@ def parse_arguments():
     args = parser.parse_args()
 
     return args
-
-
-def __init_command_token(args, scope: str) -> str:
-    # if cached refresh token is found, use it
-    if token := acquire_token_from_cached_refresh_token(scope, args.tenant):
-        return token
-
-    return acquire_token(scope=scope, tenant=args.tenant)
-
-
-def run_collect_resources_command(args):
-    # cache
-    if args.clear_cache:
-        try:
-            shutil.rmtree(args.cache_path)
-        except FileNotFoundError:
-            pass
-    os.makedirs(args.cache_path, exist_ok=True)
-
-    token = __init_command_token(args, POWER_APPS_SCOPE)
-
-    entities_fetcher = ResourcesCollector(token=token, cache_path=args.cache_path)
-    entities_fetcher.collect_and_cache()
-
-
-def run_gui_command(args):
-    Gui().run(cache_path=args.cache_path)
-
-
-def run_collect_data_command(args):
-    token = __init_command_token(args, API_HUB_SCOPE)
-    DataCollector(token=token, cache_path=args.cache_path).collect()
 
 
 def run_backdoor_flow_command(args):
@@ -207,18 +149,7 @@ def main():
     logger.level = args.log_level
     command = args.command
 
-    if command == "dump":
-        run_collect_resources_command(args)
-        run_collect_data_command(args)
-        logger.info(f"Dump is completed in {args.cache_path}")
-        if args.gui:
-            logger.info("Going to run local server for gui")
-            run_gui_command(args)
-
-    elif command == "gui":
-        run_gui_command(args)
-
-    elif command in [action_type.value for action_type in ActionType]:
+    if command in [action_type.value for action_type in ActionType]:
         run_backdoor_flow_command(args)
 
     elif command in [cmd_type.value for cmd_type in CommandToRunEnum]:
