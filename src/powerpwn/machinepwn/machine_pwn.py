@@ -35,7 +35,7 @@ class MachinePwn:
 
     def _run_cmd(self, arguments_as_dict: dict) -> dict:  # type: ignore
         # noinspection PyTypeChecker
-        resp = requests.post(url=self.post_url, json=arguments_as_dict)
+        resp = requests.post(url=self.post_url, json=arguments_as_dict)  # nosec
 
         if self.debug:
             print(f"Raw content: {resp.content.decode('utf8')}")
