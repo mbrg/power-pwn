@@ -4,11 +4,11 @@ from typing import List
 import requests
 from pydantic.error_wrappers import ValidationError
 
-from powerpwn.models.cmd_arguments import CodeExecTypeEnum, CommandArguments, CommandToRunEnum
-from powerpwn.models.cmd_results import CommandResults
+from powerpwn.machinepwn.models.cmd_arguments import CodeExecTypeEnum, CommandArguments, CommandToRunEnum
+from powerpwn.machinepwn.models.cmd_results import CommandResults
 
 
-class PowerPwnC2:
+class MachinePwn:
     def __init__(self, post_url: str, debug: bool = False):
         """
         Power Pwn client to run commands through Microsoft infrastructure
@@ -35,7 +35,7 @@ class PowerPwnC2:
 
     def _run_cmd(self, arguments_as_dict: dict) -> dict:  # type: ignore
         # noinspection PyTypeChecker
-        resp = requests.post(url=self.post_url, json=arguments_as_dict)
+        resp = requests.post(url=self.post_url, json=arguments_as_dict)  # nosec
 
         if self.debug:
             print(f"Raw content: {resp.content.decode('utf8')}")
