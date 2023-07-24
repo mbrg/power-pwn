@@ -13,6 +13,6 @@ Disclaimer: these materials are presented from an attacker’s perspective with 
 
 [LCNC Malware](docs/machinepwn/machine_pwn.md)
 
-[PowerDump](docs/powerdump/readme.md)
+[PowerDump](docs/powerdump/README.md)
 
 [PowerDoor](docs/powerdoor/readme.md)
