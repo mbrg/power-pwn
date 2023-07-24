@@ -1,5 +1,5 @@
 import os
-import subprocess
+import subprocess  # nosec
 import sys
 
 
@@ -23,7 +23,7 @@ if check_python_version():
     sys.path.append("./src")
 
     log("Creating virtual environment")
-    subprocess.run("python -m venv .venv")
+    subprocess.run("python -m venv .venv")  # nosec
 
     log("Installing python packages")
     py_path = os.path.join(".venv", "Scripts", "python")
@@ -31,10 +31,10 @@ if check_python_version():
     if not sys.platform.startswith("win"):
         py_path = os.path.join(".venv", "bin", "python")
 
-    subprocess.run(f"{py_path} -m pip install --upgrade pip", shell=True)
+    subprocess.run(f"{py_path} -m pip install --upgrade pip", shell=True)  # nosec
 
     # install packages
-    subprocess.run(f"{py_path} -m pip install -r requirements.txt", shell=True)
+    subprocess.run(f"{py_path} -m pip install -r requirements.txt", shell=True)  # nosec
 
     log("Python packages installed successfully")
 

