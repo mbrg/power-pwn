@@ -1,24 +1,13 @@
 import json
 from typing import Any, Dict, List
 
-from powerpwn.powerdump.collect.data_collectors.connections_data_collectors.connectors.connector_base import (
-    ConnectorBase,
-)
+from powerpwn.powerdump.collect.data_collectors.connections_data_collectors.connectors.connector_base import ConnectorBase
 from powerpwn.powerdump.collect.data_collectors.enums.data_dump_type import DataDumpType
 from powerpwn.powerdump.collect.models.data_dump_entity import DataDump
-from powerpwn.powerdump.collect.models.data_record_entity import (
-    DataRecord,
-    DataRecordWithContext,
-)
-from powerpwn.powerdump.collect.models.data_store_entity import (
-    DataStore,
-    DataStoreWithContext,
-)
+from powerpwn.powerdump.collect.models.data_record_entity import DataRecord, DataRecordWithContext
+from powerpwn.powerdump.collect.models.data_store_entity import DataStore, DataStoreWithContext
 from powerpwn.powerdump.utils.const import ENCODING
-from powerpwn.powerdump.utils.requests_wrapper import (
-    consecutive_gets,
-    request_and_verify,
-)
+from powerpwn.powerdump.utils.requests_wrapper import consecutive_gets, request_and_verify
 
 
 class ExcelOnlineBusinessConnector(ConnectorBase):
