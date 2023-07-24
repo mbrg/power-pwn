@@ -13,6 +13,7 @@ from powerpwn.powerdoor.enums.action_type import ActionType
 
 logger = logging.getLogger(LOGGER_NAME)
 
+
 def register_machine_pwn_common_args(sub_parser: argparse.ArgumentParser):
     sub_parser.add_argument("-w", "--webhook-url", required=True, type=str, help="Webhook url to the flow factory installed in powerplatform")
     sub_parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
