@@ -6,6 +6,4 @@ from powerpwn.machinepwn.models.exflirtate_file_args_properties import Exflirtat
 
 
 class ExflirtateFileCommandArgs(CommandArguments[ExflirtateFileArgsProperties]):
-    command_to_run: Literal[
-        CommandToRunEnum.EXFILTRATION
-    ] = CommandToRunEnum.EXFILTRATION
+    command_to_run: Literal[CommandToRunEnum.EXFILTRATION] = CommandToRunEnum.EXFILTRATION
