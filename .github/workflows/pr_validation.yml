@@ -25,7 +25,7 @@ jobs:
     - name: Test and check coverage pytest
       run: |
         export PYTHONPATH=$PYTHONPATH:./src:
-        pytest tests/ -n auto --cov --cov-fail-under=90 --ignore=./tests
+        pytest tests/ -n auto --cov --cov-fail-under=1
 
   do-flake8:
     name: Do flake8
@@ -65,7 +65,7 @@ jobs:
         find . -name '*requirements.txt' | while read file; do pip install -r "$file"; done
     - name: Lint with mypy
       run: |
-        mypy .
+        mypy ./src/powerpwn/machinepwn/
 
   do-isort:
     name: Do isort

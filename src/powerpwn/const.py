@@ -1,0 +1,2 @@
+TOOL_NAME = "powerpwn"
+LOGGER_NAME = TOOL_NAME
