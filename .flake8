@@ -1,5 +1,39 @@
 [flake8]
-ignore = E203, E266, E501, W503
+ignore =
+	# Black formatter prefers whitespaces that this flake8 rule rejects
+	E203,
+	# Black formatter is responsible for lines length
+	E501,
+	# Line breaks before binary operator became best practice: https://www.flake8rules.com/rules/W503.html
+	W503,
+    # Too many leading '#' for block comment: sometimes we command out code that has comments, so we want to allow multiple comment markers
+    E266,
+	# We have complex functions we wish to keep as is for now
+	C901,
 max-line-length = 150
 max-complexity = 18
-select = B,C,E,F,W,T4
+select = B,C,E,F,W,T4 # Good recommended defaults
+extend-select = # Plugins
+	# builtins plugin: https://github.com/gforcada/flake8-builtins
+	A0,
+	# comprehensions plugin: https://github.com/adamchainz/flake8-comprehensions
+	C4,
+	# mutable plugin: https://github.com/ebeweber/flake8-mutable/blob/master/mutable_defaults.py
+	M511,
+	# naming plugin: https://github.com/PyCQA/pep8-naming
+	N8,
+	# pytest-style plugin: https://github.com/m-burst/flake8-pytest-style
+	PT,
+	# simplify plugin: https://github.com/MartinThoma/flake8-simplify
+	SIM
+exclude =
+    # No need to traverse our git directory
+    .git,
+    # No need to scan Github files
+	.github,
+    # There's no value in checking cache directories
+    __pycache__,
+	# No need to scan virtual environment files
+	.venv,
+	# No need to scan MyPy files
+	.mypy_cache

@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from powerpwn.powerdump.collect.data_collectors.connections_data_collectors.connectors.connector_base import ConnectorBase
 from powerpwn.powerdump.collect.data_collectors.enums.data_dump_type import DataDumpType
@@ -11,7 +11,7 @@ from powerpwn.powerdump.utils.requests_wrapper import consecutive_gets, request_
 
 
 class ExcelOnlineBusinessConnector(ConnectorBase):
-    def _ping(self, connection_parameters: dict) -> List[DataStore]:
+    def _ping(self, connection_parameters: Dict[str, Any]) -> List[DataStore]:
         records: List[DataStore] = []
 
         sources_success, sources_val = consecutive_gets(
@@ -42,8 +42,8 @@ class ExcelOnlineBusinessConnector(ConnectorBase):
 
         return records
 
-    def __enum_dir(self, source_id: str, drive_id: str, folder_id: str) -> List[Dict]:
-        file_objs: List[Dict] = []
+    def __enum_dir(self, source_id: str, drive_id: str, folder_id: str) -> List[Dict[str, Any]]:
+        file_objs: List[Dict[str, Any]] = []
 
         if folder_id == "root":
             folder_path = "root"

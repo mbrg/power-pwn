@@ -3,8 +3,9 @@ from typing import List, Optional
 
 import pytest
 
+from powerpwn.machinepwn.enums.code_exec_type_enum import CodeExecTypeEnum
+from powerpwn.machinepwn.enums.command_to_run_enum import CommandToRunEnum
 from powerpwn.machinepwn.machine_pwn import MachinePwn
-from powerpwn.machinepwn.models.cmd_arguments import CommandToRunEnum
 from powerpwn.machinepwn.models.cmd_results import (
     AgentRunErrors,
     AgentRunType,
@@ -52,12 +53,11 @@ class DummyPowerPwnC2(MachinePwn):
         return cmd_res_as_dict
 
 
-@pytest.mark.parametrize("exec_env", ["exec_py2", "exec_vb", "exec_js", "exec_ps", "exec_cmd"])
-def test_code_exec(exec_env: str, command: str = "") -> None:
+@pytest.mark.parametrize("command_type", [cmd_type for cmd_type in CodeExecTypeEnum])
+def test_code_exec(command_type: CodeExecTypeEnum, command: str = "") -> None:
     c2 = DummyPowerPwnC2(post_url=POST_URL, debug=DEBUG, command_to_run=CommandToRunEnum.CODE_EXEC)
 
-    exec_env_command = getattr(c2, exec_env)
-    exec_env_command(command=command)
+    c2.exec_command(command, command_type)
 
 
 def test_ransomware(crawl_depth: str = "0", dirs_to_init_crawl: Optional[List[str]] = None, encryption_key: str = "") -> None:
