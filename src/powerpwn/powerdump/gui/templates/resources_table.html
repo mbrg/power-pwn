@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <table id="data" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Resource Name</th>
+        <th>Resource Id</th>
+        <th>Resource Type</th>
+        <th>Environment</th>
+        <th>Created By</th>
+        <th>Created At</th>
+        <th>Last modified At</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for resource in resources %}
+        <tr>
+          <td>{{ resource.display_name }} </td>
+          <td>{{ resource.entity_id }}</td>
+          <td>{{ resource.entity_type }}</td>
+          <td>{{ resource.environment_id }}</td>
+          <td>{{ resource.created_by.email }}</td>
+          <td>{{ resource.created_at }}</td>
+          <td>{{ resource.last_modified_at }}</td>
+          <td><a href="/{{ resource.entity_type }}/{{ resource.environment_id }}/{{ resource.entity_id }}">Raw</a> </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable({
+        scrollX: true
+      });
+    });
+  </script>
+{% endblock %}

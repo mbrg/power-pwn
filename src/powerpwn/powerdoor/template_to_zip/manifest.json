@@ -1,0 +1,54 @@
+{
+    "details": {
+        "displayName": "Flow factory",
+        "description": "",
+        "createdTime": "2022-03-10T13:22:20.727452Z",
+        "packageTelemetryId": "cb1e7551-a40f-46ff-aaa7-56ef9ab65864",
+        "creator": "N/A",
+        "sourceEnvironment": ""
+    },
+    "resources": {
+        "dc8e9329-33ec-4dab-89b7-00ec86c2f8df": {
+            "type": "Microsoft.Flow/flows",
+            "suggestedCreationType": "Update",
+            "creationType": "Existing, New, Update",
+            "details": {
+                "displayName": "Flow factory"
+            },
+            "configurableBy": "User",
+            "hierarchy": "Root",
+            "dependsOn": [
+                "ad257a50-7b95-4ab5-980c-ae0802bf676c",
+                "99e97541-b688-4003-860a-7464fcd4f1ab"
+            ]
+        },
+        "ad257a50-7b95-4ab5-980c-ae0802bf676c": {
+            "id": "/providers/Microsoft.PowerApps/apis/shared_flowmanagement",
+            "name": "shared_flowmanagement",
+            "type": "Microsoft.PowerApps/apis",
+            "suggestedCreationType": "Existing",
+            "details": {
+                "displayName": "Power Automate Management",
+                "iconUri": "https://connectoricons-prod.azureedge.net/releases/v1.0.1547/1.0.1547.2675/flowmanagement/icon.png"
+            },
+            "configurableBy": "System",
+            "hierarchy": "Child",
+            "dependsOn": []
+        },
+        "99e97541-b688-4003-860a-7464fcd4f1ab": {
+            "type": "Microsoft.PowerApps/apis/connections",
+            "suggestedCreationType": "Existing",
+            "creationType": "Existing",
+            "details": {
+                "displayName": "kris@zenitystage.com",
+                "iconUri": "https://connectoricons-prod.azureedge.net/releases/v1.0.1535/1.0.1535.2607/flowmanagement/icon.png"
+            },
+            "configurableBy": "User",
+            "hierarchy": "Child",
+            "dependsOn": [
+                "ad257a50-7b95-4ab5-980c-ae0802bf676c"
+            ]
+        }
+    },
+    "schema": "1.0"
+}
