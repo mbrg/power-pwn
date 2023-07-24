@@ -6,6 +6,4 @@ from powerpwn.machinepwn.models.steal_cookie_args_properties import StealCookieA
 
 
 class StealCookieCommandArgs(CommandArguments[StealCookieArgsProperties]):
-    command_to_run: Literal[
-        CommandToRunEnum.STEAL_COOKIE
-    ] = CommandToRunEnum.STEAL_COOKIE
+    command_to_run: Literal[CommandToRunEnum.STEAL_COOKIE] = CommandToRunEnum.STEAL_COOKIE
