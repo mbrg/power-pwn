@@ -41,9 +41,9 @@ class MachinePwn:
             raise
 
         results = self._run_cmd(arguments_as_dict=cmd_args)
-        
+
         if "error" in results:
-            cmd_res=CommandResults(is_success=False, error_message=results["error"]["message"])
+            cmd_res = CommandResults(is_success=False, error_message=results["error"]["message"])
         else:
             cmd_res = CommandResults.parse_obj(results)
         return cmd_res
