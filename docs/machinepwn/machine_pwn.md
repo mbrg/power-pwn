@@ -52,8 +52,8 @@ pp.steal_cookie("https://www.google.com").cmd_steal_cookie
 
 ## How To
 
-[How to set up your Power Pwn cloud environment](docs/machinepwn/cloud_setup.md)
+[How to set up your Power Pwn cloud environment](cloud_setup.md)
 
-[How to infect a victim machine](docs/machinepwn/infect_machine.md)
+[How to infect a victim machine](infect_machine.md)
 
-[How to troubleshoot execution errors](docs/machinepwn/infect_machine.md)
+[How to troubleshoot execution errors](infect_machine.md)
