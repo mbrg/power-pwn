@@ -18,7 +18,7 @@ from powerpwn.powerdump.gui.prep import (
 
 
 class Gui:
-    def run(self, cache_path: str):
+    def run(self, cache_path: str) -> None:
         # run file browser
         subprocess.Popen(["browsepy", "0.0.0.0", "8080", "--directory", cache_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # nosec
 
