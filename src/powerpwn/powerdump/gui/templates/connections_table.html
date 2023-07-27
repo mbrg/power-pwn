@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <table id="data" class="table table-striped">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Connector</th>
+        <th>Connection</th>
+        <th>Environment </th>
+        <th>Is valid</th>
+        <th>Last modified at</th>
+        <th>Expires at</th>
+        <th>Created by</th>
+        <th>Shareable</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for connection in resources %}
+        <tr>
+          <td><img src="{{ connection.icon_uri }}" class="img-thumbnail" alt="{{ connection.connection_id }}" width="25"></td>
+          <td><a href="/{{ connection.connector_id }}">{{ connection.connector_id }}</a></td>
+          <td>{{ connection.display_name }}</td>
+          <td>{{ connection.environment_id }}</td>
+          <td>{{ connection.is_valid }}</td>
+          <td>{{ connection.last_modified_at }}</td>
+          <td>{{ connection.expiration_time }}</td>
+          <td>{{ connection.created_by.email }}</td>
+          <td>{{ connection.shareable }}</td>
+          <td><a href="/api/{{ connection.connector_id }}/{{ connection.connection_id }}">Playground</a></td>
+          <td><a href="/{{ connection.entity_type }}/{{ connection.environment_id }}/{{ connection.entity_id }}">Raw</a> </td>
+          <td><a href="http://127.0.0.1:8080/browse/data/{{ connection.environment_id }}/connections/{{connection.connector_id}}/{{connection.entity_id}}" target="_blank">Dump</a> </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    $(document).ready(function () {
+      $('#data').DataTable({
+        scrollX: true
+      });
+    });
+  </script>
+{% endblock %}
