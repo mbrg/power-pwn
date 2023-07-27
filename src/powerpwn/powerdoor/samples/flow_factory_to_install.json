@@ -1,0 +1,418 @@
+{
+    "properties": {
+        "displayName": "Flow Factory",
+        "definition": {
+            "metadata": {
+                "workflowEntityId": null,
+                "processAdvisorMetadata": null,
+                "flowclientsuspensionreason": "None",
+                "flowclientsuspensiontime": null,
+                "creator": {
+                    "id": "ffb11457-7a0b-4ab0-aa21-35cc0c3e7c1f",
+                    "type": "User",
+                    "tenantId": "32f814a9-68c8-4ca1-93aa-5594523476b3"
+                },
+                "provisioningMethod": "FromDefinition",
+                "failureAlertSubscription": true,
+                "clientLastModifiedTime": "2022-03-10T13:19:50.1423242Z"
+            },
+            "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+            "contentVersion": "1.0.0.0",
+            "parameters": {
+                "$connections": {
+                    "defaultValue": {},
+                    "type": "Object"
+                },
+                "$authentication": {
+                    "defaultValue": {},
+                    "type": "SecureObject"
+                }
+            },
+            "triggers": {
+                "manual": {
+                    "metadata": {
+                        "operationMetadataId": "46024f90-502d-430d-875e-a7e8bf36a266"
+                    },
+                    "type": "Request",
+                    "kind": "Http",
+                    "inputs": {
+                        "schema": {
+                            "title": "Commands",
+                            "type": "object",
+                            "properties": {
+                                "action": {
+                                    "title": "Action",
+                                    "type": "string",
+                                    "enum": [
+                                        "createFlow",
+                                        "deleteFlow",
+                                        "runFlow",
+                                        "createConnection",
+                                        "deleteConnection",
+                                        "getConnections"
+                                    ]
+                                },
+                                "inputs": {
+                                    "title": "Inputs",
+                                    "type": "object",
+                                    "properties": {
+                                        "environment": {
+                                            "type": "string"
+                                        },
+                                        "flowId": {
+                                            "type": "string"
+                                        },
+                                        "flowDisplayName": {
+                                            "type": "string"
+                                        },
+                                        "flowDefinition": {
+                                            "type": "object"
+                                        },
+                                        "isWebhook": {
+                                            "type": "boolean"
+                                        },
+                                        "flowState": {
+                                            "type": "string",
+                                            "enum": [
+                                                "Stopped",
+                                                "Started"
+                                            ]
+                                        },
+                                        "connectionReferences": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                    "connectionName": {
+                                                        "type": "string"
+                                                    },
+                                                    "id": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "connectionName",
+                                                    "id"
+                                                ],
+                                                "additionalProperties": false
+                                            }
+                                        }
+                                    },
+                                    "required": [],
+                                    "additionalProperties": false
+                                }
+                            },
+                            "required": [
+                                "action",
+                                "inputs"
+                            ],
+                            "additionalProperties": false
+                        }
+                    },
+                    "runtimeConfiguration": {
+                        "secureData": {
+                            "properties": [
+                                "inputs",
+                                "outputs"
+                            ]
+                        }
+                    }
+                }
+            },
+            "actions": {
+                "Success": {
+                    "runAfter": {
+                        "Scope": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "2e94600b-9d6b-4e4f-9386-b4af959c0ce6"
+                    },
+                    "type": "Response",
+                    "kind": "Http",
+                    "inputs": {
+                        "statusCode": 200,
+                        "headers": {
+                            "action": "@triggerBody()['action']"
+                        },
+                        "body": "@variables('responseBody')"
+                    },
+                    "runtimeConfiguration": {
+                        "secureData": {
+                            "properties": [
+                                "inputs"
+                            ]
+                        }
+                    }
+                },
+                "Scope": {
+                    "actions": {
+                        "Switch": {
+                            "runAfter": {},
+                            "cases": {
+                                "Case_createFlow": {
+                                    "case": "createFlow",
+                                    "actions": {
+                                        "Create_Flow": {
+                                            "runAfter": {},
+                                            "metadata": {
+                                                "operationMetadataId": "3baa0c30-5a87-4b8a-be3f-1e13246417ef"
+                                            },
+                                            "type": "OpenApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_flowmanagement",
+                                                    "connectionName": "shared_flowmanagement",
+                                                    "operationId": "CreateFlow"
+                                                },
+                                                "parameters": {
+                                                    "environmentName": "@triggerBody()?['inputs']?['environment']",
+                                                    "Flow/properties/displayName": "@triggerBody()?['inputs']?['flowDisplayName']",
+                                                    "Flow/properties/definition": "@triggerBody()?['inputs']?['flowDefinition']",
+                                                    "Flow/properties/state": "@triggerBody()?['inputs']?['flowState']",
+                                                    "Flow/properties/connectionReferences": "@triggerBody()?['inputs']?['connectionReferences']"
+                                                },
+                                                "authentication": "@parameters('$authentication')"
+                                            },
+                                            "runtimeConfiguration": {
+                                                "secureData": {
+                                                    "properties": [
+                                                        "inputs",
+                                                        "outputs"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "Set_response_to_flowId": {
+                                            "runAfter": {
+                                                "Create_Flow": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "operationMetadataId": "156a274c-fe73-4113-8cfc-7c21d8a50c9f"
+                                            },
+                                            "type": "SetVariable",
+                                            "inputs": {
+                                                "name": "responseBody",
+                                                "value": [
+                                                    {
+                                                        "flowId": "@outputs('Create_Flow')?['body/name']"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        "Condition": {
+                                            "actions": {
+                                                "List_Callback_URL": {
+                                                    "runAfter": {},
+                                                    "metadata": {
+                                                        "operationMetadataId": "ff054da4-0bc6-4c86-84c8-81eae0bd3587"
+                                                    },
+                                                    "type": "OpenApiConnection",
+                                                    "inputs": {
+                                                        "host": {
+                                                            "apiId": "/providers/Microsoft.PowerApps/apis/shared_flowmanagement",
+                                                            "connectionName": "shared_flowmanagement",
+                                                            "operationId": "ListCallbackUrl"
+                                                        },
+                                                        "parameters": {
+                                                            "environmentName": "@triggerBody()?['inputs']?['environment']",
+                                                            "flowName": "@outputs('Create_Flow')?['body/name']"
+                                                        },
+                                                        "authentication": "@parameters('$authentication')"
+                                                    },
+                                                    "runtimeConfiguration": {
+                                                        "secureData": {
+                                                            "properties": [
+                                                                "inputs",
+                                                                "outputs"
+                                                            ]
+                                                        }
+                                                    }
+                                                },
+                                                "Append_to_array_variable": {
+                                                    "runAfter": {
+                                                        "List_Callback_URL": [
+                                                            "Succeeded"
+                                                        ]
+                                                    },
+                                                    "metadata": {
+                                                        "operationMetadataId": "e3a2808b-e6f0-4c75-9611-8057c6ba10d7"
+                                                    },
+                                                    "type": "AppendToArrayVariable",
+                                                    "inputs": {
+                                                        "name": "responseBody",
+                                                        "value": {
+                                                            "webhookUrl": "@outputs('List_Callback_URL')?['body/response/value']"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "runAfter": {
+                                                "Set_response_to_flowId": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "expression": {
+                                                "equals": [
+                                                    "@triggerBody()?['inputs']?['isWebhook']",
+                                                    true
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "operationMetadataId": "4c71898d-822e-449f-bca1-9bd99de100bd"
+                                            },
+                                            "type": "If"
+                                        }
+                                    }
+                                },
+                                "Case_deleteFlow": {
+                                    "case": "deleteFlow",
+                                    "actions": {
+                                        "Delete_Flow": {
+                                            "runAfter": {},
+                                            "metadata": {
+                                                "operationMetadataId": "f2bfe4b4-3491-4936-8d3d-9169118b4041"
+                                            },
+                                            "type": "OpenApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_flowmanagement",
+                                                    "connectionName": "shared_flowmanagement",
+                                                    "operationId": "DeleteFlow"
+                                                },
+                                                "parameters": {
+                                                    "environmentName": "@triggerBody()?['inputs']?['environment']",
+                                                    "flowName": "@triggerBody()?['inputs']?['flowId']"
+                                                },
+                                                "authentication": "@parameters('$authentication')"
+                                            },
+                                            "runtimeConfiguration": {
+                                                "secureData": {
+                                                    "properties": [
+                                                        "inputs",
+                                                        "outputs"
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "Case_getConnections": {
+                                    "case": "getConnections",
+                                    "actions": {
+                                        "List_My_Connections": {
+                                            "runAfter": {},
+                                            "metadata": {
+                                                "operationMetadataId": "ff8fb035-b0f9-4a51-b971-66c8439b5a3e"
+                                            },
+                                            "type": "OpenApiConnection",
+                                            "inputs": {
+                                                "host": {
+                                                    "apiId": "/providers/Microsoft.PowerApps/apis/shared_flowmanagement",
+                                                    "connectionName": "shared_flowmanagement",
+                                                    "operationId": "ListConnections"
+                                                },
+                                                "parameters": {
+                                                    "environmentName": "@triggerBody()?['inputs']?['environment']"
+                                                },
+                                                "authentication": "@parameters('$authentication')"
+                                            },
+                                            "runtimeConfiguration": {
+                                                "secureData": {
+                                                    "properties": [
+                                                        "inputs",
+                                                        "outputs"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        "Set_response_to_connections_list": {
+                                            "runAfter": {
+                                                "List_My_Connections": [
+                                                    "Succeeded"
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "operationMetadataId": "6dd6178d-c1f0-4125-a399-06ba4b9588fc"
+                                            },
+                                            "type": "SetVariable",
+                                            "inputs": {
+                                                "name": "responseBody",
+                                                "value": "@outputs('List_My_Connections')?['body/value']"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "default": {
+                                "actions": {}
+                            },
+                            "expression": "@triggerBody()['action']",
+                            "metadata": {
+                                "operationMetadataId": "686dc260-b4e3-4b7d-baa5-29f7a296b602"
+                            },
+                            "type": "Switch"
+                        }
+                    },
+                    "runAfter": {
+                        "Initialize_responseBody": [
+                            "Succeeded"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "f2f489b0-0ed2-4677-bd16-0a3dee5ceae0"
+                    },
+                    "type": "Scope"
+                },
+                "Failed": {
+                    "runAfter": {
+                        "Scope": [
+                            "Failed",
+                            "TimedOut"
+                        ]
+                    },
+                    "metadata": {
+                        "operationMetadataId": "e62d62e8-e3c9-46c2-879d-0eaaf284ecca"
+                    },
+                    "type": "Response",
+                    "kind": "Http",
+                    "inputs": {
+                        "statusCode": 500,
+                        "headers": {
+                            "action": "@triggerBody()['action']"
+                        },
+                        "body": "@body('Create_Flow')"
+                    }
+                },
+                "Initialize_responseBody": {
+                    "runAfter": {},
+                    "metadata": {
+                        "operationMetadataId": "f5d57fa3-ce31-4a5c-b594-e790ee9eed33"
+                    },
+                    "type": "InitializeVariable",
+                    "inputs": {
+                        "variables": [
+                            {
+                                "name": "responseBody",
+                                "type": "array",
+                                "value": []
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        "connectionReferences": {
+            "shared_flowmanagement": {
+                "connectionName": "",
+                "source": "Embedded",
+                "id": "/providers/Microsoft.PowerApps/apis/shared_flowmanagement",
+                "tier": "NotSpecified"
+            }
+        },
+        "state": "Started"
+    }
+}
