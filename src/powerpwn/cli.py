@@ -64,7 +64,7 @@ def register_exec_parsers(command_subparsers: argparse.ArgumentParser):
     register_ransomware_parser(ransomware_parser)
 
     exflirtate_file_parser = command_subparsers.add_parser("exflirtate", description="Exflirtate file")
-    register_exflirtate_file_parser(exflirtate_file_parser)
+    register_exfiltrate_file_parser(exflirtate_file_parser)
 
     cleanup_parser = command_subparsers.add_parser("cleanup", description="Cleanup")
     register_machine_pwn_common_args(cleanup_parser)
@@ -91,7 +91,7 @@ def register_ransomware_parser(sub_parser: argparse.ArgumentParser):
     )
 
 
-def register_exflirtate_file_parser(sub_parser: argparse.ArgumentParser):
+def register_exfiltrate_file_parser(sub_parser: argparse.ArgumentParser):
     register_machine_pwn_common_args(sub_parser)
     sub_parser.add_argument("-f", "--file", required=True, type=str, help="Absolute path to file")
 
