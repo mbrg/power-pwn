@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
-from powerpwn.const import LOGGER_NAME, TOOL_NAME
+from powerpwn.cli.const import LOGGER_NAME, TOOL_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

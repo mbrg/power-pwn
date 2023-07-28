@@ -6,7 +6,7 @@ from typing import Optional
 from flask import Flask, render_template
 from swagger_ui import flask_api_doc
 
-from powerpwn.const import TOOL_NAME
+from powerpwn.cli.const import TOOL_NAME
 from powerpwn.powerdump.collect.models.resource_entity_base import ResourceEntityBase
 from powerpwn.powerdump.collect.resources_collectors.enums.resource_type import ResourceType
 from powerpwn.powerdump.utils.model_loaders import (

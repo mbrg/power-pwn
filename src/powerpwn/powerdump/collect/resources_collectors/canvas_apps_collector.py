@@ -3,7 +3,7 @@ from typing import Generator
 
 import requests
 
-from powerpwn.const import LOGGER_NAME
+from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.collect.models.canvas_app_entity import CanvasApp
 from powerpwn.powerdump.collect.models.principal_entity import Principal
 from powerpwn.powerdump.collect.resources_collectors._api import list_canvas_app_rbac, list_canvas_apps

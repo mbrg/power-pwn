@@ -6,7 +6,7 @@ import json
 import logging
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from powerpwn.const import LOGGER_NAME
+from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.collect.models.base_entity import BaseEntity
 
 logger = logging.getLogger(LOGGER_NAME)
