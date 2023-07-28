@@ -104,3 +104,7 @@ def run_nocodemalware_command(args):
     elif command_type == CommandToRunEnum.STEAL_POWER_AUTOMATE_TOKEN:
         res = machine_pwn.steal_power_automate_token()
     print(res)
+
+
+def run_phishing_command(args):
+    raise NotImplementedError("Phishing command has not been implemented yet.")
