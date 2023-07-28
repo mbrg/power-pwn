@@ -8,4 +8,4 @@ Power Pwn is an offensive security toolset for Microsoft Power Platform.
 
 Check out our [Wiki!](https://github.com/mbrg/power-pwn/wiki)
 
-![powerpwn](wiki/powerpwn_asci.png)
+![powerpwn](wiki/powerpwn_asci_black.png)
