@@ -133,7 +133,7 @@
                     }
                 },
                 "runAfter": {
-                    "Create_SAS_URI_by_path_(V2)_2": [
+                    "Filter_non_folders": [
                         "Succeeded"
                     ]
                 },
@@ -141,36 +141,12 @@
                     "operationMetadataId": "9cdc070e-fd34-486d-95de-b9be46b01525"
                 },
                 "type": "Foreach"
-            },
-            "Create_SAS_URI_by_path_(V2)_2": {
-                "runAfter": {
-                    "Filter_non_folders": [
-                        "Succeeded"
-                    ]
-                },
-                "metadata": {
-                    "operationMetadataId": "492672b1-bc80-4906-aa52-e630f43804b3"
-                },
-                "type": "OpenApiConnection",
-                "inputs": {
-                    "host": {
-                        "apiId": "/providers/Microsoft.PowerApps/apis/shared_azureblob",
-                        "connectionName": "shared_azureblob",
-                        "operationId": "CreateShareLinkByPath_V2"
-                    },
-                    "parameters": {
-                        "storageAccountName": "AccountNameFromSettings",
-                        "path": "*",
-                        "policy/Permissions": "Read"
-                    },
-                    "authentication": "@parameters('$authentication')"
-                }
             }
         }
     },
     "connection_references": [
         {
-            "connectionName": "683ac0107c34470d9629ebb662c45d09",
+            "connectionName": "2fafb040469f41258f6e2462a0253b97",
             "id": "/providers/Microsoft.PowerApps/apis/shared_azureblob"
         }
     ],

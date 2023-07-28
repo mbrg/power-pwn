@@ -41,7 +41,7 @@ def module_nocodemalware_subcommand_exec(command_subparsers: argparse.ArgumentPa
     steal_fqdn_parser = command_subparsers.add_parser("steal-cookie", description="Steal cookie of fqdn")
     steal_fqdn_parser.add_argument("--fqdn", required=True, type=str, help="Fully qualified domain name to fetch the cookies of")
 
-    steal_power_automate_token_parser = command_subparsers.add_parser("steal-power-automate-token", description="Steal power automate token")
+    command_subparsers.add_parser("steal-power-automate-token", description="Steal power automate token")
 
     execute_command_parser = command_subparsers.add_parser("command-exec", description="Execute command on machine")
     execute_command_parser.add_argument(
@@ -61,7 +61,7 @@ def module_nocodemalware_subcommand_exec(command_subparsers: argparse.ArgumentPa
     exfiltrate_file_parser = command_subparsers.add_parser("exfiltrate", description="Exfiltrate file")
     exfiltrate_file_parser.add_argument("-f", "--file", required=True, type=str, help="Absolute path to file")
 
-    cleanup_parser = command_subparsers.add_parser("cleanup", description="Cleanup")
+    command_subparsers.add_parser("cleanup", description="Cleanup")
 
 
 def module_backdoor(command_subparsers: argparse.ArgumentParser):
@@ -103,9 +103,7 @@ def module_backdoor(command_subparsers: argparse.ArgumentParser):
 
 
 def module_phishing(command_subparsers: argparse.ArgumentParser):
-    phishing_parser = command_subparsers.add_parser(
-        "phishing", description="Deploy a trustworthy phishing app", help="Deploy a trustworthy phishing app."
-    )
+    command_subparsers.add_parser("phishing", description="Deploy a trustworthy phishing app", help="Deploy a trustworthy phishing app.")
 
 
 def parse_arguments():
