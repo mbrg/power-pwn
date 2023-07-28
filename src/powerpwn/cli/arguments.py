@@ -13,7 +13,9 @@ def module_gui(sub_parser: argparse.ArgumentParser):
 
 def module_dump(sub_parser: argparse.ArgumentParser):
     dump_parser = sub_parser.add_parser(
-        "dump", description="Collect all available data in tenant", help="Get all available resources in tenant and dump data."
+        "dump",
+        description="Recon for available data connections and dump their content",
+        help="Recon for available data connections and dump their content.",
     )
     dump_parser.add_argument("-c", "--clear-cache", action="store_true", help="Clear local disk cache")
     dump_parser.add_argument("--cache-path", default=CACHE_PATH, help="Path to store collected resources and data.")
@@ -24,7 +26,7 @@ def module_dump(sub_parser: argparse.ArgumentParser):
 def module_nocodemalware(command_subparsers: argparse.ArgumentParser):
     nocodemalware_parser = command_subparsers.add_parser(
         "nocodemalware",
-        description="Repurpose trusted execs, service accounts and cloud services to power a malware operation.",
+        description="Repurpose trusted execs, service accounts and cloud services to power a malware operation",
         help="Repurpose trusted execs, service accounts and cloud services to power a malware operation.",
     )
     nocodemalware_parser.add_argument(
@@ -64,7 +66,7 @@ def module_nocodemalware_subcommand_exec(command_subparsers: argparse.ArgumentPa
 
 def module_backdoor(command_subparsers: argparse.ArgumentParser):
     backdoor_parser = command_subparsers.add_parser(
-        "backdoor", description="Install a backdoor on the target tenant.", help="Install a backdoor on the target tenant."
+        "backdoor", description="Install a backdoor on the target tenant.", help="Install a backdoor on the target tenant"
     )
     backdoor_parser.add_argument("-e", "--environment-id", required=True, type=str, help="Environment id in powerplatform.")
     backdoor_subparsers = backdoor_parser.add_subparsers(help="backdoor_subcommand", dest="backdoor_subcommand")
@@ -102,7 +104,7 @@ def module_backdoor(command_subparsers: argparse.ArgumentParser):
 
 def module_phishing(command_subparsers: argparse.ArgumentParser):
     phishing_parser = command_subparsers.add_parser(
-        "phishing", description="Deploy a trustworthy phishing app.", help="Deploy a trustworthy phishing app."
+        "phishing", description="Deploy a trustworthy phishing app", help="Deploy a trustworthy phishing app."
     )
 
 
