@@ -6,6 +6,8 @@
 
 Power Pwn is an offensive security toolset for Microsoft Power Platform.
 
-Check out our [Wiki!](https://github.com/mbrg/power-pwn/wiki)
+Install with `pip install powerpwn`.
+
+Check out our [Wiki](https://github.com/mbrg/power-pwn/wiki) for docs, guides and related talks!
 
 ![powerpwn](wiki/powerpwn_asci_black.png)
