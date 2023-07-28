@@ -24,8 +24,8 @@ def module_dump(sub_parser: argparse.ArgumentParser):
 def module_nocodemalware(command_subparsers: argparse.ArgumentParser):
     nocodemalware_parser = command_subparsers.add_parser(
         "nocodemalware",
-        description="Repurpose Microsoft-trusted executables, service accounts and cloud services to power a malware operation.",
-        help="Repurpose Microsoft-trusted executables, service accounts and cloud services to power a malware operation.",
+        description="Repurpose trusted execs, service accounts and cloud services to power a malware operation.",
+        help="Repurpose trusted execs, service accounts and cloud services to power a malware operation.",
     )
     nocodemalware_parser.add_argument(
         "-w", "--webhook-url", required=True, type=str, help="Webhook url to the flow factory installed in powerplatform"
@@ -100,6 +100,12 @@ def module_backdoor(command_subparsers: argparse.ArgumentParser):
     installer.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
 
 
+def module_phishing(command_subparsers: argparse.ArgumentParser):
+    phishing_parser = command_subparsers.add_parser(
+        "phishing", description="Deploy a trustworthy phishing app.", help="Deploy a trustworthy phishing app."
+    )
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
@@ -109,6 +115,7 @@ def parse_arguments():
     module_gui(command_subparsers)
     module_backdoor(command_subparsers)
     module_nocodemalware(command_subparsers)
+    module_phishing(command_subparsers)
 
     args = parser.parse_args()
 
