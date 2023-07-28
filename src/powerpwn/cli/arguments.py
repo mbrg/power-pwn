@@ -8,7 +8,7 @@ def register_gui_parser(sub_parser: argparse.ArgumentParser):
     gui_parser.add_argument("--cache-path", default=CACHE_PATH, type=str, help="Path to cached resources.")
 
 
-def register_collect_parser(sub_parser: argparse.ArgumentParser):
+def register_dump_parser(sub_parser: argparse.ArgumentParser):
     explore_parser = sub_parser.add_parser(
         "dump", description="Collect all available data in tenant", help="Get all available resources in tenant and dump data."
     )
@@ -80,7 +80,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
     command_subparsers = parser.add_subparsers(help="command", dest="command")
-    register_collect_parser(command_subparsers)
+    register_dump_parser(command_subparsers)
     register_gui_parser(command_subparsers)
 
     ## Delete Flow parser ##
