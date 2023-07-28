@@ -3,7 +3,7 @@ from typing import Dict, Generator, List
 
 import requests
 
-from powerpwn.const import LOGGER_NAME
+from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.collect.models.connector_entity import Connector
 from powerpwn.powerdump.collect.resources_collectors._api import get_connector
 from powerpwn.powerdump.collect.resources_collectors.enums.resource_type import ResourceType

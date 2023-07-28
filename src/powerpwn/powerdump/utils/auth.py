@@ -3,7 +3,7 @@ from typing import Optional
 
 import msal
 
-from powerpwn.const import LOGGER_NAME, TOOL_NAME
+from powerpwn.cli.const import LOGGER_NAME, TOOL_NAME
 from powerpwn.powerdump.utils.const import API_HUB_SCOPE, AZURE_CLI_APP_ID, GRAPH_API_SCOPE, POWER_APPS_SCOPE
 from powerpwn.powerdump.utils.token_cache import TOKEN_CACHE_PATH, TokenCache, put_token, put_tokens, try_fetch_token
 

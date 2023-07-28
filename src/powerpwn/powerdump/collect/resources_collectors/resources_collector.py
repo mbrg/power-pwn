@@ -2,7 +2,7 @@ import logging
 import os.path
 from typing import Dict, Generator, List
 
-from powerpwn.const import LOGGER_NAME
+from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.collect.models.resource_entity_base import ResourceEntityBase
 from powerpwn.powerdump.collect.resources_collectors._api import list_environments
 from powerpwn.powerdump.collect.resources_collectors.canvas_apps_collector import CanvasAppsCollector

@@ -5,7 +5,7 @@ import subprocess  # nosec
 
 from flask import Flask
 
-from powerpwn.const import LOGGER_NAME
+from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.gui.prep import (
     flt_connection_table_wrapper,
     flt_resource_wrapper,

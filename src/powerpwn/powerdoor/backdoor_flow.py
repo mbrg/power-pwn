@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 import requests
 from pydantic import ValidationError
 
-from powerpwn.const import LOGGER_NAME, TOOL_NAME
+from powerpwn.cli.const import LOGGER_NAME, TOOL_NAME
 from powerpwn.powerdoor.create_flow_model import CreateFlowModel
 
 logger = logging.getLogger(LOGGER_NAME)

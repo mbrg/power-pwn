@@ -3,7 +3,7 @@ import logging
 import os
 import pathlib
 
-from powerpwn.const import LOGGER_NAME
+from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.utils.requests_wrapper import init_session
 
 logger = logging.getLogger(LOGGER_NAME)
