@@ -239,7 +239,7 @@ def main():
         run_machine_pwn_command(args)
 
     else:
-        logger.warning("Run `powerpwn --help` for available commands.")
+        logger.info("Run `powerpwn --help` for available commands.")
 
 
 if __name__ == "__main__":
