@@ -3,14 +3,13 @@ import logging
 import os
 import shutil
 
-from powerpwn.powerdoor.flow_factory_installer import FlowFlowInstaller
-
 from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.machinepwn.enums.code_exec_type_enum import CodeExecTypeEnum
 from powerpwn.machinepwn.enums.command_to_run_enum import CommandToRunEnum
 from powerpwn.machinepwn.machine_pwn import MachinePwn
 from powerpwn.powerdoor.backdoor_flow import BackdoorFlow
 from powerpwn.powerdoor.enums.action_type import BackdoorActionType
+from powerpwn.powerdoor.flow_factory_installer import FlowFlowInstaller
 from powerpwn.powerdump.collect.data_collectors.data_collector import DataCollector
 from powerpwn.powerdump.collect.resources_collectors.resources_collector import ResourcesCollector
 from powerpwn.powerdump.gui.gui import Gui
@@ -63,16 +62,18 @@ def _run_collect_data_command(args):
 
 
 def run_backdoor_flow_command(args):
-    backdoor_flow = BackdoorFlow(args.webhook_url)
 
     action_type = BackdoorActionType(args.backdoor_subcommand)
     if action_type == BackdoorActionType.delete_flow:
+        backdoor_flow = BackdoorFlow(args.webhook_url)
         backdoor_flow.delete_flow(args.environment_id, args.flow_id)
 
     elif action_type == BackdoorActionType.create_flow:
+        backdoor_flow = BackdoorFlow(args.webhook_url)
         backdoor_flow.create_flow_from_input_file(args.environment_id, args.input)
 
     elif action_type == BackdoorActionType.get_connections:
+        backdoor_flow = BackdoorFlow(args.webhook_url)
         output_to_file = args.output and args.output != ""
         connections = backdoor_flow.get_connections(args.environment_id, not output_to_file)
         if output_to_file:
