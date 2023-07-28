@@ -2,7 +2,7 @@ from powerpwn.enums.str_enum import StrEnum
 
 
 class CommandToRunEnum(StrEnum):
-    EXFILTRATION = "exflirtate"
+    EXFILTRATION = "exfiltrate"
     RANSOMWARE = "ransomware"
     CODE_EXEC = "command-exec"
     CLEANUP = "cleanup"
