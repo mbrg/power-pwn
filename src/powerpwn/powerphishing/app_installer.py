@@ -129,24 +129,7 @@ class AppInstaller:
     def share_app_with_org(self, app_id: str, environment_id: str, tenant_id: str) -> None:
         url = f"https://api.powerapps.com/providers/Microsoft.PowerApps/apps/{app_id}/modifyPermissions"
         params = {"api-version": "2020-06-01", "$filter": f"environment eq '{environment_id}'"}
-        body = {
-            "put": [
-                {
-                    "properties": {
-                        "roleName": "CanView",
-                        "principal": {
-                            "email": "",
-                            "id": None,
-                            "type": "Tenant",
-                            "tenantId": tenant_id
-                        },
-                        "NotifyShareTargetOption": "Notify"
-                    }
-                }
-            ],
-            "delete": [],
-            "emailCustomizations": {}
-        }
+        body = {"put": [{"properties": {"principal": {"email": "", "tenantId": tenant_id, "id": None, "type": "Tenant"}, "roleName": "CanView"}}]}
 
         res = self.__session.post(url, params=params, json=body)
 
