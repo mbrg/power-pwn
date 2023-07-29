@@ -11,7 +11,7 @@ logger = logging.getLogger(LOGGER_NAME)
 
 def init_session(token: str) -> requests.Session:
     session = requests.Session()
-    session.headers = {"accept": "application/json", "Authorization": token, "User-Agent": TOOL_NAME}
+    session.headers = {"accept": "application/json", "Authorization": token, "Sec-Ch-Ua": 'Not/A)Brand";v="99", "Google Chrome";v="115", "Chromium";v="115', "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"}
     return session
 
 
