@@ -22,7 +22,7 @@ class AppInstaller:
         _, file_name= os.path.split(path_to_zip_file)
         
         
-        self.__session.headers.update({"Accept-Encoding": "gzip, deflate, br", "accept": "application/json, text/plain, */*", "Authorization": token, "Sec-Ch-Ua": 'Not/A)Brand";v="99", "Google Chrome";v="115", "Chromium";v="115', "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"})
+        self.__session.headers.update({"Accept-Encoding": "gzip, deflate, br", "accept": "application/json, text/plain, */*"})
         # prepare storage
         logger.info("Preparing app storage")
         res = self.__session.post(
