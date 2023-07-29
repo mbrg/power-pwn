@@ -75,6 +75,8 @@ class AppInstaller:
         wait = int(res.headers["Retry-After"])
         sleep(wait)
         res = self.__session.get(list_import_operations_url)
+        
+        # bug: we get 400 with message : ZipFileRejected, try to export later
         if res.status_code != 202:
             self.__log_error("Failed to get import operations", res)
             return None
