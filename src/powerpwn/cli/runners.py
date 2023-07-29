@@ -15,6 +15,7 @@ from powerpwn.powerdump.collect.resources_collectors.resources_collector import 
 from powerpwn.powerdump.gui.gui import Gui
 from powerpwn.powerdump.utils.auth import acquire_token, acquire_token_from_cached_refresh_token
 from powerpwn.powerdump.utils.const import API_HUB_SCOPE, POWER_APPS_SCOPE
+from powerpwn.powerphishing.app_installer import AppInstaller
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -62,7 +63,6 @@ def _run_collect_data_command(args):
 
 
 def run_backdoor_flow_command(args):
-
     action_type = BackdoorActionType(args.backdoor_subcommand)
     if action_type == BackdoorActionType.delete_flow:
         backdoor_flow = BackdoorFlow(args.webhook_url)
@@ -107,4 +107,10 @@ def run_nocodemalware_command(args):
 
 
 def run_phishing_command(args):
+    token = __init_command_token(args, POWER_APPS_SCOPE)
+    app_installer = AppInstaller(token)
+    if args.phishing_subcommand == "install-app":
+        return app_installer.install_app(args.input)
+    elif args.phishing_subcommand == "share-app":
+        return app_installer.share_app_with_org(args.app_id, args.environment_id, args.tenant)
     raise NotImplementedError("Phishing command has not been implemented yet.")
