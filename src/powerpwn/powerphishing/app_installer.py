@@ -3,7 +3,9 @@ import logging
 import os
 from time import sleep
 from typing import Any, Dict, Union
+
 from requests import Response
+
 from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.utils.requests_wrapper import init_session
 
