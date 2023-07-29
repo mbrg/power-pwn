@@ -103,7 +103,19 @@ def module_backdoor(command_subparsers: argparse.ArgumentParser):
 
 
 def module_phishing(command_subparsers: argparse.ArgumentParser):
-    command_subparsers.add_parser("phishing", description="Deploy a trustworthy phishing app", help="Deploy a trustworthy phishing app.")
+    phishing = command_subparsers.add_parser("phishing", description="Deploy a trustworthy phishing app", help="Deploy a trustworthy phishing app.")
+    phishing_subparsers = phishing.add_subparsers(help="phishing_subcommand", dest="phishing_subcommand")
+
+    # installer = phishing_subparsers.add_parser(
+    #     "install-app", description="Installs phishing app.", help="Installs a phishing app in the target environment."
+    # )
+    # installer.add_argument("-i", "--input", type=str, required=True, help="Path to app package zip file.")
+    # installer.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
+
+    app_share = phishing_subparsers.add_parser("share-app", description="Share app with organization", help="Share app with organization")
+    app_share.add_argument("-a", "--app-id", required=True, type=str, help="App id to share")
+    app_share.add_argument("-e", "--environment-id", required=True, type=str, help="Environment id that the app belongs to.")
+    app_share.add_argument("-t", "--tenant", required=True, type=str, help="Tenant id to connect.")
 
 
 def parse_arguments():
