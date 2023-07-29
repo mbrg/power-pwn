@@ -18,10 +18,8 @@ class AppInstaller:
 
     def install_app(self, path_to_zip_file: str) -> None:
         # TODO: environment to install, app name, connections, etc
-        
-        _, file_name= os.path.split(path_to_zip_file)
-        
-        
+        _, file_name = os.path.split(path_to_zip_file)
+
         self.__session.headers.update({"Accept-Encoding": "gzip, deflate, br", "accept": "application/json, text/plain, */*"})
         # prepare storage
         logger.info("Preparing app storage")
@@ -37,9 +35,9 @@ class AppInstaller:
         shared_access_sig = json.loads(res.text)["sharedAccessSignature"]
         self.__session.headers.update({"X-Ms-Blob-Type": "BlockBlob"})
         auth = self.__session.headers.pop("Authorization")
-        
-        shared_access_splitted=shared_access_sig.split("?")
-        zip_files_shared_access = shared_access_splitted[0] +f"/{file_name}?" + shared_access_splitted[1]
+
+        shared_access_splitted = shared_access_sig.split("?")
+        zip_files_shared_access = shared_access_splitted[0] + f"/{file_name}?" + shared_access_splitted[1]
         compose_block_id_url = zip_files_shared_access + "&comp=block&blockid=YmxvY2stMDAwMDAwMDA="
         file_name_without_extension = file_name.split(".")[0]
         with open(path_to_zip_file, "rb") as fileobj:
@@ -47,17 +45,17 @@ class AppInstaller:
         if res.status_code != 201:
             self.__log_error("Could not upload zip file", res)
             return None
-        
+
         self.__session.headers.pop("X-Ms-Blob-Type")
         self.__session.headers.update({"X-Ms-Blob-Content-Type": "application/octet-stream"})
         block_list_url = zip_files_shared_access + "&comp=blocklist"
         payload = '<?xml version="1.0" encoding="utf-8"?><BlockList><Latest>YmxvY2stMDAwMDAwMDA=</Latest></BlockList>'
         res = self.__session.put(block_list_url, data=payload)
-        
+
         if res.status_code != 201:
             self.__log_error("Could not put block list", res)
             return None
-        
+
         self.__session.headers.pop("X-Ms-Blob-Content-Type")
         self.__session.headers.update({"Authorization": auth})
         # Get import parameters to update
@@ -71,25 +69,24 @@ class AppInstaller:
             return None
 
         list_import_operations_url = res.headers["Location"]
-        
+
         wait = int(res.headers["Retry-After"])
         sleep(wait)
         res = self.__session.get(list_import_operations_url)
-        
+
         # bug: we get 400 with message : ZipFileRejected, try to export later
         if res.status_code != 202:
             self.__log_error("Failed to get import operations", res)
             return None
-        
+
         res_json = json.loads(res.text)
         if "resources" not in res_json["properties"]:
             logger.error("No resources in import package")
             return None
-            
-        props = self.__set_import_params(res_json["properties"])
-            
-        # TODO: here to update connections etc
 
+        props = self.__set_import_params(res_json["properties"])
+
+        # TODO: here to update connections etc
         # Validate import package
         logger.info("Validating import package")
         res = self.__session.post(
@@ -128,7 +125,7 @@ class AppInstaller:
             logger.info("Import succeeded")
         else:
             logger.error(f"Import failed with status code: {import_status}")
-            
+
     def share_app_with_org(self, app_id: str, environment_id: str, tenant_id: str) -> None:
         url = f"https://api.powerapps.com/providers/Microsoft.PowerApps/apps/{app_id}/modifyPermissions"
         params = {"api-version": "2020-06-01", "$filter": f"environment eq '{environment_id}'"}
@@ -150,22 +147,22 @@ class AppInstaller:
             "delete": [],
             "emailCustomizations": {}
         }
-        
+
         res = self.__session.post(url, params=params, json=body)
-        
+
         if res.status_code != 200:
             self.__log_error("Failed to share app with organization", res)
             return None
         logger.info("App shared with organization")
-        
+
     def __log_error(self, message: str, res: Response) -> None:
         logger.error(f"{message}. Status code: {res.status_code}, response: {res.text}")
-    
+
     def __set_import_params(self, input: Dict[str, Any]) -> Dict[str, Any]:
         input["details"]["displayName"] = "my app"
         resources = input["resources"]
         for resource in resources:
             if resource["type"] == "Microsoft.PowerApps/apps":
                 resource["selectedCreationType"] = "New"
-                
+
         return input
