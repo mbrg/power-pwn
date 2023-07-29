@@ -106,11 +106,13 @@ def module_phishing(command_subparsers: argparse.ArgumentParser):
     phishing = command_subparsers.add_parser("phishing", description="Deploy a trustworthy phishing app", help="Deploy a trustworthy phishing app.")
     phishing_subparsers = phishing.add_subparsers(help="phishing_subcommand", dest="phishing_subcommand")
 
-    # installer = phishing_subparsers.add_parser(
-    #     "install-app", description="Installs phishing app.", help="Installs a phishing app in the target environment."
-    # )
-    # installer.add_argument("-i", "--input", type=str, required=True, help="Path to app package zip file.")
-    # installer.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
+    installer = phishing_subparsers.add_parser(
+        "install-app", description="Installs phishing app.", help="Installs a phishing app in the target environment."
+    )
+    installer.add_argument("-i", "--input", type=str, required=True, help="Path to app package zip file.")
+    installer.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
+    installer.add_argument("-n", "--app-name", required=True, type=str, help="Display name of the app.")
+    installer.add_argument("-e", "--environment-id", required=True, type=str, help="Environment id to install the app in.")
 
     app_share = phishing_subparsers.add_parser("share-app", description="Share app with organization", help="Share app with organization")
     app_share.add_argument("-a", "--app-id", required=True, type=str, help="App id to share")
