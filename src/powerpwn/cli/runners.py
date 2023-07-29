@@ -110,7 +110,7 @@ def run_phishing_command(args):
     token = __init_command_token(args, POWER_APPS_SCOPE)
     app_installer = AppInstaller(token)
     if args.phishing_subcommand == "install-app":
-        return app_installer.install_app(args.input)
+        return app_installer.install_app(args.input, args.app_name, args.environment_id)
     elif args.phishing_subcommand == "share-app":
         return app_installer.share_app_with_org(args.app_id, args.environment_id, args.tenant)
     raise NotImplementedError("Phishing command has not been implemented yet.")
