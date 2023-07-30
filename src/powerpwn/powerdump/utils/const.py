@@ -1,4 +1,4 @@
-CACHE_PATH = ".cache"
+CACHE_PATH = ".dump"
 DATA_MODEL_FILE_EXTENSION = ".json"
 SPEC_JWT_NAME = "ApiHubBearerAuth"
 DATA_MODEL_VERSION = "0.0.1"
