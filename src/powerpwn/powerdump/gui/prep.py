@@ -16,6 +16,7 @@ from powerpwn.powerdump.utils.model_loaders import (
     load_canvasapps,
     load_connections,
     load_connectors,
+    load_logic_flows,
     load_resources,
     map_connector_id_and_env_id_to_connection_ids,
 )
@@ -55,12 +56,19 @@ def full_resources_table_wrapper(cache_path: str):
 
 def full_connection_table_wrapper(cache_path: str):
     def full_connection_table():
-        connections = list(load_connections(cache_path=cache_path))
+        connections = list(load_connections(cache_path=cache_path, with_logic_flows=False))
 
-        return render_template("connections_table.html", title=f"{TOOL_NAME} - Connections", resources=connections)
+        return render_template("connections_table.html", title=f"{TOOL_NAME} - Credentials", resources=connections)
 
     return full_connection_table
 
+def full_logic_flows_table_wrapper(cache_path: str):
+    def full_logic_flows_table():
+        connections = list(load_logic_flows(cache_path=cache_path))
+
+        return render_template("logic_flows_table.html", title=f"{TOOL_NAME} - Automations", resources=connections)
+
+    return full_logic_flows_table
 
 def flt_connection_table_wrapper(cache_path: str):
     def flt_connection_table(connector_id: str):
@@ -75,7 +83,7 @@ def full_canvasapps_table_wrapper(cache_path: str):
     def full_canvasapp_table():
         apps = list(load_canvasapps(cache_path=cache_path))
 
-        return render_template("canvasapps_table.html", title=f"{TOOL_NAME} - Canvas Apps", resources=apps)
+        return render_template("canvasapps_table.html", title=f"{TOOL_NAME} - Applications", resources=apps)
 
     return full_canvasapp_table
 
@@ -90,13 +98,13 @@ def full_connectors_table_wrapper(cache_path: str):
 
 
 def flt_resource_wrapper(cache_path: str):
-    def get_resource_page(resource_type: ResourceType, env_id: str, resource_id: str):
+    def get_resource_page(resource_type: str, env_id: str, resource_id: str):
         resource: Optional[ResourceEntityBase] = None
-        if resource_type == ResourceType.canvas_app:
+        if resource_type == "app":
             resource = get_canvasapp(cache_path, env_id, resource_id)
-        elif resource_type == ResourceType.connection:
+        elif resource_type in ("credentials", "automation"):
             resource = get_connection(cache_path, env_id, resource_id)
-        elif resource_type == ResourceType.connector:
+        elif resource_type == "connector":
             resource = get_connector(cache_path, env_id, resource_id)
 
         if resource:

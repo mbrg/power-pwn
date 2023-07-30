@@ -81,7 +81,7 @@ class CanvasAppsCollector(IResourceCollector):
                     entity_type=ResourceType.canvas_app,
                 )
         logger.info(
-            f"Found {total_widely_shared_canvas_apps} widely shared canvas apps out of {total_canvas_apps} canvas apps in environment {environment_id}"
+            f"Found {total_widely_shared_canvas_apps} widely shared applications out of {total_canvas_apps} canvas apps in environment {environment_id}"
         )
 
     def resource_type(self) -> ResourceType:
