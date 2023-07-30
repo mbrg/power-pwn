@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from powerpwn.machinepwn.enums.code_exec_type_enum import CodeExecTypeEnum
+from powerpwn.nocodemalware.enums.code_exec_type_enum import CodeExecTypeEnum
 from powerpwn.powerdoor.enums.action_type import BackdoorActionType
 from powerpwn.powerdump.utils.const import CACHE_PATH
 
