@@ -1,6 +1,4 @@
 import json
-import os
-import pathlib
 from typing import Optional
 
 from flask import Flask, render_template
@@ -8,7 +6,6 @@ from swagger_ui import flask_api_doc
 
 from powerpwn.cli.const import TOOL_NAME
 from powerpwn.powerdump.collect.models.resource_entity_base import ResourceEntityBase
-from powerpwn.powerdump.collect.resources_collectors.enums.resource_type import ResourceType
 from powerpwn.powerdump.utils.model_loaders import (
     get_canvasapp,
     get_connection,
@@ -62,6 +59,7 @@ def full_connection_table_wrapper(cache_path: str):
 
     return full_connection_table
 
+
 def full_logic_flows_table_wrapper(cache_path: str):
     def full_logic_flows_table():
         connections = list(load_logic_flows(cache_path=cache_path))
@@ -69,6 +67,7 @@ def full_logic_flows_table_wrapper(cache_path: str):
         return render_template("logic_flows_table.html", title=f"{TOOL_NAME} - Automations", resources=connections)
 
     return full_logic_flows_table
+
 
 def flt_connection_table_wrapper(cache_path: str):
     def flt_connection_table(connector_id: str):
@@ -113,7 +112,3 @@ def flt_resource_wrapper(cache_path: str):
             )
 
     return get_resource_page
-
-
-def __get_template_full_path(template_name: str) -> str:
-    return os.path.join(pathlib.Path(__file__).parent.resolve(), "templates", template_name)
