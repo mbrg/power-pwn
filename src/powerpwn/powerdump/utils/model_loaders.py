@@ -32,6 +32,7 @@ def load_connections(cache_path: str, env_id: Optional[str] = None, with_logic_f
                 continue
             yield parsed_connection
 
+
 def load_logic_flows(cache_path: str, env_id: Optional[str] = None) -> Generator[Connection, None, None]:
     cache = pathlib.Path(entities_path(cache_path))
     if env_id:
@@ -46,6 +47,7 @@ def load_logic_flows(cache_path: str, env_id: Optional[str] = None) -> Generator
             if not parsed_connection.connector_id == "shared_logicflows":
                 continue
             yield parsed_connection
+
 
 def load_canvasapps(cache_path: str, env_id: Optional[str] = None) -> Generator[CanvasApp, None, None]:
     cache = pathlib.Path(entities_path(cache_path))
