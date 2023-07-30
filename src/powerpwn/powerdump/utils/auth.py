@@ -43,7 +43,13 @@ def acquire_token(scope: str, tenant: Optional[str] = None) -> str:
         )
     )
 
-    bearer = azure_cli_bearer_tokens_for_scope.get("token_type") + " " + azure_cli_bearer_tokens_for_scope.get("access_token")
+    if "token_type" not in azure_cli_bearer_tokens_for_scope or "access_token" not in azure_cli_bearer_tokens_for_scope:
+        logger.debug(
+            f"Acquired a token package with scope={scope}, tenant={tenant}. Received the following keys: {list(azure_cli_bearer_tokens_for_scope.key())}."
+        )
+        raise RuntimeError(f"Something went wrong when trying to fetch tokens with scope={scope}, tenant={tenant}. Try removing cached credentials.")
+
+    bearer = azure_cli_bearer_tokens_for_scope["token_type"] + " " + azure_cli_bearer_tokens_for_scope["access_token"]
     logger.info(f"Access token for {scope} acquired successfully")
 
     # cache refresh token for cli to use in further FOCI authentication
