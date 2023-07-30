@@ -28,8 +28,7 @@
           <td>{{ connection.created_by.email }}</td>
           <td>{{ connection.shareable }}</td>
           <td><a href="/api/{{ connection.connector_id }}/{{ connection.connection_id }}">Playground</a></td>
-          <td><a href="/credentials/{{ connection.environment_id }}/{{ connection.entity_id }}">Raw</a> </td>
-          <td><a href="http://127.0.0.1:8080/browse/data/{{ connection.environment_id }}/connections/{{connection.connector_id}}/{{connection.entity_id}}" target="_blank">Dump</a> </td>
+          <td><a href="/automation/{{ connection.environment_id }}/{{ connection.entity_id }}">Raw</a> </td>
         </tr>
       {% endfor %}
     </tbody>

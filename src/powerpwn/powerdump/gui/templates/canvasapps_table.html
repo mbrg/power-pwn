@@ -22,7 +22,7 @@
           <td>{{ canvasapp.created_at }}</td>
           <td>{{ canvasapp.last_modified_at }}</td>
           <td><a href="{{ canvasapp.run_url }}" target="_blank">Run</a> </td>
-          <td><a href="/{{ canvasapp.entity_type}}/{{ canvasapp.environment_id }}/{{ canvasapp.entity_id }}">Raw</a> </td>
+          <td><a href="/app/{{ canvasapp.environment_id }}/{{ canvasapp.entity_id }}">Raw</a> </td>
         </tr>
       {% endfor %}
     </tbody>

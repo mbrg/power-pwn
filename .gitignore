@@ -148,3 +148,4 @@ cov.xml
 
 tokens.json
 *.zip
+.dump

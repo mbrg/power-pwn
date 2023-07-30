@@ -17,7 +17,7 @@ def load_resources(cache_path: str, env_id: Optional[str] = None) -> Generator[R
     yield from load_connectors(cache_path, env_id)
 
 
-def load_connections(cache_path: str, env_id: Optional[str] = None) -> Generator[Connection, None, None]:
+def load_connections(cache_path: str, env_id: Optional[str] = None, with_logic_flows: bool = True) -> Generator[Connection, None, None]:
     cache = pathlib.Path(entities_path(cache_path))
     if env_id:
         connections = cache.glob(f"{env_id}/{ResourceType.connection}/*.json")
@@ -28,6 +28,24 @@ def load_connections(cache_path: str, env_id: Optional[str] = None) -> Generator
         with open(connection_path, "r") as fp:
             raw_connection = json.load(fp)
             parsed_connection = Connection.parse_obj(raw_connection)
+            if parsed_connection.connector_id == "shared_logicflows" and not with_logic_flows:
+                continue
+            yield parsed_connection
+
+
+def load_logic_flows(cache_path: str, env_id: Optional[str] = None) -> Generator[Connection, None, None]:
+    cache = pathlib.Path(entities_path(cache_path))
+    if env_id:
+        connections = cache.glob(f"{env_id}/{ResourceType.connection}/*.json")
+    else:
+        connections = cache.glob(f"*/{ResourceType.connection}/*.json")
+    for connection in connections:
+        connection_path = "/".join(list(connection.parts))
+        with open(connection_path, "r") as fp:
+            raw_connection = json.load(fp)
+            parsed_connection = Connection.parse_obj(raw_connection)
+            if not parsed_connection.connector_id == "shared_logicflows":
+                continue
             yield parsed_connection
 
 

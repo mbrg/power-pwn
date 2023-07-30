@@ -23,7 +23,7 @@
           <td>{{ resource.created_by.email }}</td>
           <td>{{ resource.created_at }}</td>
           <td>{{ resource.last_modified_at }}</td>
-          <td><a href="/{{ resource.entity_type }}/{{ resource.environment_id }}/{{ resource.entity_id }}">Raw</a> </td>
+          <td><a href="/connector/{{ resource.environment_id }}/{{ resource.entity_id }}">Raw</a> </td>
         </tr>
       {% endfor %}
     </tbody>

@@ -12,6 +12,7 @@ from powerpwn.powerdump.gui.prep import (
     full_canvasapps_table_wrapper,
     full_connection_table_wrapper,
     full_connectors_table_wrapper,
+    full_logic_flows_table_wrapper,
     full_resources_table_wrapper,
     register_specs,
 )
@@ -26,8 +27,9 @@ class Gui:
         app = Flask(__name__, template_folder=self.__get_template_full_path())
         register_specs(app=app, cache_path=cache_path)
         app.route("/")(full_resources_table_wrapper(cache_path=cache_path))
-        app.route("/connection")(full_connection_table_wrapper(cache_path=cache_path))
-        app.route("/canvas_app/")(full_canvasapps_table_wrapper(cache_path))
+        app.route("/credentials")(full_connection_table_wrapper(cache_path=cache_path))
+        app.route("/automation")(full_logic_flows_table_wrapper(cache_path=cache_path))
+        app.route("/app/")(full_canvasapps_table_wrapper(cache_path))
         app.route("/connector/")(full_connectors_table_wrapper(cache_path))
         app.route("/<connector_id>/")(flt_connection_table_wrapper(cache_path=cache_path))
         app.route("/<resource_type>/<env_id>/<resource_id>")(flt_resource_wrapper(cache_path=cache_path))
