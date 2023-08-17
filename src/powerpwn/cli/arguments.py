@@ -22,11 +22,7 @@ def module_dump(sub_parser: argparse.ArgumentParser):
 
 
 def module_recon(sub_parser: argparse.ArgumentParser):
-    dump_parser = sub_parser.add_parser(
-        "recon",
-        description="Recon for available data connections and dump their content",
-        help="Recon for available data connections and dump their content.",
-    )
+    dump_parser = sub_parser.add_parser("recon", description="Recon for available data connections", help="Recon for available data connections.")
     dump_parser.add_argument("-c", "--clear-cache", action="store_true", help="Clear local disk cache")
     dump_parser.add_argument("--cache-path", default=CACHE_PATH, help="Path to store collected resources and data.")
     dump_parser.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
