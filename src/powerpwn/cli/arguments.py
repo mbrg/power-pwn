@@ -13,7 +13,17 @@ def module_gui(sub_parser: argparse.ArgumentParser):
 
 def module_dump(sub_parser: argparse.ArgumentParser):
     dump_parser = sub_parser.add_parser(
-        "dump",
+        "dump", description="Dump content for all available connection from recon", help="Dump content for all available connection from recon"
+    )
+    dump_parser.add_argument("-c", "--clear-cache", action="store_true", help="Clear local disk cache")
+    dump_parser.add_argument("--cache-path", default=CACHE_PATH, help="Path to store collected resources and data.")
+    dump_parser.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
+    dump_parser.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
+
+
+def module_recon(sub_parser: argparse.ArgumentParser):
+    dump_parser = sub_parser.add_parser(
+        "recon",
         description="Recon for available data connections and dump their content",
         help="Recon for available data connections and dump their content.",
     )
@@ -126,6 +136,7 @@ def parse_arguments():
     command_subparsers = parser.add_subparsers(help="command", dest="command")
 
     module_dump(command_subparsers)
+    module_recon(command_subparsers)
     module_gui(command_subparsers)
     module_backdoor(command_subparsers)
     module_nocodemalware(command_subparsers)
