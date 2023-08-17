@@ -102,6 +102,8 @@ def load_connectors(cache_path: str, env_id: Optional[str] = None) -> Generator[
 
 
 def get_environment_ids(cache_path: str) -> List[str]:
+    if not os.path.exists(cache_path):
+        return []
     return os.listdir(entities_path(cache_path))
 
 

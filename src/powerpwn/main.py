@@ -4,7 +4,14 @@ from art import tprint
 
 from powerpwn.cli.arguments import parse_arguments
 from powerpwn.cli.const import LOGGER_NAME
-from powerpwn.cli.runners import run_backdoor_flow_command, run_dump_command, run_gui_command, run_nocodemalware_command, run_phishing_command
+from powerpwn.cli.runners import (
+    run_backdoor_flow_command,
+    run_dump_command,
+    run_gui_command,
+    run_nocodemalware_command,
+    run_phishing_command,
+    run_recon_command,
+)
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -22,6 +29,8 @@ def main():
 
     if command == "dump":
         run_dump_command(args)
+    elif command == "recon":
+        run_recon_command(args)
     elif command == "gui":
         run_gui_command(args)
     elif command == "backdoor":

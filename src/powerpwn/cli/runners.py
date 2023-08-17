@@ -28,17 +28,7 @@ def __init_command_token(args, scope: str) -> str:
     return acquire_token(scope=scope, tenant=args.tenant)
 
 
-def run_dump_command(args):
-    _run_collect_resources_command(args)
-    _run_collect_data_command(args)
-    logger.info(f"Dump is completed in {args.cache_path}")
-
-    if args.gui:
-        logger.info("Going to run local server for gui")
-        run_gui_command(args)
-
-
-def _run_collect_resources_command(args):
+def run_recon_command(args):
     # cache
     if args.clear_cache:
         try:
@@ -52,14 +42,29 @@ def _run_collect_resources_command(args):
     entities_fetcher = ResourcesCollector(token=token, cache_path=args.cache_path)
     entities_fetcher.collect_and_cache()
 
+    logger.info(f"Recon is completed in {args.cache_path}/resources")
+
+    if args.gui:
+        logger.info("Going to run local server for gui")
+        run_gui_command(args)
+
 
 def run_gui_command(args):
     Gui().run(cache_path=args.cache_path)
 
 
-def _run_collect_data_command(args):
+def run_dump_command(args):
     token = __init_command_token(args, API_HUB_SCOPE)
-    DataCollector(token=token, cache_path=args.cache_path).collect()
+    is_data_collected = DataCollector(token=token, cache_path=args.cache_path).collect()
+    if not is_data_collected:
+        logger.info("No data dumped. Please run recon first.")
+        return None
+
+    logger.info(f"Dump is completed in {args.cache_path}/data")
+
+    if args.gui:
+        logger.info("Going to run local server for gui")
+        run_gui_command(args)
 
 
 def run_backdoor_flow_command(args):
