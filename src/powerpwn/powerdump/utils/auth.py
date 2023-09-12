@@ -71,6 +71,7 @@ def acquire_token_from_cached_refresh_token(scope: str, tenant: Optional[str] = 
     Leverage family refresh tokens to acquire a Graph API refresh token and exchange it for other required scopes
     https://github.com/secureworks/family-of-client-ids-research
     :param scope: token scope
+    :param tenant: AAD tenant ID
     :return: Bearer token
     """
     logger.info(f"Acquiring token with scope={scope} from cached refresh token.")
