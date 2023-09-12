@@ -45,7 +45,7 @@ def acquire_token(scope: str, tenant: Optional[str] = None) -> str:
 
     if "token_type" not in azure_cli_bearer_tokens_for_scope or "access_token" not in azure_cli_bearer_tokens_for_scope:
         logger.debug(
-            f"Acquired a token package with scope={scope}, tenant={tenant}. Received the following keys: {list(azure_cli_bearer_tokens_for_scope.key())}."
+            f"Acquired a token package with scope={scope}, tenant={tenant}. Received the following keys: {list(azure_cli_bearer_tokens_for_scope.keys())}."
         )
         raise RuntimeError(f"Something went wrong when trying to fetch tokens with scope={scope}, tenant={tenant}. Try removing cached credentials.")
 
