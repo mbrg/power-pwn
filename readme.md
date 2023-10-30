@@ -14,4 +14,6 @@ Install with `pip install powerpwn`.
 
 Check out our [Wiki](https://github.com/mbrg/power-pwn/wiki) for docs, guides and related talks!
 
+[![BlackHat Arsenal USA 2023 - Power Pwn](https://img.youtube.com/vi/LpdckZyBwvs/0.jpg)](https://www.youtube.com/watch?v=LpdckZyBwvs)
+
 ![powerpwn](wiki/powerpwn_asci_black.png)
