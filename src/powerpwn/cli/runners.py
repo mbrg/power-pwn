@@ -25,6 +25,7 @@ logger = logging.getLogger(LOGGER_NAME)
 def __init_command_token(args, scope: str) -> Auth:
     if args.clear_cache:
         clear_token_cache()
+        return acquire_token(scope=scope, tenant=args.tenant)
 
     # if cached refresh token is found, use it
     if auth := acquire_token_from_cached_refresh_token(scope, args.tenant):
