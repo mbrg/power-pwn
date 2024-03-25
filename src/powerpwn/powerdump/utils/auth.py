@@ -76,7 +76,7 @@ def acquire_token(scope: str, tenant: Optional[str] = None) -> Auth:
     return Auth(token=bearer, tenant=extracted_tenant, scope=scope)
 
 
-def acquire_token_from_cached_refresh_token(scope: str, tenant: Optional[str] = None) -> Auth | None:
+def acquire_token_from_cached_refresh_token(scope: str, tenant: Optional[str] = None) -> Optional[Auth]:
     """
     Leverage family refresh tokens to acquire a Graph API refresh token and exchange it for other required scopes
     https://github.com/secureworks/family-of-client-ids-research
@@ -92,6 +92,9 @@ def acquire_token_from_cached_refresh_token(scope: str, tenant: Optional[str] = 
         logger.info("Failed to get refresh token from cache.")
         return None
 
+    cached_tenant = try_fetch_token(TENANT)
+    tenant = tenant or cached_tenant
+
     azure_cli_client = __get_msal_cli_application(tenant)
 
     azure_cli_bearer_tokens_for_scope = (
@@ -103,7 +106,7 @@ def acquire_token_from_cached_refresh_token(scope: str, tenant: Optional[str] = 
         )
     )
 
-    if access_token := azure_cli_bearer_tokens_for_scope.get("access_token") is None:
+    if (access_token := azure_cli_bearer_tokens_for_scope.get("access_token")) is None:
         logger.error(f"Failed to acquire token with scope='{scope}' from cached refresh token.")
         return None
 

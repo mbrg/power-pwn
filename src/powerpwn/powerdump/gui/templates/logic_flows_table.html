@@ -5,28 +5,22 @@
     <thead>
       <tr>
         <th></th>
-        <th>Connector</th>
-        <th>Connection</th>
+        <th>Automation</th>
         <th>Environment </th>
-        <th>Is valid</th>
-        <th>Last modified at</th>
-        <th>Expires at</th>
+        <th>Created at</th>
         <th>Created by</th>
-        <th>Shareable</th>
+        <th>Last modified at</th>
       </tr>
     </thead>
     <tbody>
       {% for connection in resources %}
         <tr>
           <td><img src="{{ connection.icon_uri }}" class="img-thumbnail" alt="{{ connection.connection_id }}" width="25"></td>
-          <td><a href="/{{ connection.connector_id }}">{{ connection.connector_id }}</a></td>
           <td>{{ connection.display_name }}</td>
           <td>{{ connection.environment_id }}</td>
-          <td>{{ connection.is_valid }}</td>
-          <td>{{ connection.last_modified_at }}</td>
-          <td>{{ connection.expiration_time }}</td>
+          <td>{{ connection.created_at }}</td>
           <td>{{ connection.created_by.email }}</td>
-          <td>{{ connection.shareable }}</td>
+          <td>{{ connection.last_modified_at }}</td>
           <td><a href="/api/{{ connection.connector_id }}/{{ connection.connection_id }}">Playground</a></td>
           <td><a href="/env/{{ connection.environment_id }}/automation/{{ connection.entity_id }}">Raw</a> </td>
         </tr>
