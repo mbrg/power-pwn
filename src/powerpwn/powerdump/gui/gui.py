@@ -7,6 +7,7 @@ from flask import Flask
 
 from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.gui.prep import (
+    env_resources_table_wrapper,
     flt_connection_table_wrapper,
     flt_resource_wrapper,
     full_canvasapps_table_wrapper,
@@ -27,12 +28,13 @@ class Gui:
         app = Flask(__name__, template_folder=self.__get_template_full_path())
         register_specs(app=app, cache_path=cache_path)
         app.route("/")(full_resources_table_wrapper(cache_path=cache_path))
+        app.route("/env/<env_id>")(env_resources_table_wrapper(cache_path=cache_path))
         app.route("/credentials")(full_connection_table_wrapper(cache_path=cache_path))
         app.route("/automation")(full_logic_flows_table_wrapper(cache_path=cache_path))
         app.route("/app/")(full_canvasapps_table_wrapper(cache_path))
         app.route("/connector/")(full_connectors_table_wrapper(cache_path))
-        app.route("/<connector_id>/")(flt_connection_table_wrapper(cache_path=cache_path))
-        app.route("/<resource_type>/<env_id>/<resource_id>")(flt_resource_wrapper(cache_path=cache_path))
+        app.route("/credentials/<connector_id>/")(flt_connection_table_wrapper(cache_path=cache_path))
+        app.route("/env/<env_id>/<resource_type>/<resource_id>")(flt_resource_wrapper(cache_path=cache_path))
 
         logger = logging.getLogger(LOGGER_NAME)
         logger.info("Application is running on http://127.0.0.1:5000")

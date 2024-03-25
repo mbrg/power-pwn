@@ -28,7 +28,7 @@
           <td>{{ connection.created_by.email }}</td>
           <td>{{ connection.shareable }}</td>
           <td><a href="/api/{{ connection.connector_id }}/{{ connection.connection_id }}">Playground</a></td>
-          <td><a href="/automation/{{ connection.environment_id }}/{{ connection.entity_id }}">Raw</a> </td>
+          <td><a href="/env/{{ connection.environment_id }}/automation/{{ connection.entity_id }}">Raw</a> </td>
         </tr>
       {% endfor %}
     </tbody>

@@ -13,58 +13,98 @@ from powerpwn.powerdoor.flow_factory_installer import FlowFlowInstaller
 from powerpwn.powerdump.collect.data_collectors.data_collector import DataCollector
 from powerpwn.powerdump.collect.resources_collectors.resources_collector import ResourcesCollector
 from powerpwn.powerdump.gui.gui import Gui
-from powerpwn.powerdump.utils.auth import acquire_token, acquire_token_from_cached_refresh_token
+from powerpwn.powerdump.utils.auth import Auth, acquire_token, acquire_token_from_cached_refresh_token, get_cached_tenant
 from powerpwn.powerdump.utils.const import API_HUB_SCOPE, POWER_APPS_SCOPE
+from powerpwn.powerdump.utils.path_utils import collected_data_path, entities_path
 from powerpwn.powerphishing.app_installer import AppInstaller
 
 logger = logging.getLogger(LOGGER_NAME)
 
 
-def __init_command_token(args, scope: str) -> str:
+def __init_command_token(args, scope: str) -> Auth:
+
     # if cached refresh token is found, use it
-    if token := acquire_token_from_cached_refresh_token(scope, args.tenant):
-        return token
+    if auth := acquire_token_from_cached_refresh_token(scope, args.tenant):
+        return auth
+
+    logger.info("Failed to acquire token from cached refresh token. Falling back to device-flow authentication to acquire new token.")
 
     return acquire_token(scope=scope, tenant=args.tenant)
 
 
-def run_recon_command(args):
+def __clear_cache(cache_path):
+    try:
+        shutil.rmtree(cache_path)
+    except FileNotFoundError:
+        pass
+    os.makedirs(cache_path, exist_ok=True)
+
+
+def _get_scoped_cache_path(args, tenant) -> str:
+    return os.path.join(args.cache_path, tenant)
+
+
+def run_recon_command(args) -> str:
+    auth = __init_command_token(args, POWER_APPS_SCOPE)
+
     # cache
     if args.clear_cache:
-        try:
-            shutil.rmtree(args.cache_path)
-        except FileNotFoundError:
-            pass
-    os.makedirs(args.cache_path, exist_ok=True)
+        __clear_cache(os.path.join(args.cache_path, os.path.join(auth.tenant, "resources")))
 
-    token = __init_command_token(args, POWER_APPS_SCOPE)
-
-    entities_fetcher = ResourcesCollector(token=token, cache_path=args.cache_path)
+    scoped_cache_path = _get_scoped_cache_path(args, auth.tenant)
+    entities_fetcher = ResourcesCollector(token=auth.token, cache_path=scoped_cache_path)
     entities_fetcher.collect_and_cache()
 
-    logger.info(f"Recon is completed in {args.cache_path}/resources")
+    logger.info(f"Recon is completed for tenant {auth.tenant} in {entities_path(scoped_cache_path)}")
 
-    if args.gui:
-        logger.info("Going to run local server for gui")
-        run_gui_command(args)
+    return auth.tenant
 
 
-def run_gui_command(args):
-    Gui().run(cache_path=args.cache_path)
+def run_gui_command(args) -> None:
+    """
+    Run local server for basic gui to show collected resources and data.
+    tenant inference for data:
+    1. if provided in args, use it
+    2. try to get tenant from cached token and use it
+    3. if only one tenant exist in cache path, use it
+    4. otherwise, require tenant
+
+    """
+    scoped_cache_path: str | None = None
+    if args.tenant:
+        scoped_cache_path = _get_scoped_cache_path(args, args.tenant)
+    elif cached_tenant := get_cached_tenant():
+        scoped_cache_path = _get_scoped_cache_path(args, cached_tenant)
+        logger.info(f"The cached tenant found is {cached_tenant}.")
+    else:
+        tenant_list = os.listdir(args.cache_path)
+        if len(tenant_list) == 1:
+            scoped_cache_path = _get_scoped_cache_path(args, tenant_list[0])
+            logger.info(f"Only one tenant found in cache path. Using '{tenant_list[0]}' as tenant.")
+
+    if not scoped_cache_path:
+        logger.error("Tenant is not provided and it can not be found in cache. Please provide tenant id with -t flag.")
+        return
+    Gui().run(cache_path=scoped_cache_path)
 
 
-def run_dump_command(args):
-    token = __init_command_token(args, API_HUB_SCOPE)
-    is_data_collected = DataCollector(token=token, cache_path=args.cache_path).collect()
+def run_dump_command(args) -> str:
+    if args.recon:
+        run_recon_command(args)
+
+    auth = __init_command_token(args, API_HUB_SCOPE)
+
+    if args.clear_cache:
+        __clear_cache(os.path.join(args.cache_path, os.path.join(auth.tenant, "data")))
+
+    scoped_cache_path = _get_scoped_cache_path(args, auth.tenant)
+    is_data_collected = DataCollector(token=auth.token, cache_path=scoped_cache_path).collect()
     if not is_data_collected:
-        logger.info("No data dumped. Please run recon first.")
-        return None
+        logger.info("No resources found to get data dump. Please make sure recon runs first or run dump command again with -r/--recon flag.")
+    else:
+        logger.info(f"Dump is completed for tenant {auth.tenant} in {collected_data_path(scoped_cache_path)}")
 
-    logger.info(f"Dump is completed in {args.cache_path}/data")
-
-    if args.gui:
-        logger.info("Going to run local server for gui")
-        run_gui_command(args)
+    return auth.tenant
 
 
 def run_backdoor_flow_command(args):
@@ -88,8 +128,8 @@ def run_backdoor_flow_command(args):
             logger.info(connections)
 
     elif action_type == BackdoorActionType.install_factory:
-        token = __init_command_token(args, POWER_APPS_SCOPE)
-        FlowFlowInstaller(token).install(args.environment_id, args.connection_id)
+        auth = __init_command_token(args, POWER_APPS_SCOPE)
+        FlowFlowInstaller(auth.token).install(args.environment_id, args.connection_id)
 
 
 def run_nocodemalware_command(args):
@@ -112,8 +152,8 @@ def run_nocodemalware_command(args):
 
 
 def run_phishing_command(args):
-    token = __init_command_token(args, POWER_APPS_SCOPE)
-    app_installer = AppInstaller(token)
+    auth = __init_command_token(args, POWER_APPS_SCOPE)
+    app_installer = AppInstaller(auth.token)
     if args.phishing_subcommand == "install-app":
         return app_installer.install_app(args.input, args.app_name, args.environment_id)
     elif args.phishing_subcommand == "share-app":

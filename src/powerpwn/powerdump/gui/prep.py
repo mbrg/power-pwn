@@ -51,6 +51,15 @@ def full_resources_table_wrapper(cache_path: str):
     return full_resources_table
 
 
+def env_resources_table_wrapper(cache_path: str):
+    def env_resources_table(env_id: str):
+        resources = list(load_resources(cache_path=cache_path, env_id=env_id))
+
+        return render_template("resources_table.html", title=f"{TOOL_NAME} - environment {env_id}", resources=resources)
+
+    return env_resources_table
+
+
 def full_connection_table_wrapper(cache_path: str):
     def full_connection_table():
         connections = list(load_connections(cache_path=cache_path, with_logic_flows=False))
@@ -101,7 +110,7 @@ def flt_resource_wrapper(cache_path: str):
         resource: Optional[ResourceEntityBase] = None
         if resource_type == "app":
             resource = get_canvasapp(cache_path, env_id, resource_id)
-        elif resource_type in ("credentials", "automation"):
+        elif resource_type in ("credentials", "automation", "connection"):
             resource = get_connection(cache_path, env_id, resource_id)
         elif resource_type == "connector":
             resource = get_connector(cache_path, env_id, resource_id)

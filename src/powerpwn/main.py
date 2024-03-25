@@ -29,8 +29,14 @@ def main():
 
     if command == "dump":
         run_dump_command(args)
+        if args.gui:
+            logger.info("Going to run local server for gui")
+            run_gui_command(args)
     elif command == "recon":
         run_recon_command(args)
+        if args.gui:
+            logger.info("Going to run local server for gui")
+            run_gui_command(args)
     elif command == "gui":
         run_gui_command(args)
     elif command == "backdoor":
