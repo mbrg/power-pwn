@@ -59,10 +59,11 @@ def acquire_token(scope: str, tenant: Optional[str] = None) -> Auth:
         )
         raise RuntimeError(f"Something went wrong when trying to fetch tokens with scope={scope}, tenant={tenant}. Try removing cached credentials.")
 
-    bearer = azure_cli_bearer_tokens_for_scope["token_type"] + " " + azure_cli_bearer_tokens_for_scope["access_token"]
+    access_token = azure_cli_bearer_tokens_for_scope["access_token"]
+    bearer = azure_cli_bearer_tokens_for_scope["token_type"] + " " + access_token
     logger.info(f"Access token for {scope} acquired successfully")
 
-    extracted_tenant = tenant or __get_tenant_from_token(bearer)
+    extracted_tenant = tenant or __get_tenant_from_token(access_token)
     # cache refresh token for cli to use in further FOCI authentication
     # cache access token for required scope
     tokens_to_cache = [
@@ -141,3 +142,7 @@ def __get_msal_cli_application(tenant: Optional[str] = None) -> msal.PublicClien
 
 def __get_tenant_from_token(token: str) -> str:
     return jwt.decode(token, algorithms=["RS256"], options={"verify_signature": False}).get("tid")
+
+
+if __name__ == "__main__":
+    acquire_token(POWER_APPS_SCOPE)

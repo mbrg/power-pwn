@@ -16,12 +16,15 @@ from powerpwn.powerdump.gui.gui import Gui
 from powerpwn.powerdump.utils.auth import Auth, acquire_token, acquire_token_from_cached_refresh_token, get_cached_tenant
 from powerpwn.powerdump.utils.const import API_HUB_SCOPE, POWER_APPS_SCOPE
 from powerpwn.powerdump.utils.path_utils import collected_data_path, entities_path
+from powerpwn.powerdump.utils.token_cache import clear_token_cache
 from powerpwn.powerphishing.app_installer import AppInstaller
 
 logger = logging.getLogger(LOGGER_NAME)
 
 
 def __init_command_token(args, scope: str) -> Auth:
+    if args.clear_cache:
+        clear_token_cache()
 
     # if cached refresh token is found, use it
     if auth := acquire_token_from_cached_refresh_token(scope, args.tenant):
