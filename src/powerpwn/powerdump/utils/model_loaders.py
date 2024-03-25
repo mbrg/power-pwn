@@ -102,9 +102,10 @@ def load_connectors(cache_path: str, env_id: Optional[str] = None) -> Generator[
 
 
 def get_environment_ids(cache_path: str) -> List[str]:
-    if not os.path.exists(cache_path):
+    resources_path = entities_path(cache_path)
+    if not os.path.exists(cache_path) or not os.path.exists(resources_path):
         return []
-    return os.listdir(entities_path(cache_path))
+    return os.listdir(resources_path)
 
 
 def map_connection_id_to_connector_id_and_env_id(connections: Generator[Connection, None, None]) -> Dict[str, Tuple[str, str]]:

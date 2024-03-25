@@ -27,6 +27,9 @@ class ConnectorsCollector(IResourceCollector):
                 if "403" in str(e):
                     logger.warning(f"User doesn't have access to custom connector spec for connector_id={connector_id}. Skipping spec.")
                     continue
+                elif "400" in str(e):
+                    logger.error(f"Failed to get connector {connector_id} for connection {self.__connector_id_to_connection_ids[connector_id]}")
+                    continue
                 raise e
 
             swagger = connector["properties"]["swagger"]

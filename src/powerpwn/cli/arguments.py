@@ -9,6 +9,7 @@ from powerpwn.powerdump.utils.const import CACHE_PATH
 def module_gui(sub_parser: argparse.ArgumentParser):
     gui_parser = sub_parser.add_parser("gui", description="Show collected resources and data.", help="Show collected resources and data via GUI.")
     gui_parser.add_argument("--cache-path", default=CACHE_PATH, type=str, help="Path to cached resources.")
+    gui_parser.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to launch gui.")
 
 
 def module_dump(sub_parser: argparse.ArgumentParser):
@@ -19,6 +20,7 @@ def module_dump(sub_parser: argparse.ArgumentParser):
     dump_parser.add_argument("--cache-path", default=CACHE_PATH, help="Path to store collected resources and data.")
     dump_parser.add_argument("-t", "--tenant", required=False, type=str, help="Tenant id to connect.")
     dump_parser.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
+    dump_parser.add_argument("-r", "--recon", action="store_true", help="Run recon before dump. Should be used if recon command was not run before.")
 
 
 def module_recon(sub_parser: argparse.ArgumentParser):

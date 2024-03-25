@@ -10,6 +10,11 @@ class TokenCache(NamedTuple):
     token_val: str
 
 
+def clear_token_cache() -> None:
+    if os.path.exists(TOKEN_CACHE_PATH):
+        os.remove(TOKEN_CACHE_PATH)
+
+
 def put_token(token_to_cache: TokenCache) -> None:
     put_tokens([token_to_cache])
 
