@@ -21,7 +21,7 @@
           <td><img src="{{ connection.icon_uri }}" class="img-thumbnail" alt="{{ connection.connection_id }}" width="25"></td>
           <td><a href="/credentials/{{ connection.connector_id }}">{{ connection.connector_id }}</a></td>
           <td>{{ connection.display_name }}</td>
-          <td>{{ connection.environment_id }}</td>
+          <td><a href="/env/{{ connection.environment_id }}/credentials">{{ connection.environment_id }}</a> </td>
           <td>{{ connection.is_valid }}</td>
           <td>{{ connection.last_modified_at }}</td>
           <td>{{ connection.expiration_time }}</td>
