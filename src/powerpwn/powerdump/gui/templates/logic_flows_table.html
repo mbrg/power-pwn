@@ -13,16 +13,16 @@
       </tr>
     </thead>
     <tbody>
-      {% for connection in resources %}
+      {% for automation in resources %}
         <tr>
-          <td><img src="{{ connection.icon_uri }}" class="img-thumbnail" alt="{{ connection.connection_id }}" width="25"></td>
-          <td>{{ connection.display_name }}</td>
-          <td>{{ connection.environment_id }}</td>
-          <td>{{ connection.created_at }}</td>
-          <td>{{ connection.created_by.email }}</td>
-          <td>{{ connection.last_modified_at }}</td>
-          <td><a href="/api/{{ connection.connector_id }}/{{ connection.connection_id }}">Playground</a></td>
-          <td><a href="/env/{{ connection.environment_id }}/automation/{{ connection.entity_id }}">Raw</a> </td>
+          <td><img src="{{ automation.icon_uri }}" class="img-thumbnail" alt="{{ automation.connection_id }}" width="25"></td>
+          <td>{{ automation.display_name }}</td>
+          <td><a href="/env/{{ automation.environment_id }}/automation">{{ automation.environment_id }}</a> </td>
+          <td>{{ automation.created_at }}</td>
+          <td>{{ automation.created_by.email }}</td>
+          <td>{{ automation.last_modified_at }}</td>
+          <td><a href="/api/{{ automation.connector_id }}/{{ automation.connection_id }}">Playground</a></td>
+          <td><a href="/env/{{ automation.environment_id }}/automation/{{ automation.entity_id }}">Raw</a> </td>
         </tr>
       {% endfor %}
     </tbody>

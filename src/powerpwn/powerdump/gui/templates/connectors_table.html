@@ -4,7 +4,8 @@
   <table id="data" class="table table-striped">
     <thead>
       <tr>
-        <th>Display name</th>
+        <th>Connector</th>
+        <th>Environment</th>
         <th>Version</th>
         <th>Created by</th>
         <th>Created at </th>
@@ -15,6 +16,7 @@
       {% for connector in resources %}
         <tr>
           <td>{{ connector.display_name }}</td>
+          <td><a href="/env/{{ connector.environment_id }}/{{connector.entity_type}}">{{ connector.environment_id }}</a> </td>
           <td>{{ connector.version }}</td>
           <td>{{ connector.created_by }}</td>
           <td>{{ connector.created_at }}</td>
