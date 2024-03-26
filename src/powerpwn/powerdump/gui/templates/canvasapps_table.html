@@ -4,7 +4,7 @@
   <table id="data" class="table table-striped">
     <thead>
       <tr>
-        <th>Display name</th>
+        <th>App</th>
         <th>Environment </th>
         <th>Version</th>
         <th>Created by</th>
@@ -16,7 +16,7 @@
       {% for canvasapp in resources %}
         <tr>
           <td>{{ canvasapp.display_name }}</td>
-          <td>{{ canvasapp.environment_id }}</td>
+          <td><a href="/env/{{ canvasapp.environment_id }}/app">{{ canvasapp.environment_id }}</a> </td>
           <td>{{ canvasapp.version }}</td>
           <td>{{ canvasapp.created_by.email }}</td>
           <td>{{ canvasapp.created_at }}</td>
