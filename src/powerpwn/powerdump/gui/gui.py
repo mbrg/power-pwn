@@ -7,6 +7,7 @@ from flask import Flask
 
 from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.powerdump.gui.prep import (
+    env_resources_table_by_resource_type_wrapper,
     env_resources_table_wrapper,
     flt_connection_table_wrapper,
     flt_resource_wrapper,
@@ -29,6 +30,7 @@ class Gui:
         register_specs(app=app, cache_path=cache_path)
         app.route("/")(full_resources_table_wrapper(cache_path=cache_path))
         app.route("/env/<env_id>")(env_resources_table_wrapper(cache_path=cache_path))
+        app.route("/env/<env_id>/<resource_type>")(env_resources_table_by_resource_type_wrapper(cache_path=cache_path))
         app.route("/credentials")(full_connection_table_wrapper(cache_path=cache_path))
         app.route("/automation")(full_logic_flows_table_wrapper(cache_path=cache_path))
         app.route("/app/")(full_canvasapps_table_wrapper(cache_path))
