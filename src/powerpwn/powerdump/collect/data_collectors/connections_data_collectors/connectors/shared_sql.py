@@ -32,9 +32,11 @@ class SharedSqlConnector(ConnectorBase):
                     tenant=None,
                     account="temp",
                     scope=None,
-                    host=f'https://{connection_parameters["server"]}.database.windows.net'
-                    if is_windows
-                    else f'https://{connection_parameters["values"]["server"]["value"]}',
+                    host=(
+                        f'https://{connection_parameters["server"]}.database.windows.net'
+                        if is_windows
+                        else f'https://{connection_parameters["values"]["server"]["value"]}'
+                    ),
                     name=connection_parameters["server"] if is_windows else connection_parameters["values"]["server"]["value"],
                     extra={},
                 )
