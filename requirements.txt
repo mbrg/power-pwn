@@ -12,13 +12,13 @@ prance~=0.22.11.4.0
 openapi~=1.1.0
 openapi-spec-validator~=0.5.6
 jsf~=0.7.1
-pillow~=10.0.0
+pillow>=10.3.0
 scandir~=1.10.0
 backports.shutil-get-terminal-size~=1.0.0
 browsepy~=0.5.6
 art
 flake8~=4.0.1
-black~=22.3.0
+black>=24.3.0
 types-requests==2.31.0.1
 bandit~=1.7.2
 mypy~=1.3.0
