@@ -149,3 +149,4 @@ cov.xml
 tokens.json
 *.zip
 .dump
+node_modules/

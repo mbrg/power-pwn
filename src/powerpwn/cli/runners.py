@@ -4,6 +4,11 @@ import os
 import shutil
 
 from powerpwn.cli.const import LOGGER_NAME
+from powerpwn.common.cache.token_cache import TokenCache
+from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
+from powerpwn.copilot.enums.verbose_enum import VerboseEnum
+from powerpwn.copilot.interactive_chat.interactive_chat import InteractiveChat
+from powerpwn.copilot.models.chat_argument import ChatArguments
 from powerpwn.nocodemalware.enums.code_exec_type_enum import CodeExecTypeEnum
 from powerpwn.nocodemalware.enums.command_to_run_enum import CommandToRunEnum
 from powerpwn.nocodemalware.malware_runner import MalwareRunner
@@ -16,15 +21,15 @@ from powerpwn.powerdump.gui.gui import Gui
 from powerpwn.powerdump.utils.auth import Auth, acquire_token, acquire_token_from_cached_refresh_token, get_cached_tenant
 from powerpwn.powerdump.utils.const import API_HUB_SCOPE, POWER_APPS_SCOPE
 from powerpwn.powerdump.utils.path_utils import collected_data_path, entities_path
-from powerpwn.powerdump.utils.token_cache import clear_token_cache
 from powerpwn.powerphishing.app_installer import AppInstaller
+from powerpwn.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
 
 logger = logging.getLogger(LOGGER_NAME)
 
 
 def __init_command_token(args, scope: str) -> Auth:
     if args.clear_cache:
-        clear_token_cache()
+        TokenCache().clear_token_cache()
         return acquire_token(scope=scope, tenant=args.tenant)
 
     # if cached refresh token is found, use it
@@ -163,3 +168,23 @@ def run_phishing_command(args):
     elif args.phishing_subcommand == "share-app":
         return app_installer.share_app_with_org(args.app_id, args.environment_id, args.tenant)
     raise NotImplementedError("Phishing command has not been implemented yet.")
+
+
+def run_copilot_chat_command(args):
+    parsed_args = ChatArguments(
+        user=args.user,
+        password=args.password,
+        use_cached_access_token=args.cached_token,
+        verbose=VerboseEnum(args.verbose),
+        scenario=CopilotScenarioEnum(args.scenario),
+    )
+
+    if args.copilot_subcommand == "chat":
+        InteractiveChat(parsed_args).start_chat()
+        return
+    elif args.copilot_subcommand == "spear-phishing":
+        spear = AutomatedSpearPhisher(parsed_args)
+        spear.phish()
+        return
+
+    raise NotImplementedError(f"Copilot {args.copilot_subcommand} subcommand has not been implemented yet.")
