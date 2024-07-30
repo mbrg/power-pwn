@@ -10,10 +10,7 @@ def main():
     args = parse_arguments()
 
     parsed_args = ChatArguments(
-        user=args.user,
-        password=args.password,
-        verbose=VerboseEnum(args.verbose),
-        scenario=CopilotScenarioEnum(args.scenario),
+        user=args.user, password=args.password, verbose=VerboseEnum(args.verbose), scenario=CopilotScenarioEnum(args.scenario)
     )
 
     InteractiveChat(parsed_args).start_chat()

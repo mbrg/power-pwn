@@ -29,13 +29,7 @@ class ChatAutomator:
         """
         self.init_connector()
 
-        result = asyncio.get_event_loop().run_until_complete(
-            asyncio.gather(
-                self.__copilot_connector.connect(
-                    prompt,
-                )
-            )
-        )
+        result = asyncio.get_event_loop().run_until_complete(asyncio.gather(self.__copilot_connector.connect(prompt)))
 
         if result[0]:
             return result[0]

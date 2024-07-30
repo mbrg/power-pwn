@@ -35,14 +35,6 @@ class IWebsocketMessage(ABC):
         """
 
     @abstractmethod
-    def type(self) -> MessageTypeEnum:
-        """
-        returns the type of the message
-
-        :return: the type of the message
-        """
-
-    @abstractmethod
     def is_success(self) -> bool:
         """
         returns whether the message is a success message

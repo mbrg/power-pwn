@@ -16,9 +16,6 @@ class FileLogger(ILogger):
         if self.__verbose == VerboseEnum.off:
             return None
 
-        elif (
-            self.__verbose == VerboseEnum.mid
-            and message.type() != MessageTypeEnum.copilot
-        ) or self.__verbose == VerboseEnum.full:
+        elif (self.__verbose == VerboseEnum.mid and message.type() != MessageTypeEnum.copilot) or self.__verbose == VerboseEnum.full:
             with open(self.__file_path, "a") as file:
                 file.write(message.message + "\n")

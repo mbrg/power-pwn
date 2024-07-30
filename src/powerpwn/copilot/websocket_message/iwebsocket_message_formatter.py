@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 
-from powerpwn.copilot.websocket_message.websocket_parsed_message import (
-    WebsocketParsedMessage,
-)
+from powerpwn.copilot.websocket_message.websocket_parsed_message import WebsocketParsedMessage
 
 
 class IWebsocketMessageFormatter(ABC):
