@@ -13,7 +13,9 @@ class MessageTypeEnum(Enum):
     ping = 6
     copilot = 1
     copilot_final = 2
-    unknown = 3  # need to figure out {"type":3,"invocationId":"0"}    none = -1  # for now we are aware of {"protocol":"json","version":1} or {} messages
+    unknown = (
+        3  # need to figure out {"type":3,"invocationId":"0"}    none = -1  # for now we are aware of {"protocol":"json","version":1} or {} messages
+    )
     none = -1
 
     def from_int(value: int) -> MessageTypeEnum:

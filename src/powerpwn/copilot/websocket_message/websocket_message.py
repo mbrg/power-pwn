@@ -5,9 +5,7 @@ from typing_extensions import override
 
 from powerpwn.copilot.enums.message_type_enum import MessageTypeEnum
 from powerpwn.copilot.websocket_message.iwebsocket_message import IWebsocketMessage
-from powerpwn.copilot.websocket_message.websocket_parsed_message import (
-    WebsocketParsedMessage,
-)
+from powerpwn.copilot.websocket_message.websocket_parsed_message import WebsocketParsedMessage
 
 COPILOT_PROMPT = "[Copilot]: "
 SUGGESTIONS = "Suggestions:"
@@ -49,10 +47,7 @@ class WebsocketMessage(IWebsocketMessage):
 
     @override
     def is_success(self) -> bool:
-        return self.__json_message["item"]["result"]["value"] in (
-            "Success",
-            "ApologyResponseReturned",
-        )
+        return self.__json_message["item"]["result"]["value"] in ("Success", "ApologyResponseReturned")
 
     @classmethod
     def to_websocket_message(cls, message: dict) -> str:
@@ -66,10 +61,7 @@ class WebsocketMessage(IWebsocketMessage):
         is_success = True
 
         if self.type() == MessageTypeEnum.copilot_final:
-            is_success = self.__json_message["item"]["result"]["value"] in (
-                "Success",
-                "ApologyResponseReturned",
-            )
+            is_success = self.__json_message["item"]["result"]["value"] in ("Success", "ApologyResponseReturned")
 
             if not is_success:
                 copilot_message = self.__parse_message_for_copilot_final_failed()
@@ -89,11 +81,7 @@ class WebsocketMessage(IWebsocketMessage):
                             break
 
         return WebsocketParsedMessage(
-            copilot_message=copilot_message,
-            is_success=is_success,
-            is_disengaged=is_disengaged,
-            suggestions=suggestions,
-            type=self.type(),
+            copilot_message=copilot_message, is_success=is_success, is_disengaged=is_disengaged, suggestions=suggestions, type=self.type()
         )
 
     def __parse_message_for_copilot_final(self) -> str:

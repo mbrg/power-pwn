@@ -2,21 +2,13 @@ import uuid
 from typing import Optional
 
 from powerpwn.copilot.chat_automator.chat_automator import ChatAutomator
-from powerpwn.copilot.exceptions.copilot_connected_user_mismatch import (
-    CopilotConnectedUserMismatchException,
-)
-from powerpwn.copilot.exceptions.copilot_connection_failed_exception import (
-    CopilotConnectionFailedException,
-)
+from powerpwn.copilot.exceptions.copilot_connected_user_mismatch import CopilotConnectedUserMismatchException
+from powerpwn.copilot.exceptions.copilot_connection_failed_exception import CopilotConnectionFailedException
 from powerpwn.copilot.models.chat_argument import ChatArguments
 from powerpwn.copilot.websocket_message.websocket_message import WebsocketMessage
 from powerpwn.spearphishing.log_formatting.log_type_enum import LogType
-from powerpwn.spearphishing.log_formatting.spear_phising_log_formatter import (
-    SpearPhishingLogFormatter,
-)
-from powerpwn.spearphishing.log_formatting.spear_phising_websocket_message_formatter import (
-    SpearPhishingWebsocketMessageFormatter,
-)
+from powerpwn.spearphishing.log_formatting.spear_phising_log_formatter import SpearPhishingLogFormatter
+from powerpwn.spearphishing.log_formatting.spear_phising_websocket_message_formatter import SpearPhishingWebsocketMessageFormatter
 from powerpwn.spearphishing.phishing_email_params import PhishingEmailParameters
 
 
@@ -53,19 +45,14 @@ class AutomatedSpearPhisher:
 
             collaborators = (
                 formatted_resp.split(self._SEPARATOR)
-                if formatted_resp
-                and self._SEPARATOR in formatted_resp
-                and self._SPECIAL_CHARS not in formatted_resp
+                if formatted_resp and self._SEPARATOR in formatted_resp and self._SPECIAL_CHARS not in formatted_resp
                 else []
             )
             for collaborator in collaborators:
                 if collaborator:
                     phishing_emails.append(self.phish_for_collaborator(collaborator))
 
-            self.__log(
-                LogType.none,
-                message="-----------------------------------------------------------------",
-            )
+            self.__log(LogType.none, message="-----------------------------------------------------------------")
             self.__log(LogType.tool, "Phishing Completed.")
             self.__log(LogType.tool, "Results:")
             for idx, email in enumerate(phishing_emails):
@@ -74,19 +61,14 @@ class AutomatedSpearPhisher:
                 self.__log(LogType.none, message=f"Email cc: {email.cc}")
                 self.__log(LogType.none, message=f"Email subject: {email.subject}")
                 self.__log(LogType.none, message=f"Email body: {email.body}")
-                self.__log(
-                    LogType.none,
-                    message="-----------------------------------------------------------------",
-                )
+                self.__log(LogType.none, message="-----------------------------------------------------------------")
         except CopilotConnectionFailedException as e:
             self.__log(LogType.tool, f"Failed to connect to Copilot: {e.message}")
         except CopilotConnectedUserMismatchException as e:
             self.__log(LogType.tool, f"{e.message}")
 
     def phish_for_collaborator(self, collaborator: str) -> PhishingEmailParameters:
-        self.__log(
-            LogType.tool, f"Starting phishing for collaborator {collaborator}..."
-        )
+        self.__log(LogType.tool, f"Starting phishing for collaborator {collaborator}...")
 
         cc_list = []
         collaborator_email = ""
@@ -105,18 +87,11 @@ class AutomatedSpearPhisher:
         prompt = f"who is on the CC list in the last conversation with {collaborator}? print them as list separated by '{self._SEPARATOR}' and nothing else.if you don't find any, print '{self._SPECIAL_CHARS}' and nothing else.  do not print any reference"
         self.__log(LogType.prompt, prompt)
 
-        resp = self.__send_prompt(
-            prompt,
-            resp,
-        )
+        resp = self.__send_prompt(prompt, resp)
         self.__log_response(resp)
         formatted_resp = self.__get_formatted_response(resp)
 
-        if (
-            formatted_resp
-            and self._SEPARATOR in formatted_resp
-            and self._SPECIAL_CHARS not in formatted_resp
-        ):
+        if formatted_resp and self._SEPARATOR in formatted_resp and self._SPECIAL_CHARS not in formatted_resp:
             for involved in formatted_resp.split(self._SEPARATOR):
                 if involved:
                     if email := self.__get_cc_email(involved):
@@ -133,10 +108,7 @@ class AutomatedSpearPhisher:
         self.__log_response(email_body)
 
         return PhishingEmailParameters(
-            to=collaborator_email,
-            cc=cc_list,
-            body=self.__get_formatted_response(email_body),
-            subject=self.__get_formatted_response(email_subject),
+            to=collaborator_email, cc=cc_list, body=self.__get_formatted_response(email_body), subject=self.__get_formatted_response(email_subject)
         )
 
     def __send_prompt(self, prompt: str, response: Optional[str]) -> str:
@@ -168,11 +140,7 @@ class AutomatedSpearPhisher:
             return formatted_response
         return None
 
-    def __log(
-        self,
-        log_type: LogType,
-        message: str,
-    ) -> None:
+    def __log(self, log_type: LogType, message: str) -> None:
 
         to_log = self.__log_formatter.format(message, log_type)
         with open(self.__file_path, "a") as file:
@@ -185,9 +153,7 @@ class AutomatedSpearPhisher:
         else:
             self.__log(LogType.response, "None")
 
-    def __get_formatted_response(
-        self, websocket_resp: Optional[WebsocketMessage]
-    ) -> Optional[str]:
+    def __get_formatted_response(self, websocket_resp: Optional[WebsocketMessage]) -> Optional[str]:
         if websocket_resp:
             message = self.__websocket_formatter.format(websocket_resp.parsed_message)
             return message
