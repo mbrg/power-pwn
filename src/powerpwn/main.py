@@ -6,6 +6,7 @@ from powerpwn.cli.arguments import parse_arguments
 from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.cli.runners import (
     run_backdoor_flow_command,
+    run_copilot_chat_command,
     run_dump_command,
     run_gui_command,
     run_nocodemalware_command,
@@ -46,6 +47,8 @@ def main():
         run_nocodemalware_command(args)
     elif command == "phishing":
         run_phishing_command(args)
+    elif command == "copilot":
+        run_copilot_chat_command(args)
     else:
         logger.info("Run `powerpwn --help` for available commands.")
 

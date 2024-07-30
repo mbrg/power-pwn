@@ -5,8 +5,9 @@ import jwt
 import msal
 
 from powerpwn.cli.const import LOGGER_NAME, TOOL_NAME
+from powerpwn.common.cache.cached_entity import CachedEntity
+from powerpwn.common.cache.token_cache import TokenCache
 from powerpwn.powerdump.utils.const import API_HUB_SCOPE, AZURE_CLI_APP_ID, GRAPH_API_SCOPE, POWER_APPS_SCOPE
-from powerpwn.powerdump.utils.token_cache import TOKEN_CACHE_PATH, TokenCache, put_tokens, try_fetch_token
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -22,6 +23,9 @@ class Auth(NamedTuple):
     token: str
     tenant: str
     scope: str
+
+
+token_cache = TokenCache()
 
 
 def acquire_token(scope: str, tenant: Optional[str] = None) -> Auth:
@@ -67,12 +71,12 @@ def acquire_token(scope: str, tenant: Optional[str] = None) -> Auth:
     # cache refresh token for cli to use in further FOCI authentication
     # cache access token for required scope
     tokens_to_cache = [
-        TokenCache(token_key=AZURE_CLI_REFRESH_TOKEN, token_val=azure_cli_app_refresh_token),
-        TokenCache(SCOPE_TO_TOKEN_CACHE_TYPE[scope], bearer),
-        TokenCache(TENANT, extracted_tenant),
+        CachedEntity(key=AZURE_CLI_REFRESH_TOKEN, val=azure_cli_app_refresh_token),
+        CachedEntity(SCOPE_TO_TOKEN_CACHE_TYPE[scope], bearer),
+        CachedEntity(TENANT, extracted_tenant),
     ]
-    put_tokens(tokens_to_cache)
-    logger.info(f"Token is cached in {TOKEN_CACHE_PATH}")
+    token_cache.put_tokens(tokens_to_cache)
+    logger.info(f"Token is cached in {token_cache.cache_path}")
 
     return Auth(token=bearer, tenant=extracted_tenant, scope=scope)
 
@@ -87,13 +91,13 @@ def acquire_token_from_cached_refresh_token(scope: str, tenant: Optional[str] = 
     """
     logger.info(f"Acquiring token with scope={scope} from cached refresh token.")
 
-    cached_refresh_token = try_fetch_token(AZURE_CLI_REFRESH_TOKEN)
+    cached_refresh_token = token_cache.try_fetch_token(AZURE_CLI_REFRESH_TOKEN)
 
     if not cached_refresh_token:
         logger.info("Failed to get refresh token from cache.")
         return None
 
-    cached_tenant = try_fetch_token(TENANT)
+    cached_tenant = token_cache.try_fetch_token(TENANT)
     tenant = tenant or cached_tenant
 
     azure_cli_client = __get_msal_cli_application(tenant)
@@ -117,15 +121,15 @@ def acquire_token_from_cached_refresh_token(scope: str, tenant: Optional[str] = 
     extracted_tenant = tenant or __get_tenant_from_token(access_token)
 
     # cache access token for required scope
-    tokens_to_cache = [TokenCache(SCOPE_TO_TOKEN_CACHE_TYPE[scope], bearer), TokenCache(TENANT, extracted_tenant)]
-    put_tokens(tokens_to_cache)
-    logger.info(f"Token is cached in {TOKEN_CACHE_PATH}")
+    tokens_to_cache = [CachedEntity(SCOPE_TO_TOKEN_CACHE_TYPE[scope], bearer), CachedEntity(TENANT, extracted_tenant)]
+    token_cache.put_tokens(tokens_to_cache)
+    logger.info(f"Token is cached in {token_cache.cache_path}")
 
     return Auth(token=bearer, tenant=extracted_tenant, scope=scope)
 
 
 def get_cached_tenant() -> Optional[str]:
-    tenant = try_fetch_token(TENANT)
+    tenant = token_cache.try_fetch_token(TENANT)
     if not tenant:
         logger.info("Tenant is not cached.")
 

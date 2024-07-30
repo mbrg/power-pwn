@@ -1,6 +1,8 @@
 import argparse
 import logging
 
+from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
+from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.nocodemalware.enums.code_exec_type_enum import CodeExecTypeEnum
 from powerpwn.powerdoor.enums.action_type import BackdoorActionType
 from powerpwn.powerdump.utils.const import CACHE_PATH
@@ -128,6 +130,44 @@ def module_phishing(command_subparsers: argparse.ArgumentParser):
     app_share.add_argument("-t", "--tenant", required=True, type=str, help="Tenant id to connect.")
 
 
+def module_copilot(command_subparsers: argparse.ArgumentParser):
+    copilot = command_subparsers.add_parser(
+        "copilot", description="Connects and interacts with copilot.", help="Connects and interacts with copilot."
+    )
+    copilot_subparsers = copilot.add_subparsers(help="copilot_subcommand", dest="copilot_subcommand")
+
+    interactive_chat = copilot_subparsers.add_parser(
+        "chat", description="Starts an interactive chat with copilot", help="Connects to copilot and starts an interactive chat session."
+    )
+    copilot_modules(interactive_chat)
+
+    spearphishing = copilot_subparsers.add_parser(
+        "spear-phishing",
+        description="Starts a spearphishing using copilot",
+        help="Targets a compromised user's collaborators and crafts personalized emails using copilot",
+    )
+    copilot_modules(spearphishing)
+
+
+def copilot_modules(parser):
+    parser.add_argument("-u", "--user", required=True, type=str, help="User email to connect.")
+    parser.add_argument("-p", "--password", required=False, type=str, help="User password to connect.")
+    parser.add_argument("--cached-token", action="store_true", help="Use cached access token to connect to copilot if exists.")
+    parser.add_argument(
+        "-s", "--scenario", required=True, type=str, choices=[scenario_type.value for scenario_type in CopilotScenarioEnum], help="Scenario to run."
+    )
+
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        required=False,
+        type=str,
+        default=VerboseEnum.off.value,
+        choices=[verbose_level.value for verbose_level in VerboseEnum],
+        help="Verbose level. Default is off.",
+    )
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
@@ -139,6 +179,7 @@ def parse_arguments():
     module_backdoor(command_subparsers)
     module_nocodemalware(command_subparsers)
     module_phishing(command_subparsers)
+    module_copilot(command_subparsers)
 
     args = parser.parse_args()
 
