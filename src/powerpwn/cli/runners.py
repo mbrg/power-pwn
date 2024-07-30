@@ -9,6 +9,7 @@ from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
 from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.copilot.interactive_chat.interactive_chat import InteractiveChat
 from powerpwn.copilot.models.chat_argument import ChatArguments
+from powerpwn.copilot.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
 from powerpwn.nocodemalware.enums.code_exec_type_enum import CodeExecTypeEnum
 from powerpwn.nocodemalware.enums.command_to_run_enum import CommandToRunEnum
 from powerpwn.nocodemalware.malware_runner import MalwareRunner
@@ -22,7 +23,6 @@ from powerpwn.powerdump.utils.auth import Auth, acquire_token, acquire_token_fro
 from powerpwn.powerdump.utils.const import API_HUB_SCOPE, POWER_APPS_SCOPE
 from powerpwn.powerdump.utils.path_utils import collected_data_path, entities_path
 from powerpwn.powerphishing.app_installer import AppInstaller
-from powerpwn.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
 
 logger = logging.getLogger(LOGGER_NAME)
 

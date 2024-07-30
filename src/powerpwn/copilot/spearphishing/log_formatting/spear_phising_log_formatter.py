@@ -1,4 +1,4 @@
-from powerpwn.spearphishing.log_formatting.log_type_enum import LogType
+from powerpwn.copilot.spearphishing.log_formatting.log_type_enum import LogType
 
 
 class SpearPhishingLogFormatter:
