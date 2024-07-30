@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 
 from powerpwn.copilot.enums.message_type_enum import MessageTypeEnum
-from powerpwn.copilot.websocket_message.websocket_parsed_message import (
-    WebsocketParsedMessage,
-)
+from powerpwn.copilot.websocket_message.websocket_parsed_message import WebsocketParsedMessage
 
 
 class IWebsocketMessage(ABC):

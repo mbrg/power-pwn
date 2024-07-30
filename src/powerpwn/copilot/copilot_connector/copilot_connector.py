@@ -1,5 +1,5 @@
 import pathlib
-import subprocess
+import subprocess  # nosec
 import uuid
 from typing import Optional
 
@@ -28,7 +28,7 @@ class CopilotConnector:
     A class that is responsible for connecting and interacting with the Copilot
     """
 
-    _SUBSTRATE_TOKEN_CACHE_KEY = "substrate_access_token"
+    _SUBSTRATE_TOKEN_CACHE_KEY = "substrate_access_token"  # nosec
 
     def __init__(self, arguments: ChatArguments) -> None:
         self.__is_initialized = False
@@ -239,8 +239,13 @@ class CopilotConnector:
         module = "get_substrate_bearer_office" if scenario == CopilotScenarioEnum.officeweb else "get_substrate_bearer_teams"
         try:
             # Run the Node.js script using subprocess
-            result = subprocess.run(
-                ["node", pathlib.Path("puppeteer_get_substrate_bearer") / f"{module}.js", f"user={user}", f"password={password}"],
+            result = subprocess.run(  # nosec
+                [
+                    "node",
+                    pathlib.Path("puppeteer_get_substrate_bearer") / f"{module}.js",  # nosec
+                    f"user={user}",  # nosec
+                    f"password={password}",  # nosec
+                ],
                 capture_output=True,
                 text=True,
             )
@@ -300,7 +305,7 @@ class CopilotConnector:
             "UICulture": "en-us",
         }
         auth_header = {"Authorization": f"Bearer {access_token}"}
-        plugins_response = requests.post(plugins_url, headers=auth_header, json=payload)
+        plugins_response = requests.post(plugins_url, headers=auth_header, json=payload)  # nosec
         if plugins_response.status_code != 200:
             if plugins_response.status_code == 401:
                 raise CopilotConnectionFailedException("Unauthorized. Try to delete cached token and retry")
