@@ -31,11 +31,27 @@ class WhoAmI:
         self.__log(LogType.tool, "Who am I?")
         self.__log(LogType.tool, f"Result will be saved in {self.__result_file_path}")
         self.__log(LogType.tool, f"Run logs will be saved in {self.__file_path}")
+        # self.__get_tenant_details()
         self.__get_personal_name_and_title()
         manager_name = self.__get_manager_details()
         self.__get_manager_of_manager_details(manager_name=manager_name)
         self.__get_top_collaborators_details()
         self.__get_latest_emails_senders()
+
+    def __get_tenant_details(self) -> None:
+        prompt = f"print the tenant id only. do not print anything else. if you don't know, print {self._SPECIAL_CHARS} only. do not print any cites or references"
+        self.__log(LogType.prompt, prompt)
+        resp = self.__chat_automator.send_prompt(prompt)
+        self.__log_response(resp)
+        if (tenant_id := self.__websocket_formatter.format(resp)) and self._SPECIAL_CHARS not in tenant_id:
+            self.__result_logger.log(f"Tenant ID: {tenant_id}")
+
+        prompt = f"print the tenant name only. do not print anything else. if you don't know, print {self._SPECIAL_CHARS} only. do not print any cites or references"
+        self.__log(LogType.prompt, prompt)
+        resp = self.__chat_automator.send_prompt(prompt)
+        self.__log_response(resp)
+        if (tenant_id := self.__websocket_formatter.format(resp)) and self._SPECIAL_CHARS not in tenant_id:
+            self.__result_logger.log(f"Tenant Name: {tenant_id}")
 
     def __get_personal_name_and_title(self) -> None:
         prompt = f"hi, please polite and start the sentence by saying my name and then print {self._SEPARATOR} and then what is the capital of Hungary ?. do not print any cites or references"
