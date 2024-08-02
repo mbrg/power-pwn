@@ -2,7 +2,7 @@ import datetime
 import logging
 import os
 import re
-import subprocess
+import subprocess  # nosec
 import time
 
 from powerpwn.copilot_studio.modules.path_utils import get_project_file_path
@@ -13,9 +13,7 @@ def is_valid_subdomain(subdomain: str) -> bool:
     Validate that the subdomain follows the expected pattern.
     """
     # Define a regex pattern for valid subdomains
-    pattern = re.compile(
-        r"^[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-]{2}\.(tenant|environment)\.api\.powerplatform\.com$"
-    )
+    pattern = re.compile(r"^[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-]{2}\.(tenant|environment)\.api\.powerplatform\.com$")
     return pattern.match(subdomain) is not None
 
 
@@ -26,9 +24,7 @@ def write_to_file(values: list, filename: str):
     :param values: The list of values to write
     :param filename: The file to write to
     """
-    os.makedirs(
-        os.path.dirname(filename), exist_ok=True
-    )  # Ensure the output directory exists
+    os.makedirs(os.path.dirname(filename), exist_ok=True)  # Ensure the output directory exists
 
     with open(filename, "w") as file:
         for value in values:
@@ -44,7 +40,7 @@ def get_amass_results(domain_type: str, timeout: int) -> bytes:
     """
     command = ["amass", "enum", "-d", f"{domain_type}.api.powerplatform.com"]
     start_time = time.time()
-    popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
+    popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)  # nosec
     try:
         for stdout_line in iter(popen.stdout.readline, ""):
             if time.time() - start_time > timeout:
@@ -97,40 +93,26 @@ class Enum:
         self.run()
 
     def run(self):
-        print(
-            f"Starting to enumerate {self.args.enumerate}s, disconnect from VPN during this part for best results"
-        )
+        print(f"Starting to enumerate {self.args.enumerate}s, disconnect from VPN during this part for best results")
         print(f"Timeout defined to  {int(self.args.timeout) / 60} minutes")
-        print(
-            "Enumeration results will be printed below and saved to the final_results directory"
-        )
+        print("Enumeration results will be printed below and saved to the final_results directory")
         try:
-            for line, popen in get_amass_results(
-                self.args.enumerate, self.args.timeout
-            ):
+            for line, popen in get_amass_results(self.args.enumerate, self.args.timeout):
                 subdomain = line.strip().split(" (FQDN) -->")[0]
                 if is_valid_subdomain(subdomain):
-                    formatted_subdomain = format_subdomain(
-                        subdomain, self.args.enumerate
-                    )
-                    if (
-                        "enviro-nmen-t" not in formatted_subdomain
-                    ):  # TODO: check if still relevant
+                    formatted_subdomain = format_subdomain(subdomain, self.args.enumerate)
+                    if "enviro-nmen-t" not in formatted_subdomain:  # TODO: check if still relevant
                         print(formatted_subdomain)
                         self.tenant_results.append(formatted_subdomain)
                 else:
                     logging.warning(f"Filtered out invalid subdomain: {subdomain}")
         except subprocess.TimeoutExpired:
-            logging.error(
-                f"Amass enumeration timed out after {self.args.timeout} seconds"
-            )
+            logging.error(f"Amass enumeration timed out after {self.args.timeout} seconds")
             print(f"Amass enumeration timed out after {self.args.timeout} seconds")
         finally:
             # Ensure partial results are saved even if timeout occurs
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             unique_filename = f"{self.args.enumerate}_enumeration_results_{timestamp}"
-            amass_path = get_project_file_path(
-                "final_results", f"{unique_filename}.txt"
-            )
+            amass_path = get_project_file_path("final_results", f"{unique_filename}.txt")
             write_to_file(self.tenant_results, f"{amass_path}")
             logging.info(f"{self.args.enumerate}s enumerated and saved to {amass_path}")
