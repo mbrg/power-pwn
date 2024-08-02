@@ -411,9 +411,15 @@ def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix
         raise subprocess.CalledProcessError(return_code, command)
 
 
-def print_brand(tenant: str):
+def print_brand(tenant: str, timeout: int = 10):
+    """
+    Retrieve and print the brand for a given tenant ID.
+    Using AADInternals, possible TBD directly to MSFT in the future.
+
+    :param tenant: The tenant ID to query.
+    :param timeout: The timeout (in seconds) for the HTTP request.
+    """
     # URL and headers for the request (using a set of valid request headers)
-    # Using AADInternals, possible TBD directly to MSFT in the future
     url = f"https://aadinternals.azurewebsites.net/api/tenantinfo?tenantId={tenant}"
     headers = {
         "Accept": "application/json, text/javascript, */*; q=0.01",
@@ -431,8 +437,30 @@ def print_brand(tenant: str):
         "sec-gpc": "1",
     }
 
+    try:
+        # Make the request with a timeout
+        response = requests.get(url, headers=headers, timeout=timeout)
+
+        # Check if the request was successful
+        if response.status_code == 200:
+            data = response.json()
+            domain = data.get("tenantBrand", None)
+            print(f"Brand found for tenant {tenant}: {domain}")
+        else:
+            print(f"No brand found for tenant {tenant}")
+            logging.error(f"Failed to retrieve tenant brand: {response.status_code} {response.text}")
+
+    except requests.Timeout:
+        print(f"Request timed out after {timeout} seconds")
+        logging.error(f"Request timed out after {timeout} seconds")
+
+    except requests.RequestException as e:
+        print(f"An error occurred: {e}")
+        logging.error(f"An error occurred: {e}")
+
     # Make the request
-    response = requests.get(url, headers=headers)  # nosec
+    response = requests.get(url, headers=headers, timeout=timeout)
+
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
