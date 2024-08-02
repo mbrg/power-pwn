@@ -1,10 +1,11 @@
+import datetime
 import logging
+import os
+import re
 import subprocess
 import time
-import os
-import datetime
+
 from powerpwn.copilot_studio.modules.path_utils import get_project_file_path
-import re
 
 
 def is_valid_subdomain(subdomain: str) -> bool:
@@ -94,7 +95,7 @@ class Enum:
     def run(self):
         print(f"Starting to enumerate {self.args.enumerate}s, disconnect from VPN during this part for best results")
         print(f"Timeout defined to  {int(self.args.timeout) / 60} minutes")
-        print(f"Enumeration results will be printed below and saved to the final_results directory")
+        print("Enumeration results will be printed below and saved to the final_results directory")
         try:
             for line, popen in get_amass_results(self.args.enumerate, self.args.timeout):
                 subdomain = line.strip().split(" (FQDN) -->")[0]
@@ -115,4 +116,3 @@ class Enum:
             amass_path = get_project_file_path('final_results', f"{unique_filename}.txt")
             write_to_file(self.tenant_results, f"{amass_path}")
             logging.info(f"{self.args.enumerate}s enumerated and saved to {amass_path}")
-
