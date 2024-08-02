@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
@@ -9,6 +11,8 @@ from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
 from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.copilot.interactive_chat.interactive_chat import InteractiveChat
 from powerpwn.copilot.models.chat_argument import ChatArguments
+from powerpwn.copilot_studio.modules.deep_scan import DeepScan
+from powerpwn.copilot_studio.modules.enum import Enum
 from powerpwn.copilot.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
 from powerpwn.nocodemalware.enums.code_exec_type_enum import CodeExecTypeEnum
 from powerpwn.nocodemalware.enums.command_to_run_enum import CommandToRunEnum
@@ -188,3 +192,16 @@ def run_copilot_chat_command(args):
         return
 
     raise NotImplementedError(f"Copilot {args.copilot_subcommand} subcommand has not been implemented yet.")
+
+
+def run_copilot_studio_command(args):
+    # copilot_studio_main.main(args)
+
+    if args.copilot_studio_subcommand == "deep-scan":
+        DeepScan(args)
+        return
+    elif args.copilot_studio_subcommand == "enum":
+        Enum(args)
+        return
+
+    raise NotImplementedError("Copilot studio command has not been implemented yet.")

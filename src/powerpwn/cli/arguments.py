@@ -168,6 +168,46 @@ def copilot_modules(parser):
     )
 
 
+def module_copilot_studio(command_subparsers: argparse.ArgumentParser):
+    copilot = command_subparsers.add_parser("copilot-studio-hunter", description="Scan, enumerate and recon Copilot Studio bots.", help="Scan, enumerate and recon Copilot Studio bots.")
+    copilot_subparsers = copilot.add_subparsers(help="copilot_studio_subcommand", dest="copilot_studio_subcommand")
+
+    deep_scan = copilot_subparsers.add_parser(
+        "deep-scan",
+        description="Starts a recon deep scan based on a domain or tenant. Requires FFUF to be installed.",
+        help="Starts a recon deep scan based on a domain or tenant. Requires FFUF to be installed."
+    )
+    copilot_studio_modules(deep_scan, "deep-scan")
+
+    enum = copilot_subparsers.add_parser(
+        "enum",
+        description="Starts enumerating for Azure tenant IDs or environments IDs.  Requires AMASS to be installed.",
+        help="Starts enumerating for Azure tenant IDs or environments IDs. Requires AMASS to be installed."
+    )
+    copilot_studio_modules(enum, "enum")
+
+
+def copilot_studio_modules(parser: argparse.ArgumentParser, module: str):
+
+    if module == "deep-scan":
+        parser.add_argument("-r", "--rate", type=int, default=0, help="Rate limit in seconds between ffuf requests")
+        parser.add_argument("-t", "--threads", type=int, default=40, help="Number of concurrent ffuf threads")
+        parser.add_argument("--mode", choices=["verbose", "silent"], default="-s",
+                            help="Choose between verbose (-v) and silent (-s) mode for ffuf.")
+        parser.add_argument("-tp", "--timeout_prefix", help="The timeout for the solution prefix scan to have (in seconds)",
+                            default=300)
+        parser.add_argument("-tb", "--timeout_bots", help="The timeout for each of the bot scans (one-word/two-word/three-word) to have (in seconds)",
+                            default=300)
+
+        group = parser.add_mutually_exclusive_group(required=True)
+        group.add_argument("-d", "--domain", type=str, help="The domain to query for tenant ID and run ffuf on")
+        group.add_argument("-i", "--tenant-id", type=str, help="The tenant ID to run FFUF on")
+
+    if module == "enum":
+        parser.add_argument("-e", "--enumerate", choices=["environment", "tenant"], help="Run the enumeration function on environment or tenant")
+        parser.add_argument("-t", "--timeout", help="The timeout for the enumeration process to have (in seconds)", default=300)
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
@@ -180,6 +220,7 @@ def parse_arguments():
     module_nocodemalware(command_subparsers)
     module_phishing(command_subparsers)
     module_copilot(command_subparsers)
+    module_copilot_studio(command_subparsers)
 
     args = parser.parse_args()
 
