@@ -26,3 +26,4 @@ isort~=5.10.1
 typing_extensions<4.6.0
 pyjwt~=2.6.0
 websockets~=12.0.0
+pandas
