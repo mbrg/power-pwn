@@ -100,7 +100,9 @@ def get_tenant_id(domain: str):
         #     return None
 
     else:
-        logging.error(f"Failed to retrieve tenant ID: {response.status_code} {response.text}")
+        logging.error(
+            f"Failed to retrieve tenant ID: {response.status_code} {response.text}"
+        )
         return None
 
 
@@ -134,7 +136,9 @@ def get_ffuf_results(
     :param timeout: The timeout (in seconds) to set for each one of the FFUF scans (1-word/2-word/3-word)
     :return: Returns the FFUF terminal output per line, to allow users to see progress (-s can be used to silence this)
     """
-    ffuf_path_1 = get_project_file_path('internal_results/ffuf_results', f"ffuf_results_{domain}_one_word_names.csv")
+    ffuf_path_1 = get_project_file_path(
+        "internal_results/ffuf_results", f"ffuf_results_{domain}_one_word_names.csv"
+    )
 
     # Run first for one-letter words
     command = [
@@ -198,7 +202,9 @@ def get_ffuf_results(
     if return_code:
         raise subprocess.CalledProcessError(return_code, command)
 
-    ffuf_path_2 = get_project_file_path('internal_results/ffuf_results', f"ffuf_results_{domain}_two_word_names.csv")
+    ffuf_path_2 = get_project_file_path(
+        "internal_results/ffuf_results", f"ffuf_results_{domain}_two_word_names.csv"
+    )
 
     # Run for 2-letter words
     command = [
@@ -264,7 +270,9 @@ def get_ffuf_results(
     if return_code:
         raise subprocess.CalledProcessError(return_code, command)
 
-    ffuf_path_3 = get_project_file_path('internal_results/ffuf_results', f"ffuf_results_{domain}.csv")
+    ffuf_path_3 = get_project_file_path(
+        "internal_results/ffuf_results", f"ffuf_results_{domain}.csv"
+    )
 
     # Use for 3-letter words
     command = [
@@ -333,7 +341,14 @@ def get_ffuf_results(
         raise subprocess.CalledProcessError(return_code, command)
 
 
-def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix_1: str, rate_limit: int, threads: int, timeout: int) -> str:
+def get_ffuf_results_prefix(
+    endpoint: str,
+    wordlist_prefix: str,
+    wordlist_suffix_1: str,
+    rate_limit: int,
+    threads: int,
+    timeout: int,
+) -> str:
     """
     Run FFUF on the input endpoint:
       1. Use fuzzing locations in the URL based on the FUZZ1/2/3 keywords.
@@ -412,21 +427,21 @@ def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix
 def print_brand(tenant: str):
     # URL and headers for the request (using a set of valid request headers)
     # Using AADInternals, possible TBD directly to MSFT in the future
-    url = f'https://aadinternals.azurewebsites.net/api/tenantinfo?tenantId={tenant}'
+    url = f"https://aadinternals.azurewebsites.net/api/tenantinfo?tenantId={tenant}"
     headers = {
-        'Accept': 'application/json, text/javascript, */*; q=0.01',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Connection': 'keep-alive',
-        'Origin': 'https://aadinternals.com',
-        'Referer': 'https://aadinternals.com/',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'cross-site',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-        'sec-ch-ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"macOS"',
-        'sec-gpc': '1',
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Connection": "keep-alive",
+        "Origin": "https://aadinternals.com",
+        "Referer": "https://aadinternals.com/",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "cross-site",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "sec-ch-ua": '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"macOS"',
+        "sec-gpc": "1",
     }
 
     # Make the request
@@ -435,7 +450,7 @@ def print_brand(tenant: str):
     # Check if the request was successful
     if response.status_code == 200:
         data = response.json()
-        domain = data.get('tenantBrand', None)
+        domain = data.get("tenantBrand", None)
         print(f"Brand found for tenant {tenant}: {domain}")
 
     else:
@@ -453,8 +468,7 @@ class DeepScan:
 
     def run(self):
 
-        pup_path = get_project_file_path('tools/pup_is_webchat_live',
-                                         "is_chat_live.js")
+        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
 
         # Determine the ffuf flag based on the provided mode
         ffuf_flag = "-v" if self.args.mode == "verbose" else "-s"
@@ -463,13 +477,18 @@ class DeepScan:
 
         if self.args.domain:
 
-            ffuf_path_1 = get_project_file_path('internal_results/ffuf_results',
-                                                f"ffuf_results_{self.args.domain}_one_word_names.csv")
+            ffuf_path_1 = get_project_file_path(
+                "internal_results/ffuf_results",
+                f"ffuf_results_{self.args.domain}_one_word_names.csv",
+            )
 
-            ffuf_path_2 = get_project_file_path('internal_results/ffuf_results',
-                                                f"ffuf_results_{self.args.domain}_two_word_names.csv")
-            ffuf_path_3 = get_project_file_path('internal_results/ffuf_results',
-                                                f"ffuf_results_{self.args.domain}.csv")
+            ffuf_path_2 = get_project_file_path(
+                "internal_results/ffuf_results",
+                f"ffuf_results_{self.args.domain}_two_word_names.csv",
+            )
+            ffuf_path_3 = get_project_file_path(
+                "internal_results/ffuf_results", f"ffuf_results_{self.args.domain}.csv"
+            )
 
             tenant_id = get_tenant_id(self.args.domain)
 
@@ -481,39 +500,45 @@ class DeepScan:
                 )
 
                 tenant_id_for_api = tenant_id.replace("-", "")
-                env_bots_endpoint = (
-                    f"https://default{tenant_id_for_api[:-2]}.{tenant_id_for_api[-2:]}.environment.api.powerplatform.com/powervirtualagents/botsbyschema/"
+                env_bots_endpoint = f"https://default{tenant_id_for_api[:-2]}.{tenant_id_for_api[-2:]}.environment.api.powerplatform.com/powervirtualagents/botsbyschema/"
+                logging.info(
+                    f"Endpoint for the default environment bots schema: {env_bots_endpoint}"
                 )
-                logging.info(f"Endpoint for the default environment bots schema: {env_bots_endpoint}")
 
                 fuzz1_value = None
                 fuzz_file_name = f"fuzz1_value_{self.args.domain}.txt"
-                fuzz_file_path = get_project_file_path('internal_results/prefix_fuzz_values',
-                                                       f"{fuzz_file_name}")
+                fuzz_file_path = get_project_file_path(
+                    "internal_results/prefix_fuzz_values", f"{fuzz_file_name}"
+                )
 
-                print("Checking if an existing solution publisher prefix value exists for this domain.")
+                print(
+                    "Checking if an existing solution publisher prefix value exists for this domain."
+                )
 
                 # Check if the file exists
                 if os.path.exists(fuzz_file_path):
                     # Open the file and read the first line
                     with open(fuzz_file_path, "r") as file:
-                        first_line = file.readline().strip()  # .strip() removes any leading/trailing whitespace
+                        first_line = (
+                            file.readline().strip()
+                        )  # .strip() removes any leading/trailing whitespace
 
                     print(
-                        "An existing solution publisher prefix value was found for this domain, continuing to search for CoPilot demo websites.")
+                        "An existing solution publisher prefix value was found for this domain, continuing to search for CoPilot demo websites."
+                    )
 
                     if first_line:
                         for line, popen in get_ffuf_results(
-                                env_bots_endpoint,
-                                f"{fuzz_file_path}",
-                                "botname_1_no_capital.txt",
-                                "botname_2_to_3_capital.txt",
-                                "botname_2_to_3_capital.txt",
-                                self.args.rate,
-                                self.args.threads,
-                                self.args.domain,
-                                ffuf_flag,
-                                self.args.timeout_bots,
+                            env_bots_endpoint,
+                            f"{fuzz_file_path}",
+                            "botname_1_no_capital.txt",
+                            "botname_2_to_3_capital.txt",
+                            "botname_2_to_3_capital.txt",
+                            self.args.rate,
+                            self.args.threads,
+                            self.args.domain,
+                            ffuf_flag,
+                            self.args.timeout_bots,
                         ):
                             print(line, end="")
 
@@ -541,7 +566,9 @@ class DeepScan:
                         transformed_urls = df["url"].apply(transform_url)
 
                         url_file = f"url_output_{self.args.domain}.txt"
-                        url_file_path = get_project_file_path('internal_results/url_results', f"{url_file}")
+                        url_file_path = get_project_file_path(
+                            "internal_results/url_results", f"{url_file}"
+                        )
 
                         # Save the result to a new text file
                         with open(f"{url_file_path}", "w") as f:
@@ -563,26 +590,38 @@ class DeepScan:
                         except subprocess.CalledProcessError as e:
                             print(f"Error occurred: {e}")
 
-                        print("Done, results saved under final_results/chat_exists_output.txt")
+                        print(
+                            "Done, results saved under final_results/chat_exists_output.txt"
+                        )
 
                     else:
                         logging.error("Did not find a solution publisher prefix")
                         sys.exit(1)
 
                 else:
-                    print("No existing solution publisher prefix value found for this domain, starting prefix scan.")
+                    print(
+                        "No existing solution publisher prefix value found for this domain, starting prefix scan."
+                    )
 
                     for value, popen in get_ffuf_results_prefix(
-                            env_bots_endpoint, "prefix_wordlist_char_fix_basic.txt", "suffix_wordlist_basic_1.txt",
-                            self.args.rate, self.args.threads, self.args.timeout_prefix
+                        env_bots_endpoint,
+                        "prefix_wordlist_char_fix_basic.txt",
+                        "suffix_wordlist_basic_1.txt",
+                        self.args.rate,
+                        self.args.threads,
+                        self.args.timeout_prefix,
                     ):
                         if value:
                             fuzz1_value = value
-                            print("Found default solution publisher prefix, proceeding to scan bot names")
+                            print(
+                                "Found default solution publisher prefix, proceeding to scan bot names"
+                            )
                             break
 
                     fuzz_file_name = f"fuzz1_value_{self.args.domain}.txt"
-                    fuzz_file_path = get_project_file_path('internal_results/prefix_fuzz_values', f"{fuzz_file_name}")
+                    fuzz_file_path = get_project_file_path(
+                        "internal_results/prefix_fuzz_values", f"{fuzz_file_name}"
+                    )
 
                     if fuzz1_value:
                         with open(fuzz_file_path, "w") as file:
@@ -593,16 +632,16 @@ class DeepScan:
                         logging.info("Running ffuf with new FUZZ1 values")
 
                         for line, popen in get_ffuf_results(
-                                env_bots_endpoint,
-                                f"{fuzz_file_path}",
-                                "botname_1_no_capital.txt",
-                                "botname_2_to_3_capital.txt",
-                                "botname_2_to_3_capital.txt",
-                                self.args.rate,
-                                self.args.threads,
-                                self.args.domain,
-                                ffuf_flag,
-                                self.args.timeout_bots,
+                            env_bots_endpoint,
+                            f"{fuzz_file_path}",
+                            "botname_1_no_capital.txt",
+                            "botname_2_to_3_capital.txt",
+                            "botname_2_to_3_capital.txt",
+                            self.args.rate,
+                            self.args.threads,
+                            self.args.domain,
+                            ffuf_flag,
+                            self.args.timeout_bots,
                         ):
                             print(line, end="")
 
@@ -630,7 +669,9 @@ class DeepScan:
                         transformed_urls = df["url"].apply(transform_url)
 
                         url_file = f"url_output_{self.args.domain}.txt"
-                        url_file_path = get_project_file_path('internal_results/url_results', f"{url_file}")
+                        url_file_path = get_project_file_path(
+                            "internal_results/url_results", f"{url_file}"
+                        )
 
                         # Save the result to a new text file
                         with open(url_file_path, "w") as f:
@@ -652,7 +693,9 @@ class DeepScan:
                         except subprocess.CalledProcessError as e:
                             print(f"Error occurred: {e}")
 
-                        print("Done, results saved under final_results/chat_exists_output.txt")
+                        print(
+                            "Done, results saved under final_results/chat_exists_output.txt"
+                        )
 
                     else:
                         logging.error("Did not find a solution publisher prefix")
@@ -663,47 +706,61 @@ class DeepScan:
             # Print the tenant's domain if available
             print_brand(self.args.tenant_id)
 
-            ffuf_path_1 = get_project_file_path('internal_results/ffuf_results',
-                                                f"ffuf_results_{self.args.tenant_id}_one_word_names.csv")
+            ffuf_path_1 = get_project_file_path(
+                "internal_results/ffuf_results",
+                f"ffuf_results_{self.args.tenant_id}_one_word_names.csv",
+            )
 
-            ffuf_path_2 = get_project_file_path('internal_results/ffuf_results',
-                                                f"ffuf_results_{self.args.tenant_id}_two_word_names.csv")
+            ffuf_path_2 = get_project_file_path(
+                "internal_results/ffuf_results",
+                f"ffuf_results_{self.args.tenant_id}_two_word_names.csv",
+            )
 
-            ffuf_path_3 = get_project_file_path('internal_results/ffuf_results',
-                                                f"ffuf_results_{self.args.tenant_id}.csv")
+            ffuf_path_3 = get_project_file_path(
+                "internal_results/ffuf_results",
+                f"ffuf_results_{self.args.tenant_id}.csv",
+            )
 
             ten_id = self.args.tenant_id.replace("-", "").replace("Default", "")
             env_bots_endpoint = f"https://default{ten_id[:-2]}.{ten_id[-2:]}.environment.api.powerplatform.com/powervirtualagents/botsbyschema/"
-            logging.info(f"Endpoint for the environment ID bots schema: {env_bots_endpoint}")
+            logging.info(
+                f"Endpoint for the environment ID bots schema: {env_bots_endpoint}"
+            )
 
             fuzz1_value = None
             fuzz_file_name = f"fuzz1_value_{self.args.tenant_id}.txt"
-            fuzz_file_path = get_project_file_path('internal_results/prefix_fuzz_values',
-                                                   f"{fuzz_file_name}")
+            fuzz_file_path = get_project_file_path(
+                "internal_results/prefix_fuzz_values", f"{fuzz_file_name}"
+            )
 
-            print("Checking if an existing solution publisher prefix value exists for this domain.")
+            print(
+                "Checking if an existing solution publisher prefix value exists for this domain."
+            )
 
             # Check if the file exists
             if os.path.exists(fuzz_file_path):
                 # Open the file and read the first line
                 with open(fuzz_file_path, "r") as file:
-                    first_line = file.readline().strip()  # .strip() removes any leading/trailing whitespace
+                    first_line = (
+                        file.readline().strip()
+                    )  # .strip() removes any leading/trailing whitespace
 
                 print(
-                    "An existing publisher prefix value was found for this tenant, continuing to search for CoPilot demo websites.")
+                    "An existing publisher prefix value was found for this tenant, continuing to search for CoPilot demo websites."
+                )
 
                 if first_line:
                     for line, popen in get_ffuf_results(
-                            env_bots_endpoint,
-                            f"{fuzz_file_path}",
-                            "botname_1_no_capital.txt",
-                            "botname_2_to_3_capital.txt",
-                            "botname_2_to_3_capital.txt",
-                            self.args.rate,
-                            self.args.threads,
-                            self.args.tenant_id,
-                            ffuf_flag,
-                            self.args.timeout_bots,
+                        env_bots_endpoint,
+                        f"{fuzz_file_path}",
+                        "botname_1_no_capital.txt",
+                        "botname_2_to_3_capital.txt",
+                        "botname_2_to_3_capital.txt",
+                        self.args.rate,
+                        self.args.threads,
+                        self.args.tenant_id,
+                        ffuf_flag,
+                        self.args.timeout_bots,
                     ):
                         print(line, end="")
 
@@ -731,7 +788,9 @@ class DeepScan:
                     transformed_urls = df["url"].apply(transform_url)
 
                     url_file = f"url_output_{self.args.tenant_id}.txt"
-                    url_file_path = get_project_file_path('internal_results/url_results', f"{url_file}")
+                    url_file_path = get_project_file_path(
+                        "internal_results/url_results", f"{url_file}"
+                    )
 
                     # Save the result to a new text file
                     with open(f"{url_file_path}", "w") as f:
@@ -746,34 +805,48 @@ class DeepScan:
                     # Construct the command to run the Node.js script with xargs
                     try:
                         # Construct the shell command
-                        command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
+                        command = (
+                            f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
+                        )
 
                         # Run the command
                         subprocess.run(command, shell=True, check=True)
                     except subprocess.CalledProcessError as e:
                         print(f"Error occurred: {e}")
 
-                    print("Done, results saved under final_results/chat_exists_output.txt")
+                    print(
+                        "Done, results saved under final_results/chat_exists_output.txt"
+                    )
 
                 else:
                     logging.error("Did not find a default solution publisher prefix")
                     sys.exit(1)
 
             else:
-                print("No existing prefix value found for this tenant, starting solution publisher prefix scan.")
+                print(
+                    "No existing prefix value found for this tenant, starting solution publisher prefix scan."
+                )
                 logging.info("Running ffuf")
 
                 for value, popen in get_ffuf_results_prefix(
-                        env_bots_endpoint, "prefix_wordlist_char_fix_basic.txt", "suffix_wordlist_basic_1.txt", self.args.rate,
-                        self.args.threads, self.args.timeout_prefix,
+                    env_bots_endpoint,
+                    "prefix_wordlist_char_fix_basic.txt",
+                    "suffix_wordlist_basic_1.txt",
+                    self.args.rate,
+                    self.args.threads,
+                    self.args.timeout_prefix,
                 ):
                     if value:
                         fuzz1_value = value
-                        print("Found solution publisher prefix, proceeding to scan bot names")
+                        print(
+                            "Found solution publisher prefix, proceeding to scan bot names"
+                        )
                         break
 
                 fuzz_file_name = f"fuzz1_value_{self.args.tenant_id}.txt"
-                fuzz_file_path = get_project_file_path('internal_results/prefix_fuzz_values', f"{fuzz_file_name}")
+                fuzz_file_path = get_project_file_path(
+                    "internal_results/prefix_fuzz_values", f"{fuzz_file_name}"
+                )
 
                 if fuzz1_value:
                     with open(fuzz_file_path, "w") as file:
@@ -783,21 +856,22 @@ class DeepScan:
                     logging.info("Running ffuf with new FUZZ1 values")
 
                     for line, popen in get_ffuf_results(
-                            env_bots_endpoint,
-                            f"{fuzz_file_path}",
-                            "botname_1_no_capital.txt",
-                            "botname_2_to_3_capital.txt",
-                            "botname_2_to_3_capital.txt",
-                            self.args.rate,
-                            self.args.threads,
-                            self.args.tenant_id,
-                            ffuf_flag,
-                            self.args.timeout_bots,
+                        env_bots_endpoint,
+                        f"{fuzz_file_path}",
+                        "botname_1_no_capital.txt",
+                        "botname_2_to_3_capital.txt",
+                        "botname_2_to_3_capital.txt",
+                        self.args.rate,
+                        self.args.threads,
+                        self.args.tenant_id,
+                        ffuf_flag,
+                        self.args.timeout_bots,
                     ):
                         print(line, end="")
 
                     logging.info(
-                        f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.tenant_id}.txt")
+                        f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.tenant_id}.txt"
+                    )
 
                     df1 = pd.DataFrame()
                     df2 = pd.DataFrame()
@@ -819,7 +893,9 @@ class DeepScan:
                     transformed_urls = df["url"].apply(transform_url)
 
                     url_file = f"url_output_{self.args.tenant_id}.txt"
-                    url_file_path = get_project_file_path('internal_results/url_results', f"{url_file}")
+                    url_file_path = get_project_file_path(
+                        "internal_results/url_results", f"{url_file}"
+                    )
 
                     # Save the result to a new text file
                     with open(url_file_path, "w") as f:
@@ -834,14 +910,18 @@ class DeepScan:
                     # Construct the command to run the Node.js script with xargs
                     try:
                         # Construct the shell command
-                        command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
+                        command = (
+                            f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
+                        )
 
                         # Run the command
                         subprocess.run(command, shell=True, check=True)
                     except subprocess.CalledProcessError as e:
                         print(f"Error occurred: {e}")
 
-                    print("Done, results saved under final_results/chat_exists_output.txt")
+                    print(
+                        "Done, results saved under final_results/chat_exists_output.txt"
+                    )
 
                 else:
                     logging.error("Did not find a solution publisher prefix")
