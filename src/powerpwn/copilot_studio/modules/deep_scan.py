@@ -459,7 +459,7 @@ def print_brand(tenant: str, timeout: int = 10):
         logging.error(f"An error occurred: {e}")
 
     # Make the request
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=timeout)
 
     # Check if the request was successful
     if response.status_code == 200:
