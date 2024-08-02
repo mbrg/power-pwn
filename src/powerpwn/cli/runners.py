@@ -11,9 +11,9 @@ from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
 from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.copilot.interactive_chat.interactive_chat import InteractiveChat
 from powerpwn.copilot.models.chat_argument import ChatArguments
+from powerpwn.copilot.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
 from powerpwn.copilot_studio.modules.deep_scan import DeepScan
 from powerpwn.copilot_studio.modules.enum import Enum
-from powerpwn.copilot.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
 from powerpwn.nocodemalware.enums.code_exec_type_enum import CodeExecTypeEnum
 from powerpwn.nocodemalware.enums.command_to_run_enum import CommandToRunEnum
 from powerpwn.nocodemalware.malware_runner import MalwareRunner

@@ -4,9 +4,11 @@ import re
 import signal
 import subprocess
 import sys
-from powerpwn.copilot_studio.modules.path_utils import get_project_file_path
+
 import pandas as pd
 import requests
+
+from powerpwn.copilot_studio.modules.path_utils import get_project_file_path
 
 
 def sort_unique_values_in_file(file_path):
@@ -489,7 +491,7 @@ class DeepScan:
                 fuzz_file_path = get_project_file_path('internal_results/prefix_fuzz_values',
                                                        f"{fuzz_file_name}")
 
-                print(f"Checking if an existing solution publisher prefix value exists for this domain.")
+                print("Checking if an existing solution publisher prefix value exists for this domain.")
 
                 # Check if the file exists
                 if os.path.exists(fuzz_file_path):
@@ -498,7 +500,7 @@ class DeepScan:
                         first_line = file.readline().strip()  # .strip() removes any leading/trailing whitespace
 
                     print(
-                        f"An existing solution publisher prefix value was found for this domain, continuing to search for CoPilot demo websites.")
+                        "An existing solution publisher prefix value was found for this domain, continuing to search for CoPilot demo websites.")
 
                     if first_line:
                         for line, popen in get_ffuf_results(
@@ -568,7 +570,7 @@ class DeepScan:
                         sys.exit(1)
 
                 else:
-                    print(f"No existing solution publisher prefix value found for this domain, starting prefix scan.")
+                    print("No existing solution publisher prefix value found for this domain, starting prefix scan.")
 
                     for value, popen in get_ffuf_results_prefix(
                             env_bots_endpoint, "prefix_wordlist_char_fix_basic.txt", "suffix_wordlist_basic_1.txt",
@@ -679,7 +681,7 @@ class DeepScan:
             fuzz_file_path = get_project_file_path('internal_results/prefix_fuzz_values',
                                                    f"{fuzz_file_name}")
 
-            print(f"Checking if an existing solution publisher prefix value exists for this domain.")
+            print("Checking if an existing solution publisher prefix value exists for this domain.")
 
             # Check if the file exists
             if os.path.exists(fuzz_file_path):
@@ -688,7 +690,7 @@ class DeepScan:
                     first_line = file.readline().strip()  # .strip() removes any leading/trailing whitespace
 
                 print(
-                    f"An existing publisher prefix value was found for this tenant, continuing to search for CoPilot demo websites.")
+                    "An existing publisher prefix value was found for this tenant, continuing to search for CoPilot demo websites.")
 
                 if first_line:
                     for line, popen in get_ffuf_results(
@@ -758,7 +760,7 @@ class DeepScan:
                     sys.exit(1)
 
             else:
-                print(f"No existing prefix value found for this tenant, starting solution publisher prefix scan.")
+                print("No existing prefix value found for this tenant, starting solution publisher prefix scan.")
                 logging.info("Running ffuf")
 
                 for value, popen in get_ffuf_results_prefix(
