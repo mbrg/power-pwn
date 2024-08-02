@@ -12,7 +12,7 @@ def is_valid_subdomain(subdomain: str) -> bool:
     Validate that the subdomain follows the expected pattern.
     """
     # Define a regex pattern for valid subdomains
-    pattern = re.compile(r'^[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-]{2}\.(tenant|environment).api\.powerplatform\.com$')
+    pattern = re.compile(r'^[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-]{2}\.(tenant|environment)\.api\.powerplatform\.com$')
     return pattern.match(subdomain) is not None
 
 
