@@ -7,6 +7,7 @@ from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.cli.runners import (
     run_backdoor_flow_command,
     run_copilot_chat_command,
+    run_copilot_studio_command,
     run_dump_command,
     run_gui_command,
     run_nocodemalware_command,
@@ -25,7 +26,11 @@ def main():
 
     args = parse_arguments()
 
-    logging.basicConfig(level=args.log_level, format="%(asctime)s | %(name)s | %(levelname)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+    logging.basicConfig(
+        level=args.log_level,
+        format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     logger.level = args.log_level
     command = args.command
 
@@ -49,6 +54,8 @@ def main():
         run_phishing_command(args)
     elif command == "copilot":
         run_copilot_chat_command(args)
+    elif command == "copilot-studio-hunter":
+        run_copilot_studio_command(args)
     else:
         logger.info("Run `powerpwn --help` for available commands.")
 
