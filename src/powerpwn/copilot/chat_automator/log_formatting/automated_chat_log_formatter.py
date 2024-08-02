@@ -1,9 +1,9 @@
-from powerpwn.copilot.spearphishing.log_formatting.log_type_enum import LogType
+from powerpwn.copilot.chat_automator.log_formatting.log_type_enum import LogType
 
 
-class SpearPhishingLogFormatter:
+class AutomatedChatLogFormatter:
     """
-    A class for formatting log messages from spearpishing tool
+    A class for formatting log messages from automated chat process
     """
 
     def format(self, message: str, log_type: LogType) -> str:
