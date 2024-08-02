@@ -76,33 +76,31 @@ def check_and_append(file_path, value):
         return True
 
 
-def get_tenant_id(domain: str):
+def get_tenant_id(domain: str, timeout: int = 10):
     """
     Retrieve the Azure AD tenant ID for a given domain.
 
     :param domain: The domain to query.
+    :param timeout: The timeout (in seconds) for the HTTP request.
     :return: The tenant ID or None if not found.
     """
     print("Domain: ", domain)
     url = f"https://login.microsoftonline.com/{domain}/v2.0/.well-known/openid-configuration"
-    response = requests.get(url)
-    if response.status_code == 200:
-        tenant_id = response.json().get("issuer").split("/")[3]
-
-        return tenant_id
-
-        # DEBUG TEXT
-        # print("Checking if tenant ID has been scanned in this run ")
-        # if check_and_append("tenants_in_this_run.txt", tenant_id):
-        #     print("Tenant ID not scanned yet, continuing")
-        #     return tenant_id
-        # else:
-        #     return None
-
-    else:
-        logging.error(
-            f"Failed to retrieve tenant ID: {response.status_code} {response.text}"
-        )
+    try:
+        response = requests.get(url, timeout=timeout)
+        if response.status_code == 200:
+            tenant_id = response.json().get("issuer").split("/")[3]
+            return tenant_id
+        else:
+            logging.error(
+                f"Failed to retrieve tenant ID: {response.status_code} {response.text}"
+            )
+            return None
+    except requests.Timeout:
+        logging.error(f"Request timed out after {timeout} seconds")
+        return None
+    except requests.RequestException as e:
+        logging.error(f"An error occurred: {e}")
         return None
 
 
@@ -194,6 +192,7 @@ def get_ffuf_results(
 
     print("\nScanning for 1-word bot names")
 
+    # TODO: Verify and improve guardrails for using subprocess
     popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
     for stdout_line in iter(popen.stdout.readline, ""):
         yield stdout_line, popen
@@ -262,6 +261,7 @@ def get_ffuf_results(
 
     print("\nScanning for 2-word bot names")
 
+    # TODO: Verify and improve guardrails for using subprocess
     popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
     for stdout_line in iter(popen.stdout.readline, ""):
         yield stdout_line, popen
@@ -332,6 +332,7 @@ def get_ffuf_results(
 
     print("\nScanning for 3-word bot names")
 
+    # TODO: Verify and improve guardrails for using subprocess
     popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
     for stdout_line in iter(popen.stdout.readline, ""):
         yield stdout_line, popen
@@ -410,6 +411,7 @@ def get_ffuf_results_prefix(
         "TE: trailers",
     ]
 
+    # TODO: Verify and improve guardrails for using subprocess
     popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)
     for stdout_line in iter(popen.stdout.readline, ""):
         if "FUZZ1:" in stdout_line:
@@ -585,6 +587,7 @@ class DeepScan:
                             # Construct the shell command
                             command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
 
+                            # TODO: Verify and improve guardrails for using subprocess + replace shell=True
                             # Run the command
                             subprocess.run(command, shell=True, check=True)
                         except subprocess.CalledProcessError as e:
@@ -688,6 +691,7 @@ class DeepScan:
                             # Construct the shell command
                             command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
 
+                            # TODO: Verify and improve guardrails for using subprocess + replace shell=True
                             # Run the command
                             subprocess.run(command, shell=True, check=True)
                         except subprocess.CalledProcessError as e:
@@ -805,10 +809,9 @@ class DeepScan:
                     # Construct the command to run the Node.js script with xargs
                     try:
                         # Construct the shell command
-                        command = (
-                            f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-                        )
+                        command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
 
+                        # TODO: Verify and improve guardrails for using subprocess + replace shell=True
                         # Run the command
                         subprocess.run(command, shell=True, check=True)
                     except subprocess.CalledProcessError as e:
@@ -910,10 +913,9 @@ class DeepScan:
                     # Construct the command to run the Node.js script with xargs
                     try:
                         # Construct the shell command
-                        command = (
-                            f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-                        )
+                        command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
 
+                        # TODO: Verify and improve guardrails for using subprocess + replace shell=True
                         # Run the command
                         subprocess.run(command, shell=True, check=True)
                     except subprocess.CalledProcessError as e:
