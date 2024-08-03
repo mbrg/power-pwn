@@ -148,6 +148,9 @@ def module_copilot(command_subparsers: argparse.ArgumentParser):
     )
     copilot_modules(spearphishing)
 
+    whoami = copilot_subparsers.add_parser("whoami", description="Get the current user's information", help="Get the current user's information")
+    copilot_modules(whoami)
+
 
 def copilot_modules(parser):
     parser.add_argument("-u", "--user", required=True, type=str, help="User email to connect.")
