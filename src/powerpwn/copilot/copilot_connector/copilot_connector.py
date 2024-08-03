@@ -11,6 +11,7 @@ from powerpwn.common.cache.cached_entity import CachedEntity
 from powerpwn.common.cache.token_cache import TokenCache
 from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
 from powerpwn.copilot.enums.message_type_enum import MessageTypeEnum
+from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.copilot.exceptions.copilot_connected_user_mismatch import CopilotConnectedUserMismatchException
 from powerpwn.copilot.exceptions.copilot_connection_failed_exception import CopilotConnectionFailedException
 from powerpwn.copilot.exceptions.copilot_connection_not_initialized_exception import CopilotConnectionNotInitializedException
@@ -36,6 +37,7 @@ class CopilotConnector:
         self.__conversation_params: Optional[ConversationParameters] = None
         self.__index = 0
         self.__token_cache = TokenCache()
+        self.__file_logger: Optional[FileLogger] = None
 
     def init_connection(self) -> None:
         """
@@ -44,7 +46,9 @@ class CopilotConnector:
         if self.__is_initialized:
             return
 
-        self.__conversation_params = self.__get_conversation_parameters(self.__arguments)
+        self.__conversation_params = self.__get_conversation_parameters()
+        self.__file_logger = FileLogger(f"session_{self.__conversation_params.session_id}.log")
+
         self.__is_initialized = True
 
     @property
@@ -67,7 +71,6 @@ class CopilotConnector:
             raise CopilotConnectionNotInitializedException("Copilot connection not initialized.")
 
         url = self.__conversation_params.url
-        logger = self.__conversation_params.logger
 
         protocol_message = {"protocol": "json", "version": 1}
         ping_message = {"type": 6}
@@ -78,14 +81,14 @@ class CopilotConnector:
             for input in inputs:
                 payload = WebsocketMessage.to_websocket_message(input)
                 websocket_payload = WebsocketMessage(payload)
-                logger.log(websocket_payload)
+                self.__log(websocket_payload)
                 is_user_input = websocket_payload.type() == MessageTypeEnum.user
                 await websocket.send(payload)
                 stop_polling = False
                 while not stop_polling:
                     response = await websocket.recv()
                     websocket_message = WebsocketMessage(response)
-                    logger.log(websocket_message)
+                    self.__log(websocket_message)
                     parsed_message = websocket_message.parsed_message
                     interaction_type = parsed_message.type
 
@@ -175,7 +178,7 @@ class CopilotConnector:
         return {
             "arguments": [
                 {
-                    "source": self.__conversation_params.scenario.value,
+                    "source": self.__arguments.scenario.value,
                     "clientCorrelationId": "60c2ee92-64f1-cef5-555a-b7ad5ad2c21c",
                     "sessionId": self.__conversation_params.session_id,
                     "optionsSets": ["enterprise_flux_handoff_outlook_compose"],
@@ -222,7 +225,11 @@ class CopilotConnector:
             "type": 4,
         }
 
-    def __get_access_token(self, scenario: CopilotScenarioEnum, user: str, password: str) -> Optional[str]:
+    def __get_access_token(self) -> Optional[str]:
+        scenario = self.__arguments.scenario
+        user = self.__arguments.user
+        password = self.__arguments.password
+
         access_token: Optional[str] = None
         if self.__arguments.use_cached_access_token:
             if access_token := self.__get_access_token_from_cache():
@@ -329,9 +336,9 @@ class CopilotConnector:
 
         return plugins
 
-    def __get_conversation_parameters(self, arguments: ChatArguments) -> ConversationParameters:
+    def __get_conversation_parameters(self) -> ConversationParameters:
         print("Getting bearer token...")
-        access_token = self.__get_access_token(arguments.scenario, arguments.user, arguments.password)
+        access_token = self.__get_access_token()
         if not access_token:
             print("Failed to get bearer token. Exiting...")
             raise CopilotConnectionFailedException("Could not get access token to connect to copilot.")
@@ -346,19 +353,19 @@ class CopilotConnector:
         # print(access_token)
 
         print("Acquired bearer token successfully.")
-        url = self.__get_websocket_url(access_token, arguments.scenario, parsed_jwt)
+        url = self.__get_websocket_url(access_token, self.__arguments.scenario, parsed_jwt)
         session_id = self.__get_session_from_url(url)
-
-        logger = FileLogger(f"session_{session_id}.log", arguments.verbose)
 
         available_plugins: list[PluginInfo] = self.__get_plugins(access_token)
 
         return ConversationParameters(
-            conversation_id=str(uuid.uuid4()),
-            url=url,
-            logger=logger,
-            session_id=session_id,
-            available_plugins=available_plugins,
-            scenario=arguments.scenario,
-            used_plugins=[],
+            conversation_id=str(uuid.uuid4()), url=url, session_id=session_id, available_plugins=available_plugins, used_plugins=[]
         )
+
+    def __log(self, message: WebsocketMessage) -> None:
+        if self.__arguments.verbose == VerboseEnum.off or not self.__file_logger:
+            return None
+        elif (
+            self.__arguments.verbose == VerboseEnum.mid and message.type() != MessageTypeEnum.copilot
+        ) or self.__arguments.verbose == VerboseEnum.full:
+            self.__file_logger.log(message.message)

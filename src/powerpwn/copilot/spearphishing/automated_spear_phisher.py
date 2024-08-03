@@ -2,12 +2,15 @@ import uuid
 from typing import Optional
 
 from powerpwn.copilot.chat_automator.chat_automator import ChatAutomator
+from powerpwn.copilot.chat_automator.log_formatting.automated_chat_log_formatter import AutomatedChatLogFormatter
+from powerpwn.copilot.chat_automator.log_formatting.automated_chat_websocket_message_formatter import AutomatedChatWebsocketMessageFormatter
+from powerpwn.copilot.chat_automator.log_formatting.log_type_enum import LogType
 from powerpwn.copilot.exceptions.copilot_connected_user_mismatch import CopilotConnectedUserMismatchException
 from powerpwn.copilot.exceptions.copilot_connection_failed_exception import CopilotConnectionFailedException
+from powerpwn.copilot.loggers.composite_logger import CompositeLogger
+from powerpwn.copilot.loggers.console_logger import ConsoleLogger
+from powerpwn.copilot.loggers.file_logger import FileLogger
 from powerpwn.copilot.models.chat_argument import ChatArguments
-from powerpwn.copilot.spearphishing.log_formatting.log_type_enum import LogType
-from powerpwn.copilot.spearphishing.log_formatting.spear_phising_log_formatter import SpearPhishingLogFormatter
-from powerpwn.copilot.spearphishing.log_formatting.spear_phising_websocket_message_formatter import SpearPhishingWebsocketMessageFormatter
 from powerpwn.copilot.spearphishing.phishing_email_params import PhishingEmailParameters
 from powerpwn.copilot.websocket_message.websocket_message import WebsocketMessage
 
@@ -25,8 +28,9 @@ class AutomatedSpearPhisher:
         self.__chat_automator = ChatAutomator(arguments)
         self.__execution_id = str(uuid.uuid4())
         self.__file_path = f"phishing_results_{self.__execution_id}.log"
-        self.__websocket_formatter = SpearPhishingWebsocketMessageFormatter()
-        self.__log_formatter = SpearPhishingLogFormatter()
+        self.__logger = CompositeLogger([FileLogger(self.__file_path), ConsoleLogger()])
+        self.__websocket_formatter = AutomatedChatWebsocketMessageFormatter()
+        self.__log_formatter = AutomatedChatLogFormatter()
 
     def phish(self) -> None:
         try:
@@ -141,11 +145,8 @@ class AutomatedSpearPhisher:
         return None
 
     def __log(self, log_type: LogType, message: str) -> None:
-
         to_log = self.__log_formatter.format(message, log_type)
-        with open(self.__file_path, "a") as file:
-            file.write(to_log + "\n\n")
-            print(to_log)
+        self.__logger.log(to_log)
 
     def __log_response(self, websocket_resp: Optional[WebsocketMessage]) -> None:
         if formatted_message := self.__get_formatted_response(websocket_resp):
@@ -154,7 +155,4 @@ class AutomatedSpearPhisher:
             self.__log(LogType.response, "None")
 
     def __get_formatted_response(self, websocket_resp: Optional[WebsocketMessage]) -> Optional[str]:
-        if websocket_resp:
-            message = self.__websocket_formatter.format(websocket_resp.parsed_message)
-            return message
-        return None
+        return self.__websocket_formatter.format(websocket_resp)
