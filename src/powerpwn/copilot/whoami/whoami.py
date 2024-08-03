@@ -33,13 +33,31 @@ class WhoAmI:
         self.__log(LogType.tool, f"Run logs will be saved in {self.__file_path}")
         # self.__get_tenant_details()
         self.__get_personal_name_and_title()
+        self.__section_separator()
+
+        self.__get_next_week_schedule()
+        self.__section_separator()
         manager_name = self.__get_manager_details()
+        self.__section_separator()
         self.__get_manager_of_manager_details(manager_name=manager_name)
+        self.__section_separator()
         self.__get_top_collaborators_details()
+        self.__section_separator()
         self.__get_latest_emails_interactions(persona="sender", title="Latest emails received from")
+        self.__section_separator()
         self.__get_latest_emails_interactions(persona="receiver", title="Latest emails sent to")
+        self.__section_separator()
         self.__get_my_documents()
+        self.__section_separator()
+        self.__get_documents_shared_with_me()
+        self.__section_separator()
+        self.__get_sharepoint_sites()
+        self.__section_separator()
         self.__get_my_email_subjects()
+        self.__section_separator()
+
+    def __section_separator(self) -> None:
+        self.__result_logger.log("----------------------------------------------------")
 
     def __get_tenant_details(self) -> None:
         prompt = f"print the tenant id only. do not print anything else. if you don't know or can't provide information, print {self._SPECIAL_CHARS} only. do not print any cites or references"
@@ -197,9 +215,32 @@ class WhoAmI:
         prompt = "what are my documents? print only the full document names in one line. use comma to separate between each document name. do not print anything else please. do not print any references or cites for any document please"
         self.__enumerate_available_data(prompt, "My Documents:")
 
+    def __get_documents_shared_with_me(self) -> None:
+        prompt = "which documents are shared with me? print only the full document names in one line. use comma to separate between each document name. do not print anything else please. do not print any references or cites for any document please"
+        self.__enumerate_available_data(prompt, "Documents Shared With Me:")
+
+    def __get_sharepoint_sites(self) -> None:
+        prompt = "what are my sharepoint sites? print only the site names in one line. use comma to separate between each site name. do not print anything else please. do not print any references or cites for any document please"
+        self.__enumerate_available_data(prompt, "Sharepoint sites:")
+
     def __get_my_email_subjects(self) -> None:
         prompt = "what are my last emails subjects? print only the subjects in one line. use comma to separate between each subject. do not print anything else please. do not print any references or cites for any email please"
         self.__enumerate_available_data(prompt, "Latest Emails:")
+
+    def __get_next_week_daily_schedule(self, day: str) -> None:
+        prompt = f"what is my schedule on {day} next week? your output should be as follow: first line print the day and date only. after that print the schedule as a list . please do not print any reference or cite or entity representation"
+        self.__log(LogType.prompt, prompt)
+        resp = self.__chat_automator.send_prompt(prompt)
+        self.__log_response(resp)
+        formatted_resp = self.__websocket_formatter.format(resp)
+        schedule = formatted_resp.split("Please")
+        self.__result_logger.log(schedule[0])
+
+    def __get_next_week_schedule(self) -> None:
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        self.__result_logger.log("Next week schedule:")
+        for day in days:
+            self.__get_next_week_daily_schedule(day)
 
     def __log(self, log_type: LogType, message: str) -> None:
         to_log = self.__log_formatter.format(message, log_type)
