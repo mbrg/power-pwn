@@ -113,6 +113,13 @@ class WebsocketMessage(IWebsocketMessage):
         return formatted_message
 
     def __parse_message_for_copilot_final_failed(self) -> str:
+        parsed_message = ""
         message = self.__json_message["item"]["result"]["message"]
-        exception = self.__json_message["item"]["result"]["exception"]
-        return f"Error: {message}\nException: {exception}"
+        parsed_message = f"Error: {message}\n"
+        if "exception" in self.__json_message["item"]["result"]:
+            exception = self.__json_message["item"]["result"]["exception"]
+            parsed_message += f"Exception: {exception}\n"
+        if "value" in self.__json_message["item"]["result"]:
+            value = self.__json_message["item"]["result"]["value"]
+            parsed_message += f"Value: {value}"
+        return parsed_message
