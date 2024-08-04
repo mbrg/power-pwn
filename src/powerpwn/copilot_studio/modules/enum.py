@@ -43,7 +43,7 @@ def get_amass_results(domain_type: str, timeout: int) -> bytes:
     popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)  # nosec
     try:
         for stdout_line in iter(popen.stdout.readline, ""):
-            if time.time() - start_time > timeout:
+            if time.time() - start_time > float(timeout):
                 popen.kill()
                 raise subprocess.TimeoutExpired(command, timeout)
             yield stdout_line.strip(), popen
