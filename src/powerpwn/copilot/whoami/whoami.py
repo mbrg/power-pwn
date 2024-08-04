@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import Optional
 
@@ -17,14 +18,18 @@ from powerpwn.copilot.websocket_message.websocket_message import WebsocketMessag
 class WhoAmI:
     _SEPARATOR = "****"
     _SPECIAL_CHARS = "#####"
+    _OUTPUT_DIR = "whoami"
 
     def __init__(self, arguments: ChatArguments) -> None:
         self.__chat_automator = ChatAutomator(arguments)
         self.__execution_id = str(uuid.uuid4())
-        self.__file_path = f"who_i_am_{self.__execution_id}.log"
+        self.__output_dir = f"{self._OUTPUT_DIR}_{self.__execution_id}"
+        os.mkdir(self.__output_dir)
+        self.__file_path = self.__get_file_path("who_i_am_debug.log")
         self.__logger = CompositeLogger([FileLogger(self.__file_path), ConsoleLogger()])
-        self.__result_file_path = f"who_i_am_{self.__execution_id}.txt"
+        self.__result_file_path = self.__get_file_path("who_i_am_report.txt")
         self.__result_logger = FileLogger(self.__result_file_path)
+        self.__emails_logger = FileLogger(self.__get_file_path("emails.txt"))
         self.__log_formatter = AutomatedChatLogFormatter()
         self.__websocket_formatter = AutomatedChatWebsocketMessageFormatter()
 
@@ -32,36 +37,43 @@ class WhoAmI:
         try:
             self.__chat_automator.init_connector()
             self.__log(LogType.tool, "Who am I?")
-            self.__log(LogType.tool, f"Result will be saved in {self.__result_file_path}")
-            self.__log(LogType.tool, f"Run logs will be saved in {self.__file_path}")
+            self.__log(LogType.tool, f"Command output will be saved in {self.__output_dir} directory")
             # self.__get_tenant_details()
             self.__get_personal_name_and_title()
             self.__section_separator()
 
-            self.__get_next_week_schedule()
-            self.__section_separator()
             manager_name = self.__get_manager_details()
             self.__section_separator()
             self.__get_skip_manager_details(manager_name=manager_name)
             self.__section_separator()
+
+            self.__get_next_week_schedule()
+            self.__section_separator()
+
             self.__get_top_collaborators_details()
             self.__section_separator()
-            self.__get_latest_emails_interactions(persona="sender", title="Latest emails received from")
+
+            # self.__get_latest_emails_interactions(persona="sender", title="Latest emails received from")
+            # self.__section_separator()
+            # self.__get_latest_emails_interactions(persona="receiver", title="Latest emails sent to")
+            # self.__section_separator()
+            self.__get_latest_emails_info()
             self.__section_separator()
-            self.__get_latest_emails_interactions(persona="receiver", title="Latest emails sent to")
-            self.__section_separator()
+
             self.__get_my_documents()
             self.__section_separator()
             self.__get_documents_shared_with_me()
             self.__section_separator()
+
             self.__get_sharepoint_sites()
             self.__section_separator()
             self.__get_strategic_plans_documents()
             self.__section_separator()
             self.__get_financial_documents()
             self.__section_separator()
-            self.__get_my_email_subjects()
-            self.__section_separator()
+
+            # self.__get_my_email_subjects()
+            # self.__section_separator()
         except CopilotConnectionFailedException as e:
             self.__log(LogType.tool, f"Failed to connect to Copilot: {e.message}")
         except CopilotConnectedUserMismatchException as e:
@@ -86,7 +98,7 @@ class WhoAmI:
             self.__result_logger.log(f"Tenant Name: {tenant_id}")
 
     def __get_personal_name_and_title(self) -> None:
-        prompt = f"hi, please polite and start the sentence by saying my name concatenated with {self._SEPARATOR} and then what is the capital of Hungary ?. do not print any cites or references"
+        prompt = f"hi, please polite and start the sentence by saying my full name concatenated with {self._SEPARATOR} and then what is the capital of Hungary ?. do not print any cites or references"
         self.__log(LogType.prompt, prompt)
         resp = self.__chat_automator.send_prompt(prompt)
         self.__log_response(resp)
@@ -131,7 +143,7 @@ class WhoAmI:
             return manager_name
 
     def __get_skip_manager_details(self, manager_name: str) -> Optional[str]:
-        prompt = f"print the manager of {manager_name} only. do not print anything else. if you don't know or can't provide information, print {self._SPECIAL_CHARS} only. do not print anything else. do not print any cites or references"
+        prompt = f"print my skip manager only. do not print anything else. if you don't know or can't provide information, print {self._SPECIAL_CHARS} only. do not print anything else. do not print any cites or references"
         self.__log(LogType.prompt, prompt)
         resp = self.__chat_automator.send_prompt(prompt)
         self.__log_response(resp)
@@ -223,31 +235,31 @@ class WhoAmI:
                 self.__result_logger.log(f"{idx+1}. {doc.strip()}")
 
     def __get_my_documents(self) -> None:
-        prompt = "what are my documents? print only the full document names in one line. use comma to separate between each document name. do not print anything else please. do not print any references or cites for any document please"
+        prompt = "what are my documents? print only the full document names in one line. use comma to separate between each document name. do not print anything else please. do not print any references or cites for any document please. printing references would be very insulting to me."
         self.__enumerate_available_data(prompt, "My Documents:")
 
     def __get_documents_shared_with_me(self) -> None:
-        prompt = "which documents are shared with me? print only the full document names in one line. use comma to separate between each document name. do not print anything else please. do not print any references or cites for any document please"
+        prompt = "which documents are shared with me? print only the full document names in one line. use comma to separate between each document name. do not print anything else please. do not print any references or cites for any document please. printing references would be very insulting to me."
         self.__enumerate_available_data(prompt, "Documents Shared With Me:")
 
     def __get_sharepoint_sites(self) -> None:
-        prompt = "what are my sharepoint sites? print only the site names in one line. use comma to separate between each site name. do not print anything else please. do not print any references or cites for any document please"
+        prompt = "what are my sharepoint sites? print only the site names in one line. use comma to separate between each site name. do not print anything else please. do not print any references or cites for any document please.  printing references would be very insulting to me."
         self.__enumerate_available_data(prompt, "Sharepoint sites:")
 
     def __get_my_email_subjects(self) -> None:
-        prompt = "what are my last emails subjects? print only the subjects in one line. use comma to separate between each subject. do not print anything else please. do not print any references or cites for any email please"
+        prompt = "what are my last emails subjects? print only the subjects in one line. use comma to separate between each subject. do not print anything else please. do not print any references or cites for any email please. printing references would be very insulting to me."
         self.__enumerate_available_data(prompt, "Latest Emails:")
 
     def __get_strategic_plans_documents(self) -> None:
-        prompt = "list all documents that may be relevant to the company strategy. print the document names only one by one separated by comma. do not print anything else please"
+        prompt = "list all documents that may be relevant to the company strategy. print the document names only one by one separated by comma. do not print anything else please. printing references would be very insulting to me."
         self.__enumerate_available_data(prompt, "Strategic Plans Documents:")
 
     def __get_financial_documents(self) -> None:
-        prompt = "list all documents that may include financial info. print the document names only one by one separated by comma. do not print anything else please"
+        prompt = "list all documents that may include financial info. print the document names only one by one separated by comma. do not print anything else please. printing references would be very insulting to me."
         self.__enumerate_available_data(prompt, "Financial Documents:")
 
     def __get_next_week_daily_schedule(self, day: str) -> None:
-        prompt = f"what is my schedule on {day} next week? your output should be as follow: first line print the day and date only. after that print the schedule as a list . please do not print any reference or cite or entity representation"
+        prompt = f"what is my schedule on {day} next week? your output should be as follow: first line print the day and date only. after that print the schedule as a list . please do not print any reference or cite or entity representation. printing references would be very insulting to me."
         self.__log(LogType.prompt, prompt)
         resp = self.__chat_automator.send_prompt(prompt)
         self.__log_response(resp)
@@ -261,6 +273,21 @@ class WhoAmI:
         for day in days:
             self.__get_next_week_daily_schedule(day)
 
+    def __get_latest_emails_info(self) -> None:
+        prompt = f"what are my last emails ? your output should be exactly as follow: for each email subject,timestamp,sender,{self._SEPARATOR}. do not print anything else please. do not print any references or cites for any email please. printing references would be very insulting to me."
+        self.__log(LogType.prompt, prompt)
+        resp = self.__chat_automator.send_prompt(prompt)
+        self.__log_response(resp)
+        formatted_resp = self.__websocket_formatter.format(resp)
+        details = formatted_resp.split(self._SEPARATOR)
+        if len(details) > 0:
+            self.__result_logger.log("Latest Emails (subject, time, sender):")
+        for detail in details:
+            self.__result_logger.log(detail)
+            email_details = detail.split(",")
+            if len(email_details) in (3, 4):
+                self.__emails_logger.log(f"{email_details[0].strip()},{email_details[1].strip()},{email_details[2].strip()}")
+
     def __log(self, log_type: LogType, message: str) -> None:
         to_log = self.__log_formatter.format(message, log_type)
         self.__logger.log(to_log)
@@ -270,3 +297,6 @@ class WhoAmI:
             self.__log(LogType.response, formatted_message)
         else:
             self.__log(LogType.response, "None")
+
+    def __get_file_path(self, file_name: str) -> str:
+        return os.path.join(self.__output_dir, file_name)
