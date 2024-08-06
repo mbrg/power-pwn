@@ -161,6 +161,11 @@ def module_copilot(command_subparsers: argparse.ArgumentParser):
     dump.add_argument("-d", "--directory", type=str, required=True, help="Path to whoami output directory")
     dump.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
 
+    gui = copilot_subparsers.add_parser(
+        "gui", description="Browse data in a local server", help="Browse collected data in a simple gui on a local server"
+    )
+    gui.add_argument("-d", "--directory", type=str, required=True, help="Data directory")
+
 
 def copilot_modules(parser):
     parser.add_argument("-u", "--user", required=True, type=str, help="User email to connect.")
