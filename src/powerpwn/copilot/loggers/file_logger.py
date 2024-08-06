@@ -18,10 +18,3 @@ class FileLogger(ILogger):
                 if line != "\n":
                     line = line.split("\n")[0]
                     print(line)
-
-
-if __name__ == "__main__":
-    f = FileLogger("temp.txt")
-    # f.log("hi")
-    # f.log("bi")
-    f.read()
