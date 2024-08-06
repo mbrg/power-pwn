@@ -51,6 +51,15 @@ class CopilotConnector:
 
         self.__is_initialized = True
 
+    def refresh_connection(self) -> None:
+        """
+        Refresh the connection with the Copilot
+        """
+        self.__conversation_params = self.__get_conversation_parameters(True)
+        self.__file_logger = FileLogger(f"session_{self.__conversation_params.session_id}.log")
+
+        self.__is_initialized = True
+
     @property
     def conversation_parameters(self) -> ConversationParameters:
         # if connection was not initialized correctly, an exception will be raised
@@ -225,13 +234,13 @@ class CopilotConnector:
             "type": 4,
         }
 
-    def __get_access_token(self) -> Optional[str]:
+    def __get_access_token(self, refresh: bool = False) -> Optional[str]:
         scenario = self.__arguments.scenario
         user = self.__arguments.user
         password = self.__arguments.password
 
         access_token: Optional[str] = None
-        if self.__arguments.use_cached_access_token:
+        if self.__arguments.use_cached_access_token or refresh:
             if access_token := self.__get_access_token_from_cache():
                 print("Access token retrieved from cache.")
                 return access_token
@@ -336,9 +345,9 @@ class CopilotConnector:
 
         return plugins
 
-    def __get_conversation_parameters(self) -> ConversationParameters:
+    def __get_conversation_parameters(self, refresh: bool = False) -> ConversationParameters:
         print("Getting bearer token...")
-        access_token = self.__get_access_token()
+        access_token = self.__get_access_token(refresh)
         if not access_token:
             print("Failed to get bearer token. Exiting...")
             raise CopilotConnectionFailedException("Could not get access token to connect to copilot.")

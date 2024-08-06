@@ -11,3 +11,10 @@ class FileLogger(ILogger):
     def log(self, message: str) -> None:
         with open(self.__file_path, "a") as file:
             file.write(message + "\n\n")
+
+    def read(self) -> None:
+        with open(self.__file_path, "r") as file:
+            for line in file.readlines():
+                if line != "\n":
+                    line = line.split("\n")[0]
+                    print(line)
