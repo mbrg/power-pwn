@@ -1,6 +1,6 @@
-import subprocess
+import subprocess  # nosec
 
-from powerpwn.copilot.loggers.console_logger import ConsoleLogger  # nosec
+from powerpwn.copilot.loggers.console_logger import ConsoleLogger
 
 
 class Gui:
