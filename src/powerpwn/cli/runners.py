@@ -178,6 +178,10 @@ def run_phishing_command(args):
 
 
 def run_copilot_chat_command(args):
+    if args.copilot_subcommand == "gui":
+        CopilotGui().run(args.directory)
+        return
+
     parsed_args = ChatArguments(
         user=args.user,
         password=args.password,
