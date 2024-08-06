@@ -6,5 +6,5 @@ STRATEGIC_PLANS_DOCUMENTS_FILE_NAME = "strategic_plans_documents.txt"
 FINANCIAL_DOCUMENTS_FILE_NAME = "financial_documents.txt"
 EMAILS_I_SENT_TO_MYSELF_FILE_NAME = "emails_to_myself.txt"
 MY_LATEST_EMAILS_FILE_NAME = "latest_emails.txt"
-RESET_PASSWORD_EMAILS_FILE_NAME = "reset_password_emails.txt"
+RESET_PASSWORD_EMAILS_FILE_NAME = "reset_password_emails.txt"  # nosec
 LATEST_TEAMS_MESSAGES_FILE_NAME = "latest_teams_messages.txt"
