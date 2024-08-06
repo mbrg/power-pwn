@@ -21,5 +21,4 @@ class IResourceCollector(ABC):
         ...
 
     @abstractmethod
-    def resource_type(self) -> ResourceType:
-        ...  # noqa
+    def resource_type(self) -> ResourceType: ...  # noqa
