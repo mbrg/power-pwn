@@ -150,6 +150,16 @@ def module_copilot(command_subparsers: argparse.ArgumentParser):
 
     whoami = copilot_subparsers.add_parser("whoami", description="Get the current user's information", help="Get the current user's information")
     copilot_modules(whoami)
+    whoami.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
+
+    dump = copilot_subparsers.add_parser(
+        "dump",
+        description="Data dump using recon from whoami command",
+        help="Dump of documents, emails, and other data from the recon of whoami command",
+    )
+    copilot_modules(dump)
+    dump.add_argument("-d", "--directory", type=str, required=True, help="Path to whoami output directory")
+    dump.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
 
 
 def copilot_modules(parser):
