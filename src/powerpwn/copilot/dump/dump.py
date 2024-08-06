@@ -16,8 +16,6 @@ from powerpwn.copilot.consts import (
     STRATEGIC_PLANS_DOCUMENTS_FILE_NAME,
 )
 from powerpwn.copilot.dump.input_extractor.document_input_extractor import DocumentInputExtractor
-from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
-from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.copilot.exceptions.copilot_connected_user_mismatch import CopilotConnectedUserMismatchException
 from powerpwn.copilot.exceptions.copilot_connection_failed_exception import CopilotConnectionFailedException
 from powerpwn.copilot.loggers.composite_logger import CompositeLogger
@@ -190,14 +188,3 @@ class Dump:
             self.__log(LogType.response, formatted_message)
         else:
             self.__log(LogType.response, "None")
-
-
-if __name__ == "__main__":
-    args = ChatArguments(
-        user="jane@zontosoent.onmicrosoft.com",
-        password="",
-        use_cached_access_token=True,
-        verbose=VerboseEnum.full,
-        scenario=CopilotScenarioEnum.officeweb,
-    )
-    Dump(args, "whoami_6fc290bb-55a5-4802-ab06-daeaa455453c").run()
