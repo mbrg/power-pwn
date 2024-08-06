@@ -7,8 +7,10 @@ import shutil
 
 from powerpwn.cli.const import LOGGER_NAME
 from powerpwn.common.cache.token_cache import TokenCache
+from powerpwn.copilot.dump.dump import Dump
 from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
 from powerpwn.copilot.enums.verbose_enum import VerboseEnum
+from powerpwn.copilot.gui.gui import Gui as CopilotGui
 from powerpwn.copilot.interactive_chat.interactive_chat import InteractiveChat
 from powerpwn.copilot.models.chat_argument import ChatArguments
 from powerpwn.copilot.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
@@ -193,7 +195,16 @@ def run_copilot_chat_command(args):
         return
     elif args.copilot_subcommand == "whoami":
         whoami = WhoAmI(parsed_args)
-        whoami.execute()
+        output_dir = whoami.execute()
+        if args.gui:
+            CopilotGui().run(output_dir)
+        return
+
+    elif args.copilot_subcommand == "dump":
+        dump = Dump(parsed_args, args.directory)
+        output_dir = dump.run()
+        if args.gui:
+            CopilotGui().run(output_dir)
         return
 
     raise NotImplementedError(f"Copilot {args.copilot_subcommand} subcommand has not been implemented yet.")

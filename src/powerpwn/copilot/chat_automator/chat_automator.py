@@ -23,6 +23,13 @@ class ChatAutomator:
             self.__copilot_connector.init_connection()
         self.__is_initialized = True
 
+    def refresh_connector(self) -> None:
+        """
+        Refreshes the connection to the Copilot
+        """
+        self.__copilot_connector.refresh_connection()
+        self.__is_initialized = True
+
     def send_prompt(self, prompt: str) -> Optional[WebsocketMessage]:
         """
         Sends a user prompt to the copilot and gets the response as a websocket message

@@ -123,8 +123,8 @@ def map_connector_id_and_env_id_to_connection_ids(connections: Generator[Connect
     for connection in connections:
         if connection.environment_id.startswith("default"):
             connection.environment_id = connection.environment_id.replace("default", "Default")
-        connector_id_and_env_id_to_connection_ids[
-            (connection.connector_id, connection.environment_id)
-        ] = connector_id_and_env_id_to_connection_ids.get((connection.connector_id, connection.environment_id), []) + [connection.connection_id]
+        connector_id_and_env_id_to_connection_ids[(connection.connector_id, connection.environment_id)] = (
+            connector_id_and_env_id_to_connection_ids.get((connection.connector_id, connection.environment_id), []) + [connection.connection_id]
+        )
 
     return connector_id_and_env_id_to_connection_ids
