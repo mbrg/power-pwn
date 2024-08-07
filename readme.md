@@ -1,3 +1,18 @@
+<div align="center">
+	<p>
+		<sup>Maintained by:</sup>
+		<br>
+		<br>
+		<a href="https://www.zenity.io">
+			<img src="/media/zenity_logo.svg"/>
+		</a>
+        <p>
+        Empower your business, not the adversaries.
+        </p>
+	</p>
+	<hr>
+</div>
+
 # Power Pwn
 
 [![SecTor 23](https://img.shields.io/badge/SecTor-23-red)](https://www.blackhat.com/sector/2023/arsenal/schedule/index.html#entraid-guest-to-corp-data-dump-with-powerpwn-36105)
