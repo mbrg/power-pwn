@@ -15,6 +15,7 @@
 
 # Power Pwn
 
+[![Black Hat](https://img.shields.io/badge/Black%20Hat-USA%202024-blue)](https://www.toolswatch.org)
 [![SecTor 23](https://img.shields.io/badge/SecTor-23-red)](https://www.blackhat.com/sector/2023/arsenal/schedule/index.html#entraid-guest-to-corp-data-dump-with-powerpwn-36105)
 [![Black Hat](https://img.shields.io/badge/Black%20Hat-USA%202023-blue)](https://www.toolswatch.org)
 [![DEFCON30](https://img.shields.io/badge/DEFCON-30-8A2BE2)](https://forum.defcon.org/node/241932)
