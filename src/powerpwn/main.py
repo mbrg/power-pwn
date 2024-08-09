@@ -21,7 +21,7 @@ logger = logging.getLogger(LOGGER_NAME)
 def main():
     print("\n\n------------------------------------------------------------")
     tprint("powerpwn")
-    print("t2`24 edition\n\n")
+    print("Hacker Summer Camp 2024 edition\n\n")
     print("------------------------------------------------------------\n\n")
 
     args = parse_arguments()
