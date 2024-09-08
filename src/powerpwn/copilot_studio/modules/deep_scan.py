@@ -257,7 +257,6 @@ def get_ffuf_results(
         "-H",
         "TE: trailers",
     ]
-    return
 
     print("\nScanning for 2-word bot names")
 
@@ -538,24 +537,32 @@ class DeepScan:
 
         workbook = xlsxwriter.Workbook(out_file_path)
         worksheet = workbook.add_worksheet()
-        worksheet.write(0, 0, title)
-        worksheet.write(1, 0, value)
-        worksheet.write(0, 1, "Tenant default environment found?")
-        worksheet.write(1, 1, "Yes" if self.default_env_found else "No")
-        worksheet.write(0, 2, "Default Solution Prefix found?")
-        worksheet.write(1, 2, "Yes" if self.default_solution_prefix_found else "No")
         existing_bots = list(set(self.existing_bots))
-        worksheet.write(0, 3, "No. of existing bots found")
-        worksheet.write(1, 3, str(len(existing_bots)))
-        worksheet.write(0, 4, "Existing bots names")
-        for i in range(len(existing_bots)):
-            worksheet.write(2 + i, 3, get_bot_name_from_url(existing_bots[i]))
-
         open_bots = list(set(self.open_bots))
-        worksheet.write(0, 4, "No. of open bots found (don't require auth to interact with)")
-        worksheet.write(1, 4, str(len(open_bots)))
-        for i in range(len(open_bots)):
-            worksheet.write(2 + i, 4, get_bot_name_from_url(open_bots[i]))
+
+        data = [
+            [title, value],
+            ["Tenant default environment found?", "Yes" if self.default_env_found else "No"],
+            ["Default Solution Prefix found?", "Yes" if self.default_solution_prefix_found else "No"],
+            ["No. of existing bots found", str(len(existing_bots))],
+            ["No. of open bots found (don't require auth to interact with)", str(len(open_bots))],
+        ]
+        if len(existing_bots):
+            data.append(["Existing Bots Names"])
+            for i in range(len(existing_bots)):
+                data[-1].append(get_bot_name_from_url(existing_bots[i]))
+
+        if len(open_bots):
+            data.append(["Open Bots Names"])
+            for i in range(len(open_bots)):
+                data[-1].append(get_bot_name_from_url(open_bots[i]))
+
+        # Adding a table is kinda bugged so this is commented out.
+        # worksheet.add_table(0, 0, max(len(x) for x in data), len(data))
+        for i in range(len(data)):
+            worksheet.write_column(0, i, data[i])
+
+
 
         while True:
             try:
