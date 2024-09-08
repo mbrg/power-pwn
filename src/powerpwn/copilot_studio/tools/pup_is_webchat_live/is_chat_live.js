@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer'); // v22.0.0 or later
+
 const fs = require('fs').promises;
 const path = require('path'); // Import the path module
 const chalk = require('chalk'); // for colors in terminal texts
@@ -18,7 +19,7 @@ function delay(time) {
     }
 
     const orange = chalk.hex('#FFA500'); // Define a custom orange color
-    const browser = await puppeteer.launch({ headless: true, args: ['--start-fullscreen', '--incognito'] });
+    const browser = await puppeteer.launch({ headless: true, args: []});
     const [page] = await browser.pages();
     const timeout = 30000;
     page.setDefaultTimeout(timeout);
@@ -33,9 +34,9 @@ function delay(time) {
             waitUntil: 'networkidle2'
         });
 
-        await delay(1000); // Wait for 1 second to avoid sync issues
+        await delay(5000); // Wait for 5 second to avoid sync issues
+		await page.click('#root > div > div > div > div > div.content-102 > div.leftPane-103 > div > div.conversationStarters-120 > div:nth-child(1)');
         await page.waitForSelector('div.webchat__bubble__content > div', { timeout: timeout });
-
         const chatTexts = await page.evaluate(() => {
             const elements = document.querySelectorAll('div.webchat__bubble__content > div')
             return Array.from(elements).map(element => element.innerText);

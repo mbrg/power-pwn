@@ -7,6 +7,8 @@ import sys
 
 import pandas as pd
 import requests
+import xlsxwriter
+from datetime import datetime
 
 from powerpwn.copilot_studio.modules.path_utils import get_project_file_path
 
@@ -32,8 +34,11 @@ def sort_unique_values_in_file(file_path):
                 file.write(value + "\n")
 
         print(f"File '{file_path}' has been updated with sorted unique values.")
+
+        return sorted_unique_values
     except Exception as e:
         print(f"An error occurred: {e}")
+        return []
 
 
 # Function to transform the URL
@@ -252,6 +257,7 @@ def get_ffuf_results(
         "-H",
         "TE: trailers",
     ]
+    return
 
     print("\nScanning for 2-word bot names")
 
@@ -401,7 +407,7 @@ def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix
     for stdout_line in iter(popen.stdout.readline, ""):
         if "FUZZ1:" in stdout_line:
             fuzz1_value = stdout_line.split("FUZZ1:")[1].split()[0]
-            popen.send_signal(signal.SIGINT)  # Send Ctrl+C (SIGINT) to stop ffuf
+            popen.send_signal(signal.SIGTERM)  # Send SIGTERM to ask ffuf to terminate gracefully
             yield fuzz1_value, popen
             break
         yield None, popen
@@ -471,6 +477,36 @@ def print_brand(tenant: str, timeout: int = 10):
         print(f"No brand found for tenant {tenant}")
 
 
+def run_pup_commands(existing_bots, pup_path):
+    # Construct the command to run the Node.js script with xargs
+    open_bots_path = get_project_file_path("final_results/", "chat_exists_output.txt")
+    # Empty the file
+    with open(open_bots_path, "w") as f:
+        pass
+    for bot_url in existing_bots:
+        try:
+            # Construct the shell command
+            command = f'node {pup_path} {bot_url}'
+            print(command)
+            # TODO: Verify and improve guardrails for using subprocess + replace shell=True
+            # Run the command
+            subprocess.run(command, shell=True, check=True)  # nosec
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred: {e}")
+
+
+    if os.path.exists(open_bots_path):
+        return sort_unique_values_in_file(open_bots_path)
+    return []
+
+
+def get_bot_name_from_url(bot_url):
+    re_match = re.search(r"/bots/(.*?)/canvas", bot_url)
+    if re_match:
+        return re_match.group(1)
+    return ""
+
+
 class DeepScan:
     """
     A class that is responsible for the CPS deep scan
@@ -478,7 +514,60 @@ class DeepScan:
 
     def __init__(self, args):
         self.args = args
+        self.default_env_found = False
+        self.default_solution_prefix_found = False
+        self.existing_bots = []
+        self.open_bots = []
         self.run()
+
+    def dump_results(self):
+        today_str = datetime.today().date().strftime("%Y_%m_%d")
+        if self.args.domain:
+            file_name = f"{self.args.domain}_{today_str}.xlsx"
+            title = "Domain"
+            value = self.args.domain
+        elif self.args.tenant_id:
+            file_name = f"{self.args.tenant_id}_{today_str}.xlsx"
+            title = "Tenant ID"
+            value = self.args.tenant_id
+        else:
+            logging.info("No domain/ tenant supplied, exiting...")
+            return
+
+        out_file_path = get_project_file_path("final_results/", file_name)
+
+        workbook = xlsxwriter.Workbook(out_file_path)
+        worksheet = workbook.add_worksheet()
+        worksheet.write(0, 0, title)
+        worksheet.write(1, 0, value)
+        worksheet.write(0, 1, "Tenant default environment found?")
+        worksheet.write(1, 1, "Yes" if self.default_env_found else "No")
+        worksheet.write(0, 2, "Default Solution Prefix found?")
+        worksheet.write(1, 2, "Yes" if self.default_solution_prefix_found else "No")
+        existing_bots = list(set(self.existing_bots))
+        worksheet.write(0, 3, "No. of existing bots found")
+        worksheet.write(1, 3, str(len(existing_bots)))
+        worksheet.write(0, 4, "Existing bots names")
+        for i in range(len(existing_bots)):
+            worksheet.write(2 + i, 3, get_bot_name_from_url(existing_bots[i]))
+
+        open_bots = list(set(self.open_bots))
+        worksheet.write(0, 4, "No. of open bots found (don't require auth to interact with)")
+        worksheet.write(1, 4, str(len(open_bots)))
+        for i in range(len(open_bots)):
+            worksheet.write(2 + i, 4, get_bot_name_from_url(open_bots[i]))
+
+        while True:
+            try:
+                workbook.close()
+            except xlsxwriter.exceptions.FileCreateError as e:
+                decision = input("Exception caught in workbook.close(): %s\n"
+                                 "Please close the file if it is open in Excel.\n"
+                                 "Try to write file again? [Y/n]: " % e)
+                if decision != 'n':
+                    continue
+
+            break
 
     def run(self):
 
@@ -499,6 +588,7 @@ class DeepScan:
             tenant_id = get_tenant_id(self.args.domain)
 
             if tenant_id:
+                self.default_env_found = True
                 logging.info(f"Tenant ID: {tenant_id}")
                 logging.info(
                     "Use the following URL to access the CoPilotStudio demo website: \n"
@@ -524,6 +614,7 @@ class DeepScan:
                     print("An existing solution publisher prefix value was found for this domain, continuing to search for CoPilot demo websites.")
 
                     if first_line:
+                        self.default_solution_prefix_found = True
                         for line, popen in get_ffuf_results(
                             env_bots_endpoint,
                             f"{fuzz_file_path}",
@@ -569,28 +660,17 @@ class DeepScan:
                             for url in transformed_urls:
                                 f.write(f"{url}\n")
 
-                        sort_unique_values_in_file(f"{url_file_path}")
+                        self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                         print(f"\nTransformed URLs saved to {url_file_path}")
                         print("\nChecking accessible CoPilot demo websites")
 
-                        # Construct the command to run the Node.js script with xargs
-                        try:
-                            # Construct the shell command
-                            command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-
-                            # TODO: Verify and improve guardrails for using subprocess + replace shell=True
-                            # Run the command
-                            subprocess.run(command, shell=True, check=True)  # nosec
-                        except subprocess.CalledProcessError as e:
-                            print(f"Error occurred: {e}")
+                        self.open_bots = run_pup_commands(self.existing_bots, pup_path)
 
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
                     else:
                         logging.error("Did not find a solution publisher prefix")
-                        sys.exit(1)
-
                 else:
                     print("No existing solution publisher prefix value found for this domain, starting prefix scan.")
 
@@ -611,6 +691,7 @@ class DeepScan:
                     fuzz_file_path = get_project_file_path("internal_results/prefix_fuzz_values", f"{fuzz_file_name}")
 
                     if fuzz1_value:
+                        self.default_solution_prefix_found = True
                         with open(fuzz_file_path, "w") as file:
                             file.write(fuzz1_value + "\n")
 
@@ -663,29 +744,21 @@ class DeepScan:
                             for url in transformed_urls:
                                 f.write(f"{url}\n")
 
-                        sort_unique_values_in_file(url_file_path)
+                        self.existing_bots = sort_unique_values_in_file(url_file_path)
 
                         print(f"\nTransformed URLs saved to {url_file_path}")
                         print("\nChecking accessible CoPilot demo websites")
 
-                        # Construct the command to run the Node.js script with xargs
-                        try:
-                            # Construct the shell command
-                            command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-
-                            # TODO: Verify and improve guardrails for using subprocess + replace shell=True
-                            # Run the command
-                            subprocess.run(command, shell=True, check=True)  # nosec
-                        except subprocess.CalledProcessError as e:
-                            print(f"Error occurred: {e}")
+                        self.open_bots = run_pup_commands(self.existing_bots, pup_path)
 
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
                     else:
                         logging.error("Did not find a solution publisher prefix")
-                        sys.exit(1)
 
         elif self.args.tenant_id:
+
+            self.default_env_found = True
 
             # Print the tenant's domain if available
             print_brand(self.args.tenant_id)
@@ -715,6 +788,7 @@ class DeepScan:
                 print("An existing publisher prefix value was found for this tenant, continuing to search for CoPilot demo websites.")
 
                 if first_line:
+                    self.default_solution_prefix_found = True
                     for line, popen in get_ffuf_results(
                         env_bots_endpoint,
                         f"{fuzz_file_path}",
@@ -760,27 +834,17 @@ class DeepScan:
                         for url in transformed_urls:
                             f.write(f"{url}\n")
 
-                    sort_unique_values_in_file(f"{url_file_path}")
+                    self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                     print(f"\nTransformed URLs saved to {url_file_path}")
                     print("\nChecking accessible CoPilot demo websites")
 
-                    # Construct the command to run the Node.js script with xargs
-                    try:
-                        # Construct the shell command
-                        command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-
-                        # TODO: Verify and improve guardrails for using subprocess + replace shell=True
-                        # Run the command
-                        subprocess.run(command, shell=True, check=True)  # nosec
-                    except subprocess.CalledProcessError as e:
-                        print(f"Error occurred: {e}")
+                    self.open_bots = run_pup_commands(self.existing_bots, pup_path)
 
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
                 else:
                     logging.error("Did not find a default solution publisher prefix")
-                    sys.exit(1)
 
             else:
                 print("No existing prefix value found for this tenant, starting solution publisher prefix scan.")
@@ -803,6 +867,7 @@ class DeepScan:
                 fuzz_file_path = get_project_file_path("internal_results/prefix_fuzz_values", f"{fuzz_file_name}")
 
                 if fuzz1_value:
+                    self.default_solution_prefix_found = True
                     with open(fuzz_file_path, "w") as file:
                         file.write(fuzz1_value + "\n")
 
@@ -854,24 +919,16 @@ class DeepScan:
                         for url in transformed_urls:
                             f.write(f"{url}\n")
 
-                    sort_unique_values_in_file(url_file_path)
+                    self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                     print(f"\nTransformed URLs saved to {url_file_path}")
                     print("\nChecking accessible CoPilot demo websites")
 
-                    # Construct the command to run the Node.js script with xargs
-                    try:
-                        # Construct the shell command
-                        command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-
-                        # TODO: Verify and improve guardrails for using subprocess + replace shell=True
-                        # Run the command
-                        subprocess.run(command, shell=True, check=True)  # nosec
-                    except subprocess.CalledProcessError as e:
-                        print(f"Error occurred: {e}")
+                    self.open_bots = run_pup_commands(self.existing_bots, pup_path)
 
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
                 else:
                     logging.error("Did not find a solution publisher prefix")
-                    sys.exit(1)
+
+        self.dump_results()
