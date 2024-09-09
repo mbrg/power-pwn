@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer'); // v22.0.0 or later
-
 const fs = require('fs').promises;
 const path = require('path'); // Import the path module
 const chalk = require('chalk'); // for colors in terminal texts
@@ -21,7 +20,6 @@ function delay(time) {
     const orange = chalk.hex('#FFA500'); // Define a custom orange color
     const browser = await puppeteer.launch({ headless: true, args: ['--start-fullscreen', '--incognito']});
     const [page] = await browser.pages();
-	
     const timeout = 30000;
     page.setDefaultTimeout(timeout);
 
