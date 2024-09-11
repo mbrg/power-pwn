@@ -476,7 +476,11 @@ def print_brand(tenant: str, timeout: int = 10):
         print(f"No brand found for tenant {tenant}")
 
 
-def run_pup_commands(existing_bots, pup_path):
+def run_pup_commands(existing_bots):
+    if os.name == "nt":  # Windows
+        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live_windows.js")
+    else:
+        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
     # Construct the command to run the Node.js script with xargs
     open_bots_path = get_project_file_path("final_results/", "chat_exists_output.txt")
     # Empty the file
@@ -486,12 +490,12 @@ def run_pup_commands(existing_bots, pup_path):
         try:
             # Construct the shell command
             command = f'node {pup_path} {bot_url}'
-            print(command)
+            logging.debug(f"Running command: {command}")
             # TODO: Verify and improve guardrails for using subprocess + replace shell=True
             # Run the command
             subprocess.run(command, shell=True, check=True)  # nosec
         except subprocess.CalledProcessError as e:
-            print(f"Error occurred: {e}")
+            logging.error(f"Error occurred while running puppeteer: {e}")
 
 
     if os.path.exists(open_bots_path):
@@ -578,7 +582,7 @@ class DeepScan:
 
     def run(self):
 
-        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
+
 
         # Determine the ffuf flag based on the provided mode
         ffuf_flag = "-v" if self.args.mode == "verbose" else "-s"
@@ -672,7 +676,7 @@ class DeepScan:
                         print(f"\nTransformed URLs saved to {url_file_path}")
                         print("\nChecking accessible CoPilot demo websites")
 
-                        self.open_bots = run_pup_commands(self.existing_bots, pup_path)
+                        self.open_bots = run_pup_commands(self.existing_bots)
 
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
@@ -756,7 +760,7 @@ class DeepScan:
                         print(f"\nTransformed URLs saved to {url_file_path}")
                         print("\nChecking accessible CoPilot demo websites")
 
-                        self.open_bots = run_pup_commands(self.existing_bots, pup_path)
+                        self.open_bots = run_pup_commands(self.existing_bots)
 
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
@@ -846,7 +850,7 @@ class DeepScan:
                     print(f"\nTransformed URLs saved to {url_file_path}")
                     print("\nChecking accessible CoPilot demo websites")
 
-                    self.open_bots = run_pup_commands(self.existing_bots, pup_path)
+                    self.open_bots = run_pup_commands(self.existing_bots)
 
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
@@ -931,7 +935,7 @@ class DeepScan:
                     print(f"\nTransformed URLs saved to {url_file_path}")
                     print("\nChecking accessible CoPilot demo websites")
 
-                    self.open_bots = run_pup_commands(self.existing_bots, pup_path)
+                    self.open_bots = run_pup_commands(self.existing_bots)
 
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
