@@ -4,6 +4,7 @@ import re
 import signal
 import subprocess  # nosec
 from datetime import datetime
+from typing import List
 
 import pandas as pd
 import requests
@@ -475,7 +476,13 @@ def print_brand(tenant: str, timeout: int = 10):
         print(f"No brand found for tenant {tenant}")
 
 
-def run_pup_commands(existing_bots):
+def run_pup_commands(existing_bots: List[str]):
+    """
+    Execute the puppeteer javascript code for each bot url given.
+    The function calls a different javascript file depending on the OS.
+
+    :param existing_bots: The list of bot urls needed to check
+    """
     if os.name == "nt":  # Windows
         pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live_windows.js")
     else:
@@ -501,7 +508,12 @@ def run_pup_commands(existing_bots):
     return []
 
 
-def get_bot_name_from_url(bot_url):
+def get_bot_name_from_url(bot_url: str):
+    """
+    Extract the bot ID/ Name from the given bot url
+
+    :param bot_url: The given bot url
+    """
     re_match = re.search(r"/bots/(.*?)/canvas", bot_url)
     if re_match:
         return re_match.group(1)
@@ -522,6 +534,18 @@ class DeepScan:
         self.run()
 
     def dump_results(self):
+        """
+        Summarize all the data collected during the run() function and output it
+        in a well formatted Microsoft Excel file.
+        The output will have several columns:
+            Domain/ Tenant ID - The given input on which we run
+            Tenant default environment found? - Yes/ No
+            Default Solution Prefix found? - Yes/ No
+            No. of existing bots found - An integer value of the number of existing bots
+            No. of open bots found - An integer value of the number of open bots
+            Existing Bots Names - (Only if number > 0) A list of the existing bots' names
+            Open Bots Names - (Only if number > 0) A list of the open bots' names
+        """
         today_str = datetime.today().date().strftime("%Y_%m_%d")
         if self.args.domain:
             file_name = f"{self.args.domain}_{today_str}.xlsx"
