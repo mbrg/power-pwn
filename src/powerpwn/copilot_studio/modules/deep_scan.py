@@ -483,11 +483,8 @@ def run_pup_commands(existing_bots: List[str]):
 
     :param existing_bots: The list of bot urls needed to check
     """
-    if os.name == "nt":  # Windows
-        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live_windows.js")
-    else:
-        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
-    # Construct the command to run the Node.js script with xargs
+    pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
+    # Construct the command to run the Node.js script
     open_bots_path = get_project_file_path("final_results/", "chat_exists_output.txt")
     # Empty the file
     with open(open_bots_path, "w") as _:
@@ -496,7 +493,7 @@ def run_pup_commands(existing_bots: List[str]):
         try:
             # Construct the shell command
             command = f"node {pup_path} {bot_url}"
-            logging.debug(f"Running command: {command}")
+            logging.debug(f"Running command: `{command}`")
             # TODO: Verify and improve guardrails for using subprocess + replace shell=True
             # Run the command
             subprocess.run(command, shell=True, check=True)  # nosec
@@ -508,15 +505,30 @@ def run_pup_commands(existing_bots: List[str]):
     return []
 
 
-def get_bot_name_from_url(bot_url: str):
+def camel_case_split(identifier: str):
+    """
+    creates a word array from a camel case string
+    reference: https://stackoverflow.com/questions/29916065/how-to-do-camelcase-split-in-python
+
+    :param identifier: the camel case string
+    """
+    matches = re.finditer('.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)', identifier)
+    return [m.group(0) for m in matches]
+
+
+def get_bot_name_from_url(bot_url: str, default_solution_prefix: str):
     """
     Extract the bot ID/ Name from the given bot url
 
     :param bot_url: The given bot url
+    :param default_solution_prefix: The tenant's bot prefix
     """
     re_match = re.search(r"/bots/(.*?)/canvas", bot_url)
     if re_match:
-        return re_match.group(1)
+        bot_name = re_match.group(1)
+        bot_name = bot_name[len(default_solution_prefix) + 1:] # "<prefix>_<bot name>"
+        bot_name = " ".join(camel_case_split(bot_name))
+        return bot_name
     return ""
 
 
@@ -528,7 +540,7 @@ class DeepScan:
     def __init__(self, args):
         self.args = args
         self.default_env_found = False
-        self.default_solution_prefix_found = False
+        self.default_solution_prefix = ""
         self.existing_bots = []
         self.open_bots = []
         self.run()
@@ -543,8 +555,8 @@ class DeepScan:
             Default Solution Prefix found? - Yes/ No
             No. of existing bots found - An integer value of the number of existing bots
             No. of open bots found - An integer value of the number of open bots
-            Existing Bots Names - (Only if number > 0) A list of the existing bots' names
-            Open Bots Names - (Only if number > 0) A list of the open bots' names
+            Existing Bots - (Only if number > 0) A list of the existing bots' names with hyperlink to the bot url
+            Open Bots - (Only if number > 0) A list of the open bots' names with hyperlink to the bot url
         """
         today_str = datetime.today().date().strftime("%Y_%m_%d")
         if self.args.domain:
@@ -569,24 +581,40 @@ class DeepScan:
         data = [
             [title, value],
             ["Tenant default environment found?", "Yes" if self.default_env_found else "No"],
-            ["Default Solution Prefix found?", "Yes" if self.default_solution_prefix_found else "No"],
+            ["Default Solution Prefix found?", "Yes" if self.default_solution_prefix else "No"],
             ["No. of existing bots found", str(len(existing_bots))],
             ["No. of open bots found (don't require auth to interact with)", str(len(open_bots))],
         ]
+
+        bot_urls = {}
+
         if len(existing_bots):
-            data.append(["Existing Bots Names"])
+            data.append(["Existing Bots"])
             for i in range(len(existing_bots)):
-                data[-1].append(get_bot_name_from_url(existing_bots[i]))
+                bot_name = get_bot_name_from_url(existing_bots[i], self.default_solution_prefix)
+                data[-1].append(bot_name)
+                bot_urls[bot_name] = existing_bots[i]
 
         if len(open_bots):
-            data.append(["Open Bots Names"])
+            data.append(["Open Bots"])
             for i in range(len(open_bots)):
-                data[-1].append(get_bot_name_from_url(open_bots[i]))
+                bot_name = get_bot_name_from_url(open_bots[i], self.default_solution_prefix)
+                data[-1].append(bot_name)
+                bot_urls[bot_name] = open_bots[i]
 
         # Adding a table is kinda bugged so this is commented out.
         # worksheet.add_table(0, 0, max(len(x) for x in data), len(data))
         for i in range(len(data)):
             worksheet.write_column(0, i, data[i])
+            worksheet.set_column(i, i, max(len(_data) for _data in data[i]))
+            # for the last 2 columns
+            if i < len(data) - 2:
+                continue
+            # set the text (= bot's name) to be a hyperlink to the bot's url
+            for j in range(1, len(data[i])):
+                if data[i][j] in bot_urls:
+                    url = bot_urls[data[i][j]]
+                    worksheet.write_url(j, i, url, string=data[i][j])
 
         while True:
             try:
@@ -644,7 +672,7 @@ class DeepScan:
                     print("An existing solution publisher prefix value was found for this domain, continuing to search for CoPilot demo websites.")
 
                     if first_line:
-                        self.default_solution_prefix_found = True
+                        self.default_solution_prefix = first_line
                         for line, popen in get_ffuf_results(
                             env_bots_endpoint,
                             f"{fuzz_file_path}",
@@ -721,7 +749,7 @@ class DeepScan:
                     fuzz_file_path = get_project_file_path("internal_results/prefix_fuzz_values", f"{fuzz_file_name}")
 
                     if fuzz1_value:
-                        self.default_solution_prefix_found = True
+                        self.default_solution_prefix = fuzz1_value
                         with open(fuzz_file_path, "w") as file:
                             file.write(fuzz1_value + "\n")
 
@@ -818,7 +846,7 @@ class DeepScan:
                 print("An existing publisher prefix value was found for this tenant, continuing to search for CoPilot demo websites.")
 
                 if first_line:
-                    self.default_solution_prefix_found = True
+                    self.default_solution_prefix = first_line
                     for line, popen in get_ffuf_results(
                         env_bots_endpoint,
                         f"{fuzz_file_path}",
@@ -897,7 +925,7 @@ class DeepScan:
                 fuzz_file_path = get_project_file_path("internal_results/prefix_fuzz_values", f"{fuzz_file_name}")
 
                 if fuzz1_value:
-                    self.default_solution_prefix_found = True
+                    self.default_solution_prefix = fuzz1_value
                     with open(fuzz_file_path, "w") as file:
                         file.write(fuzz1_value + "\n")
 
