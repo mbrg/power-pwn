@@ -526,7 +526,7 @@ def get_bot_name_from_url(bot_url: str, default_solution_prefix: str):
     re_match = re.search(r"/bots/(.*?)/canvas", bot_url)
     if re_match:
         bot_name = re_match.group(1)
-        bot_name = bot_name[len(default_solution_prefix) + 1 :]  #  "<prefix>_<bot name>"
+        bot_name = bot_name[len(default_solution_prefix) + 1 :]  # "<prefix>_<bot name>"
         bot_name = " ".join(camel_case_split(bot_name))
         return bot_name
     return ""
