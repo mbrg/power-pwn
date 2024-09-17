@@ -539,7 +539,7 @@ class DeepScan:
 
     def __init__(self, args):
         self.args = args
-        self.default_env_found = False
+        self.default_env = False
         self.default_solution_prefix = ""
         self.existing_bots = []
         self.open_bots = []
@@ -551,8 +551,8 @@ class DeepScan:
         in a well formatted Microsoft Excel file.
         The output will have several columns:
             Domain/ Tenant ID - The given input on which we run
-            Tenant default environment found? - Yes/ No
-            Default Solution Prefix found? - Yes/ No
+            Tenant default environment found? - <env>/ No
+            Default Solution Prefix found? - <prefix>/ No
             No. of existing bots found - An integer value of the number of existing bots
             No. of open bots found - An integer value of the number of open bots
             Existing Bots - (Only if number > 0) A list of the existing bots' names with hyperlink to the bot url
@@ -580,10 +580,10 @@ class DeepScan:
 
         data = [
             [title, value],
-            ["Tenant default environment found?", "Yes" if self.default_env_found else "No"],
-            ["Default Solution Prefix found?", "Yes" if self.default_solution_prefix else "No"],
+            ["Tenant default environment found?", self.default_env if self.default_env else "No"],
+            ["Default Solution Prefix found?", self.default_solution_prefix if self.default_solution_prefix else "No"],
             ["No. of existing bots found", str(len(existing_bots))],
-            ["No. of open bots found (don't require auth to interact with)", str(len(open_bots))],
+            ["No. of open bots found", str(len(open_bots))],
         ]
 
         bot_urls = {}
@@ -646,7 +646,7 @@ class DeepScan:
             tenant_id = get_tenant_id(self.args.domain)
 
             if tenant_id:
-                self.default_env_found = True
+                self.default_env = tenant_id
                 logging.info(f"Tenant ID: {tenant_id}")
                 logging.info(
                     "Use the following URL to access the CoPilotStudio demo website: \n"
@@ -816,7 +816,7 @@ class DeepScan:
 
         elif self.args.tenant_id:
 
-            self.default_env_found = True
+            self.default_env = self.args.tenant_id
 
             # Print the tenant's domain if available
             print_brand(self.args.tenant_id)
