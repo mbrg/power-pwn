@@ -587,6 +587,7 @@ class DeepScan:
         ]
 
         bot_urls = {}
+        url_columns = 0
 
         if len(existing_bots):
             data.append(["Existing Bots"])
@@ -594,6 +595,7 @@ class DeepScan:
                 bot_name = get_bot_name_from_url(existing_bots[i], self.default_solution_prefix)
                 data[-1].append(bot_name)
                 bot_urls[bot_name] = existing_bots[i]
+                url_columns += 1
 
         if len(open_bots):
             data.append(["Open Bots"])
@@ -601,6 +603,7 @@ class DeepScan:
                 bot_name = get_bot_name_from_url(open_bots[i], self.default_solution_prefix)
                 data[-1].append(bot_name)
                 bot_urls[bot_name] = open_bots[i]
+                url_columns += 1
 
         # Adding a table is kinda bugged so this is commented out.
         # worksheet.add_table(0, 0, max(len(x) for x in data), len(data))
@@ -608,7 +611,7 @@ class DeepScan:
             worksheet.write_column(0, i, data[i])
             worksheet.set_column(i, i, max(len(_data) for _data in data[i]))
             # for the last 2 columns
-            if i < len(data) - 2:
+            if i < len(data) - url_columns:
                 continue
             # set the text (= bot's name) to be a hyperlink to the bot's url
             for j in range(1, len(data[i])):
@@ -691,24 +694,20 @@ class DeepScan:
                             f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.domain}.txt"
                         )
 
-                        df1 = pd.DataFrame()
-                        df2 = pd.DataFrame()
-                        df3 = pd.DataFrame()
+                        dfs = []
 
-                        # Read the CSV file
-                        if os.path.exists(ffuf_path_1):
-                            df1 = pd.read_csv(ffuf_path_1)
+                        for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                            if os.path.exists(ffuf_path):
+                                _df = pd.read_csv(ffuf_path)
+                                if not _df.empty:
+                                    dfs.append(_df)
 
-                        if os.path.exists(ffuf_path_2):
-                            df2 = pd.read_csv(ffuf_path_2)
-
-                        if os.path.exists(ffuf_path_3):
-                            df3 = pd.read_csv(ffuf_path_3)
-
-                        df = pd.concat([df1, df2, df3], ignore_index=True)
-
-                        # Transform the URL column
-                        transformed_urls = df["url"].apply(transform_url)
+                        if dfs:
+                            df = pd.concat(dfs, ignore_index=True)
+                            # Transform the URL column
+                            transformed_urls = df["url"].apply(transform_url)
+                        else:
+                            transformed_urls = []
 
                         url_file = f"url_output_{self.args.domain}.txt"
                         url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -775,24 +774,20 @@ class DeepScan:
                             f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.domain}.txt"
                         )
 
-                        df1 = pd.DataFrame()
-                        df2 = pd.DataFrame()
-                        df3 = pd.DataFrame()
+                        dfs = []
 
-                        # Read the CSV file
-                        if os.path.exists(ffuf_path_1):
-                            df1 = pd.read_csv(ffuf_path_1)
+                        for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                            if os.path.exists(ffuf_path):
+                                _df = pd.read_csv(ffuf_path)
+                                if not _df.empty:
+                                    dfs.append(_df)
 
-                        if os.path.exists(ffuf_path_2):
-                            df2 = pd.read_csv(ffuf_path_2)
-
-                        if os.path.exists(ffuf_path_3):
-                            df3 = pd.read_csv(ffuf_path_3)
-
-                        df = pd.concat([df1, df2, df3], ignore_index=True)
-
-                        # Transform the URL column
-                        transformed_urls = df["url"].apply(transform_url)
+                        if dfs:
+                            df = pd.concat(dfs, ignore_index=True)
+                            # Transform the URL column
+                            transformed_urls = df["url"].apply(transform_url)
+                        else:
+                            transformed_urls = []
 
                         url_file = f"url_output_{self.args.domain}.txt"
                         url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -865,24 +860,20 @@ class DeepScan:
                         f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.tenant_id}.txt"
                     )
 
-                    df1 = pd.DataFrame()
-                    df2 = pd.DataFrame()
-                    df3 = pd.DataFrame()
+                    dfs = []
 
-                    # Read the CSV file
-                    if os.path.exists(ffuf_path_1):
-                        df1 = pd.read_csv(ffuf_path_1)
+                    for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                        if os.path.exists(ffuf_path):
+                            _df = pd.read_csv(ffuf_path)
+                            if not _df.empty:
+                                dfs.append(_df)
 
-                    if os.path.exists(ffuf_path_2):
-                        df2 = pd.read_csv(ffuf_path_2)
-
-                    if os.path.exists(ffuf_path_3):
-                        df3 = pd.read_csv(ffuf_path_3)
-
-                    df = pd.concat([df1, df2, df3], ignore_index=True)
-
-                    # Transform the URL column
-                    transformed_urls = df["url"].apply(transform_url)
+                    if dfs:
+                        df = pd.concat(dfs, ignore_index=True)
+                        # Transform the URL column
+                        transformed_urls = df["url"].apply(transform_url)
+                    else:
+                        transformed_urls = []
 
                     url_file = f"url_output_{self.args.tenant_id}.txt"
                     url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -950,24 +941,20 @@ class DeepScan:
                         f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.tenant_id}.txt"
                     )
 
-                    df1 = pd.DataFrame()
-                    df2 = pd.DataFrame()
-                    df3 = pd.DataFrame()
+                    dfs = []
 
-                    # Read the CSV file
-                    if os.path.exists(ffuf_path_1):
-                        df1 = pd.read_csv(ffuf_path_1)
+                    for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                        if os.path.exists(ffuf_path):
+                            _df = pd.read_csv(ffuf_path)
+                            if not _df.empty:
+                                dfs.append(_df)
 
-                    if os.path.exists(ffuf_path_2):
-                        df2 = pd.read_csv(ffuf_path_2)
-
-                    if os.path.exists(ffuf_path_3):
-                        df3 = pd.read_csv(ffuf_path_3)
-
-                    df = pd.concat([df1, df2, df3], ignore_index=True)
-
-                    # Transform the URL column
-                    transformed_urls = df["url"].apply(transform_url)
+                    if dfs:
+                        df = pd.concat(dfs, ignore_index=True)
+                        # Transform the URL column
+                        transformed_urls = df["url"].apply(transform_url)
+                    else:
+                        transformed_urls = []
 
                     url_file = f"url_output_{self.args.tenant_id}.txt"
                     url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
