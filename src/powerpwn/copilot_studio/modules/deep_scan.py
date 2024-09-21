@@ -3,10 +3,12 @@ import os
 import re
 import signal
 import subprocess  # nosec
-import sys
+from datetime import datetime
+from typing import List
 
 import pandas as pd
 import requests
+import xlsxwriter
 
 from powerpwn.copilot_studio.modules.path_utils import get_project_file_path
 
@@ -32,8 +34,11 @@ def sort_unique_values_in_file(file_path):
                 file.write(value + "\n")
 
         print(f"File '{file_path}' has been updated with sorted unique values.")
+
+        return sorted_unique_values
     except Exception as e:
         print(f"An error occurred: {e}")
+        return []
 
 
 # Function to transform the URL
@@ -401,7 +406,7 @@ def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix
     for stdout_line in iter(popen.stdout.readline, ""):
         if "FUZZ1:" in stdout_line:
             fuzz1_value = stdout_line.split("FUZZ1:")[1].split()[0]
-            popen.send_signal(signal.SIGINT)  # Send Ctrl+C (SIGINT) to stop ffuf
+            popen.send_signal(signal.SIGTERM)  # Send SIGTERM to ask ffuf to terminate gracefully
             yield fuzz1_value, popen
             break
         yield None, popen
@@ -471,6 +476,62 @@ def print_brand(tenant: str, timeout: int = 10):
         print(f"No brand found for tenant {tenant}")
 
 
+def run_pup_commands(existing_bots: List[str]):
+    """
+    Execute the puppeteer javascript code for each bot url given.
+    The function calls a different javascript file depending on the OS.
+
+    :param existing_bots: The list of bot urls needed to check
+    """
+    pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
+    # Construct the command to run the Node.js script
+    open_bots_path = get_project_file_path("final_results/", "chat_exists_output.txt")
+    # Empty the file
+    with open(open_bots_path, "w") as _:
+        pass
+    for bot_url in existing_bots:
+        try:
+            # Construct the shell command
+            command = f"node {pup_path} {bot_url}"
+            logging.debug(f"Running command: `{command}`")
+            # TODO: Verify and improve guardrails for using subprocess + replace shell=True
+            # Run the command
+            subprocess.run(command, shell=True, check=True)  # nosec
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Error occurred while running puppeteer: {e}")
+
+    if os.path.exists(open_bots_path):
+        return sort_unique_values_in_file(open_bots_path)
+    return []
+
+
+def camel_case_split(identifier: str):
+    """
+    creates a word array from a camel case string
+    reference: https://stackoverflow.com/questions/29916065/how-to-do-camelcase-split-in-python
+
+    :param identifier: the camel case string
+    """
+    matches = re.finditer(".+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)", identifier)
+    return [m.group(0) for m in matches]
+
+
+def get_bot_name_from_url(bot_url: str, default_solution_prefix: str):
+    """
+    Extract the bot ID/ Name from the given bot url
+
+    :param bot_url: The given bot url
+    :param default_solution_prefix: The tenant's bot prefix
+    """
+    re_match = re.search(r"/bots/(.*?)/canvas", bot_url)
+    if re_match:
+        bot_name = re_match.group(1)
+        bot_name = bot_name[len(default_solution_prefix) + 1 :]  # "<prefix>_<bot name>"
+        bot_name = " ".join(camel_case_split(bot_name))
+        return bot_name
+    return ""
+
+
 class DeepScan:
     """
     A class that is responsible for the CPS deep scan
@@ -478,12 +539,101 @@ class DeepScan:
 
     def __init__(self, args):
         self.args = args
+        self.default_env = False
+        self.default_solution_prefix = ""
+        self.existing_bots = []
+        self.open_bots = []
         self.run()
 
+    def dump_results(self):
+        """
+        Summarize all the data collected during the run() function and output it
+        in a well formatted Microsoft Excel file.
+        The output will have several columns:
+            Domain/ Tenant ID - The given input on which we run
+            Tenant default environment found? - <env>/ No
+            Default Solution Prefix found? - <prefix>/ No
+            No. of existing bots found - An integer value of the number of existing bots
+            No. of open bots found - An integer value of the number of open bots
+            Existing Bots - (Only if number > 0) A list of the existing bots' names with hyperlink to the bot url
+            Open Bots - (Only if number > 0) A list of the open bots' names with hyperlink to the bot url
+        """
+        today_str = datetime.today().date().strftime("%Y_%m_%d")
+        if self.args.domain:
+            file_name = f"{self.args.domain}_{today_str}.xlsx"
+            title = "Domain"
+            value = self.args.domain
+        elif self.args.tenant_id:
+            file_name = f"{self.args.tenant_id}_{today_str}.xlsx"
+            title = "Tenant ID"
+            value = self.args.tenant_id
+        else:
+            logging.info("No domain/ tenant supplied, exiting...")
+            return
+
+        out_file_path = get_project_file_path("final_results/", file_name)
+
+        workbook = xlsxwriter.Workbook(out_file_path)
+        worksheet = workbook.add_worksheet()
+        existing_bots = list(set(self.existing_bots))
+        open_bots = list(set(self.open_bots))
+
+        data = [
+            [title, value],
+            ["Tenant default environment found?", self.default_env if self.default_env else "No"],
+            ["Default Solution Prefix found?", self.default_solution_prefix if self.default_solution_prefix else "No"],
+            ["No. of existing bots found", str(len(existing_bots))],
+            ["No. of open bots found", str(len(open_bots))],
+        ]
+
+        bot_urls = {}
+        url_columns = 0
+
+        if len(existing_bots):
+            data.append(["Existing Bots"])
+            for i in range(len(existing_bots)):
+                bot_name = get_bot_name_from_url(existing_bots[i], self.default_solution_prefix)
+                data[-1].append(bot_name)
+                bot_urls[bot_name] = existing_bots[i]
+                url_columns += 1
+
+        if len(open_bots):
+            data.append(["Open Bots"])
+            for i in range(len(open_bots)):
+                bot_name = get_bot_name_from_url(open_bots[i], self.default_solution_prefix)
+                data[-1].append(bot_name)
+                bot_urls[bot_name] = open_bots[i]
+                url_columns += 1
+
+        # Adding a table is kinda bugged so this is commented out.
+        # worksheet.add_table(0, 0, max(len(x) for x in data), len(data))
+        for i in range(len(data)):
+            worksheet.write_column(0, i, data[i])
+            worksheet.set_column(i, i, max(len(_data) for _data in data[i]))
+            # for the last 2 columns
+            if i < len(data) - url_columns:
+                continue
+            # set the text (= bot's name) to be a hyperlink to the bot's url
+            for j in range(1, len(data[i])):
+                if data[i][j] in bot_urls:
+                    url = bot_urls[data[i][j]]
+                    worksheet.write_url(j, i, url, string=data[i][j])
+
+        while True:
+            try:
+                workbook.close()
+            except xlsxwriter.exceptions.FileCreateError as e:
+                decision = input(
+                    "Exception caught in workbook.close(): %s\n"
+                    "Please close the file if it is open in Excel.\n"
+                    "Try to write file again? [Y/n]: " % e
+                )
+                if decision != "n":
+                    continue
+
+            break
+
     def run(self):
-
-        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
-
         # Determine the ffuf flag based on the provided mode
         ffuf_flag = "-v" if self.args.mode == "verbose" else "-s"
 
@@ -499,6 +649,7 @@ class DeepScan:
             tenant_id = get_tenant_id(self.args.domain)
 
             if tenant_id:
+                self.default_env = tenant_id
                 logging.info(f"Tenant ID: {tenant_id}")
                 logging.info(
                     "Use the following URL to access the CoPilotStudio demo website: \n"
@@ -524,6 +675,7 @@ class DeepScan:
                     print("An existing solution publisher prefix value was found for this domain, continuing to search for CoPilot demo websites.")
 
                     if first_line:
+                        self.default_solution_prefix = first_line
                         for line, popen in get_ffuf_results(
                             env_bots_endpoint,
                             f"{fuzz_file_path}",
@@ -542,24 +694,20 @@ class DeepScan:
                             f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.domain}.txt"
                         )
 
-                        df1 = pd.DataFrame()
-                        df2 = pd.DataFrame()
-                        df3 = pd.DataFrame()
+                        dfs = []
 
-                        # Read the CSV file
-                        if os.path.exists(ffuf_path_1):
-                            df1 = pd.read_csv(ffuf_path_1)
+                        for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                            if os.path.exists(ffuf_path):
+                                _df = pd.read_csv(ffuf_path)
+                                if not _df.empty:
+                                    dfs.append(_df)
 
-                        if os.path.exists(ffuf_path_2):
-                            df2 = pd.read_csv(ffuf_path_2)
-
-                        if os.path.exists(ffuf_path_3):
-                            df3 = pd.read_csv(ffuf_path_3)
-
-                        df = pd.concat([df1, df2, df3], ignore_index=True)
-
-                        # Transform the URL column
-                        transformed_urls = df["url"].apply(transform_url)
+                        if dfs:
+                            df = pd.concat(dfs, ignore_index=True)
+                            # Transform the URL column
+                            transformed_urls = df["url"].apply(transform_url)
+                        else:
+                            transformed_urls = []
 
                         url_file = f"url_output_{self.args.domain}.txt"
                         url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -569,28 +717,17 @@ class DeepScan:
                             for url in transformed_urls:
                                 f.write(f"{url}\n")
 
-                        sort_unique_values_in_file(f"{url_file_path}")
+                        self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                         print(f"\nTransformed URLs saved to {url_file_path}")
                         print("\nChecking accessible CoPilot demo websites")
 
-                        # Construct the command to run the Node.js script with xargs
-                        try:
-                            # Construct the shell command
-                            command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-
-                            # TODO: Verify and improve guardrails for using subprocess + replace shell=True
-                            # Run the command
-                            subprocess.run(command, shell=True, check=True)  # nosec
-                        except subprocess.CalledProcessError as e:
-                            print(f"Error occurred: {e}")
+                        self.open_bots = run_pup_commands(self.existing_bots)
 
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
                     else:
                         logging.error("Did not find a solution publisher prefix")
-                        sys.exit(1)
-
                 else:
                     print("No existing solution publisher prefix value found for this domain, starting prefix scan.")
 
@@ -611,6 +748,7 @@ class DeepScan:
                     fuzz_file_path = get_project_file_path("internal_results/prefix_fuzz_values", f"{fuzz_file_name}")
 
                     if fuzz1_value:
+                        self.default_solution_prefix = fuzz1_value
                         with open(fuzz_file_path, "w") as file:
                             file.write(fuzz1_value + "\n")
 
@@ -636,24 +774,20 @@ class DeepScan:
                             f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.domain}.txt"
                         )
 
-                        df1 = pd.DataFrame()
-                        df2 = pd.DataFrame()
-                        df3 = pd.DataFrame()
+                        dfs = []
 
-                        # Read the CSV file
-                        if os.path.exists(ffuf_path_1):
-                            df1 = pd.read_csv(ffuf_path_1)
+                        for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                            if os.path.exists(ffuf_path):
+                                _df = pd.read_csv(ffuf_path)
+                                if not _df.empty:
+                                    dfs.append(_df)
 
-                        if os.path.exists(ffuf_path_2):
-                            df2 = pd.read_csv(ffuf_path_2)
-
-                        if os.path.exists(ffuf_path_3):
-                            df3 = pd.read_csv(ffuf_path_3)
-
-                        df = pd.concat([df1, df2, df3], ignore_index=True)
-
-                        # Transform the URL column
-                        transformed_urls = df["url"].apply(transform_url)
+                        if dfs:
+                            df = pd.concat(dfs, ignore_index=True)
+                            # Transform the URL column
+                            transformed_urls = df["url"].apply(transform_url)
+                        else:
+                            transformed_urls = []
 
                         url_file = f"url_output_{self.args.domain}.txt"
                         url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -663,29 +797,21 @@ class DeepScan:
                             for url in transformed_urls:
                                 f.write(f"{url}\n")
 
-                        sort_unique_values_in_file(url_file_path)
+                        self.existing_bots = sort_unique_values_in_file(url_file_path)
 
                         print(f"\nTransformed URLs saved to {url_file_path}")
                         print("\nChecking accessible CoPilot demo websites")
 
-                        # Construct the command to run the Node.js script with xargs
-                        try:
-                            # Construct the shell command
-                            command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-
-                            # TODO: Verify and improve guardrails for using subprocess + replace shell=True
-                            # Run the command
-                            subprocess.run(command, shell=True, check=True)  # nosec
-                        except subprocess.CalledProcessError as e:
-                            print(f"Error occurred: {e}")
+                        self.open_bots = run_pup_commands(self.existing_bots)
 
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
                     else:
                         logging.error("Did not find a solution publisher prefix")
-                        sys.exit(1)
 
         elif self.args.tenant_id:
+
+            self.default_env = self.args.tenant_id
 
             # Print the tenant's domain if available
             print_brand(self.args.tenant_id)
@@ -715,6 +841,7 @@ class DeepScan:
                 print("An existing publisher prefix value was found for this tenant, continuing to search for CoPilot demo websites.")
 
                 if first_line:
+                    self.default_solution_prefix = first_line
                     for line, popen in get_ffuf_results(
                         env_bots_endpoint,
                         f"{fuzz_file_path}",
@@ -733,24 +860,20 @@ class DeepScan:
                         f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.tenant_id}.txt"
                     )
 
-                    df1 = pd.DataFrame()
-                    df2 = pd.DataFrame()
-                    df3 = pd.DataFrame()
+                    dfs = []
 
-                    # Read the CSV file
-                    if os.path.exists(ffuf_path_1):
-                        df1 = pd.read_csv(ffuf_path_1)
+                    for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                        if os.path.exists(ffuf_path):
+                            _df = pd.read_csv(ffuf_path)
+                            if not _df.empty:
+                                dfs.append(_df)
 
-                    if os.path.exists(ffuf_path_2):
-                        df2 = pd.read_csv(ffuf_path_2)
-
-                    if os.path.exists(ffuf_path_3):
-                        df3 = pd.read_csv(ffuf_path_3)
-
-                    df = pd.concat([df1, df2, df3], ignore_index=True)
-
-                    # Transform the URL column
-                    transformed_urls = df["url"].apply(transform_url)
+                    if dfs:
+                        df = pd.concat(dfs, ignore_index=True)
+                        # Transform the URL column
+                        transformed_urls = df["url"].apply(transform_url)
+                    else:
+                        transformed_urls = []
 
                     url_file = f"url_output_{self.args.tenant_id}.txt"
                     url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -760,27 +883,17 @@ class DeepScan:
                         for url in transformed_urls:
                             f.write(f"{url}\n")
 
-                    sort_unique_values_in_file(f"{url_file_path}")
+                    self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                     print(f"\nTransformed URLs saved to {url_file_path}")
                     print("\nChecking accessible CoPilot demo websites")
 
-                    # Construct the command to run the Node.js script with xargs
-                    try:
-                        # Construct the shell command
-                        command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-
-                        # TODO: Verify and improve guardrails for using subprocess + replace shell=True
-                        # Run the command
-                        subprocess.run(command, shell=True, check=True)  # nosec
-                    except subprocess.CalledProcessError as e:
-                        print(f"Error occurred: {e}")
+                    self.open_bots = run_pup_commands(self.existing_bots)
 
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
                 else:
                     logging.error("Did not find a default solution publisher prefix")
-                    sys.exit(1)
 
             else:
                 print("No existing prefix value found for this tenant, starting solution publisher prefix scan.")
@@ -803,6 +916,7 @@ class DeepScan:
                 fuzz_file_path = get_project_file_path("internal_results/prefix_fuzz_values", f"{fuzz_file_name}")
 
                 if fuzz1_value:
+                    self.default_solution_prefix = fuzz1_value
                     with open(fuzz_file_path, "w") as file:
                         file.write(fuzz1_value + "\n")
 
@@ -827,24 +941,20 @@ class DeepScan:
                         f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.tenant_id}.txt"
                     )
 
-                    df1 = pd.DataFrame()
-                    df2 = pd.DataFrame()
-                    df3 = pd.DataFrame()
+                    dfs = []
 
-                    # Read the CSV file
-                    if os.path.exists(ffuf_path_1):
-                        df1 = pd.read_csv(ffuf_path_1)
+                    for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                        if os.path.exists(ffuf_path):
+                            _df = pd.read_csv(ffuf_path)
+                            if not _df.empty:
+                                dfs.append(_df)
 
-                    if os.path.exists(ffuf_path_2):
-                        df2 = pd.read_csv(ffuf_path_2)
-
-                    if os.path.exists(ffuf_path_3):
-                        df3 = pd.read_csv(ffuf_path_3)
-
-                    df = pd.concat([df1, df2, df3], ignore_index=True)
-
-                    # Transform the URL column
-                    transformed_urls = df["url"].apply(transform_url)
+                    if dfs:
+                        df = pd.concat(dfs, ignore_index=True)
+                        # Transform the URL column
+                        transformed_urls = df["url"].apply(transform_url)
+                    else:
+                        transformed_urls = []
 
                     url_file = f"url_output_{self.args.tenant_id}.txt"
                     url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -854,24 +964,16 @@ class DeepScan:
                         for url in transformed_urls:
                             f.write(f"{url}\n")
 
-                    sort_unique_values_in_file(url_file_path)
+                    self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                     print(f"\nTransformed URLs saved to {url_file_path}")
                     print("\nChecking accessible CoPilot demo websites")
 
-                    # Construct the command to run the Node.js script with xargs
-                    try:
-                        # Construct the shell command
-                        command = f"cat {url_file_path} | xargs -I{{}} node {pup_path} {{}}"
-
-                        # TODO: Verify and improve guardrails for using subprocess + replace shell=True
-                        # Run the command
-                        subprocess.run(command, shell=True, check=True)  # nosec
-                    except subprocess.CalledProcessError as e:
-                        print(f"Error occurred: {e}")
+                    self.open_bots = run_pup_commands(self.existing_bots)
 
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
                 else:
                     logging.error("Did not find a solution publisher prefix")
-                    sys.exit(1)
+
+        self.dump_results()
