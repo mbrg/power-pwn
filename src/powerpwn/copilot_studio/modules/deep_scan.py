@@ -483,7 +483,10 @@ def run_pup_commands(existing_bots: List[str]):
 
     :param existing_bots: The list of bot urls needed to check
     """
-    pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
+    if os.name == "nt":  # Windows
+        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live_windows.js")
+    else:
+        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
     # Construct the command to run the Node.js script
     open_bots_path = get_project_file_path("final_results/", "chat_exists_output.txt")
     # Empty the file
