@@ -21,18 +21,34 @@ function delay(time) {
     const windowWidth = 1920;
     const windowHeight = 1080;
     
-    // Launch the browser in full screen and incognito mode
-    const browser = await puppeteer.launch({
-        
-        // Useful for debugging
-        headless: true, // Change to 'false' to see the browser actions for debugging
+    let browser;
+    try {
+        // Launch the browser in incognito mode
+        browser = await puppeteer.launch({
+            // Useful for debugging
+            headless: true, // Change to 'false' to see the browser actions for debugging
 
-        // In case you have issues, you can try to use the following flags (often issues can occur from specific Chrome instances or profiles, sometimes clean ones help)
-        // https://stackoverflow.com/questions/57623828/in-puppeteer-how-to-switch-to-chrome-window-from-default-profile-to-desired-prof/57662769#57662769
+            // In case you have issues, you can try to use the following flags (often issues can occur from specific Chrome instances or profiles, sometimes clean ones help)
+            // https://stackoverflow.com/questions/57623828/in-puppeteer-how-to-switch-to-chrome-window-from-default-profile-to-desired-prof/57662769#57662769
 
-        // Start the browser in fullscreen and incognito mode
-        args: ['--start-fullscreen', '--incognito', `--window-size=${windowWidth},${windowHeight}`]
-    });
+            // Use the default windows path for chrome exe - solves white window bug for windows
+            executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            // Start the browser in incognito mode
+            args: ['--incognito']
+        });
+    } catch(e) {
+         // Launch the browser in full screen and incognito mode
+         browser = await puppeteer.launch({
+            // Useful for debugging
+            headless: true, // Change to 'false' to see the browser actions for debugging
+
+            // In case you have issues, you can try to use the following flags (often issues can occur from specific Chrome instances or profiles, sometimes clean ones help)
+            // https://stackoverflow.com/questions/57623828/in-puppeteer-how-to-switch-to-chrome-window-from-default-profile-to-desired-prof/57662769#57662769
+
+            // Start the browser in fullscreen and incognito mode
+            args: ['--start-fullscreen', '--incognito']
+        });
+    }
 
     // Create a new page
     const [page] = await browser.pages(); // Get the only page opened by Puppeteer
