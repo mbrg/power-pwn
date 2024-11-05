@@ -152,3 +152,5 @@ tokens.json
 node_modules/
 whoami_*
 copilot_dump_*
+ffuf*
+amass*
