@@ -56,9 +56,8 @@ npm i puppeteer
 cd puppeteer_get_substrate_bearer
 npm install
 npx puppeteer browsers install chrome
+sudo apt-get update
+sudo apt-get install -y chromium
 cd ..
 # powerpwn
 pip install .
-# set env vars
-export PYTHONPATH=/workspaces/power-pwn/src/:$PYTHONPATH
-export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
