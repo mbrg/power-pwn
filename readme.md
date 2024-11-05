@@ -4,7 +4,7 @@
 		<br>
 		<br>
 		<a href="https://www.zenity.io">
-			<img src="/zenity_logo.svg"/>
+			<img src="/zenity_logo.png"/>
 		</a>
         <p>
         Empower your business, not the adversaries.
