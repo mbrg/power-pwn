@@ -59,4 +59,6 @@ npx puppeteer browsers install chrome
 cd ..
 # powerpwn
 pip install .
-
+# set env vars
+export PYTHONPATH=/workspaces/power-pwn/src/:$PYTHONPATH
+export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
