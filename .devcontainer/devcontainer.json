@@ -13,7 +13,7 @@
 	"postCreateCommand": "chmod +x .devcontainer/setup.sh && .devcontainer/setup.sh",
 	"postStartCommand": "git config --add safe.directory ${containerWorkspaceFolder}",
 	"containerEnv": {
-		"PYTHONPATH": "/workspaces/power-pwn/src/:${PYTHONPATH}",
+		"PYTHONPATH": "/workspaces/power-pwn/src/",
 		"PUPPETEER_EXECUTABLE_PATH": "/usr/bin/chromium"
 	},
 	// Configure tool-specific properties.
