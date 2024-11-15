@@ -230,12 +230,12 @@ def copilot_studio_modules(parser: argparse.ArgumentParser, module: str):
 def module_powerpages(parser: argparse.ArgumentParser):
     powerpages = parser.add_parser(
         "powerpages",
-        description="Test a power pages API anonymous access vulnerability",
-        help="Test a power pages API anonymous access vulnerability",
+        description="Test anonymous access to dataverse tables via power pages, either via the apis or odata feeds.",
+        help="Test anonymous access to dataverse tables via power pages, either via the apis or odata feeds.",
     )
     powerpages.add_argument(
         "-url",
-        help="The url of the power pages domain to be tested\nFormat the url as such: 'https://<your_domain>.powerappsportals.com'",
+        help="The url of the power pages domain to be tested. Format the url as such: 'https://<your_domain>.powerappsportals.com'",
         required=True,
     )
 
