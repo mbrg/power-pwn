@@ -1,5 +1,3 @@
-import json
-
 import requests
 import xmltodict
 
@@ -38,14 +36,14 @@ class PowerPages:
             for table in odata_tables:
                 try:
                     self.get_odata_table_data(table)
-                except:
+                except Exception as e:
                     print(f"Can't access table {table['name']} through the odata right now")
             for table in api_tables:
                 try:
                     self.get_api_table_data(table)
-                except:
+                except Exception as e:
                     print(f"Can't access table {table['name']} through the api right now")
-        except:
+        except Exception as e:
             print(f"Can't access `{url}` anonymously")
 
     def get_odata_tables(self):
@@ -70,7 +68,7 @@ class PowerPages:
                 columns = [prop.get("@Name", "unknown") for prop in entity.get("Property", [])]
                 odata_tables.append({"name": name, "key": key, "columns": columns})
                 if name.endswith("Set"):
-                    api_table_name = name.lower()[:-3] + 's'
+                    api_table_name = name.lower()[:-3] + "s"
                     api_tables.append({"name": api_table_name, "key": key, "columns": columns})
 
         return odata_tables, api_tables
@@ -81,16 +79,15 @@ class PowerPages:
         table_columns = table["columns"]
         api_table_url = f"{url}/_api/{table_name}?$top=1"
         # print()
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"}
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"}
         resp = requests.get(api_table_url, headers=headers, timeout=5)
         if 200 <= resp.status_code <= 299:
             resp_json = resp.json()
             if len(resp_json["value"]) > 0:
-                print(f"Table {table_name} is exposed with all columns!")
+                print(f"Table {table_name} is exposed with all columns through the API!")
                 return len(table_columns)
             else:
-                print(f"Table {table_name} is accessible but returned no data!")
+                print(f"Table {table_name} is accessible but returned no data through the API!")
                 return 0
         elif resp.status_code in [400, 403]:
             try:
@@ -98,7 +95,7 @@ class PowerPages:
                 error_code = resp_json.get("error", {}).get("code", "")
                 if not error_code == "90040101":
                     raise Exception("Unknown error code")
-            except:
+            except Exception as e:
                 print(f"Table {table_name} data is safe through the API")
                 return
             print(f"Table {table_name} data is not exposed as a whole, checking each column...")
@@ -111,12 +108,11 @@ class PowerPages:
                     if len(resp_json["value"]) > 0:
                         exposed.append(column)
             if len(exposed):
-                print(f"Table {table_name} has the following columns exposed: {', '.join(exposed)}")
+                print(f"Table {table_name} has the following columns exposed: {', '.join(exposed)} through the API")
                 return len(exposed)
             else:
                 print(f"Table {table_name} data is safe through the API")
                 return 0
-
 
     def get_odata_table_data(self, table):
         url = self.url
@@ -128,10 +124,10 @@ class PowerPages:
         if 200 <= resp.status_code <= 299:
             resp_json = resp.json()
             if len(resp_json["value"]) > 0:
-                print(f"Table {table_name} is exposed with all columns!")
+                print(f"Table {table_name} is exposed with all columns through the odata!")
                 return len(table_columns)
             else:
-                print(f"Table {table_name} is accessible but returned no data!")
+                print(f"Table {table_name} is accessible but returned no data through the odata!")
                 return 0
         elif resp.status_code in [400, 403]:
             try:
@@ -139,7 +135,7 @@ class PowerPages:
                 error_code = resp_json.get("error", {}).get("code", "")
                 if not error_code == "90040101":
                     raise Exception("Unknown error code")
-            except:
+            except Exception as e:
                 print(f"Table {table_name} data is safe through the odata")
                 return
             print(f"Table {table_name} data is not exposed as a whole, checking each column...")
@@ -152,7 +148,7 @@ class PowerPages:
                     if len(resp_json["value"]) > 0:
                         exposed.append(column)
             if len(exposed):
-                print(f"Table {table_name} has the following columns exposed: {', '.join(exposed)}")
+                print(f"Table {table_name} has the following columns exposed: {', '.join(exposed)} through the odata")
                 return len(exposed)
             else:
                 print(f"Table {table_name} data is safe through the odata")
