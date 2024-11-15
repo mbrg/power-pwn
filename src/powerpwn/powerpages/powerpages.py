@@ -4,7 +4,7 @@ import xmltodict
 
 class PowerPages:
     """
-    A class that is responsible for the CPS deep scan
+    A class that is responsible for the Power Pages scan
     """
 
     def __init__(self, args):
