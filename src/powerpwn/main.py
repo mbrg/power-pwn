@@ -12,6 +12,7 @@ from powerpwn.cli.runners import (
     run_gui_command,
     run_nocodemalware_command,
     run_phishing_command,
+    run_powerpages_command,
     run_recon_command,
 )
 
@@ -52,6 +53,8 @@ def main():
         run_copilot_chat_command(args)
     elif command == "copilot-studio-hunter":
         run_copilot_studio_command(args)
+    elif command == "powerpages":
+        run_powerpages_command(args)
     else:
         logger.info("Run `powerpwn --help` for available commands.")
 

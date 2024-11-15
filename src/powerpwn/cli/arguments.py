@@ -227,6 +227,19 @@ def copilot_studio_modules(parser: argparse.ArgumentParser, module: str):
         parser.add_argument("-t", "--timeout", help="The timeout for the enumeration process to have (in seconds)", default=300)
 
 
+def module_powerpages(parser: argparse.ArgumentParser):
+    powerpages = parser.add_parser(
+        "powerpages",
+        description="Test a power pages API anonymous access vulnerability",
+        help="Test a power pages API anonymous access vulnerability",
+    )
+    powerpages.add_argument(
+        "-url",
+        help="The url of the power pages domain to be tested\nFormat the url as such: 'https://<your_domain>.powerappsportals.com'",
+        required=True,
+    )
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--log-level", default=logging.INFO, type=lambda x: getattr(logging, x), help="Configure the logging level.")
@@ -240,6 +253,7 @@ def parse_arguments():
     module_phishing(command_subparsers)
     module_copilot(command_subparsers)
     module_copilot_studio(command_subparsers)
+    module_powerpages(command_subparsers)
 
     args = parser.parse_args()
 
