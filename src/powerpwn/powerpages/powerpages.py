@@ -50,7 +50,7 @@ class PowerPages:
         url = self.url
         odata_url = f"{url}/_odata/$metadata"
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"}
-        resp = requests.get(odata_url, headers=headers)
+        resp = requests.get(odata_url, headers=headers, timeout=10)
         odata_tables = []
         api_tables = []
         if 200 <= resp.status_code <= 299:
@@ -79,7 +79,7 @@ class PowerPages:
         table_columns = table["columns"]
         api_table_url = f"{url}/_api/{table_name}?$top=1"
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"}
-        resp = requests.get(api_table_url, headers=headers, timeout=5)
+        resp = requests.get(api_table_url, headers=headers, timeout=10)
         if 200 <= resp.status_code <= 299:
             resp_json = resp.json()
             if len(resp_json["value"]) > 0:
@@ -101,7 +101,7 @@ class PowerPages:
             exposed = []
             for column in table_columns:
                 api_column_url = f"{url}/_api/{table_name}?select={column}&$top=1"
-                resp = requests.get(api_column_url, headers=headers)
+                resp = requests.get(api_column_url, headers=headers, timeout=5)
                 if 200 <= resp.status_code <= 299:
                     resp_json = resp.json()
                     if len(resp_json["value"]) > 0:
@@ -141,7 +141,7 @@ class PowerPages:
             exposed = []
             for column in table_columns:
                 column_url = f"{url}/_odata/{table_name}?select={column}&$top=1"
-                resp = requests.get(column_url, headers=headers)
+                resp = requests.get(column_url, headers=headers, timeout=5)
                 if 200 <= resp.status_code <= 299:
                     resp_json = resp.json()
                     if len(resp_json["value"]) > 0:
