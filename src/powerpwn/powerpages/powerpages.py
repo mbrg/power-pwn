@@ -36,14 +36,14 @@ class PowerPages:
             for table in odata_tables:
                 try:
                     self.get_odata_table_data(table)
-                except Exception as e:
+                except Exception:
                     print(f"Can't access table {table['name']} through the odata right now")
             for table in api_tables:
                 try:
                     self.get_api_table_data(table)
-                except Exception as e:
+                except Exception:
                     print(f"Can't access table {table['name']} through the api right now")
-        except Exception as e:
+        except Exception:
             print(f"Can't access `{url}` anonymously")
 
     def get_odata_tables(self):
@@ -78,7 +78,6 @@ class PowerPages:
         table_name = table["name"]
         table_columns = table["columns"]
         api_table_url = f"{url}/_api/{table_name}?$top=1"
-        # print()
         headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"}
         resp = requests.get(api_table_url, headers=headers, timeout=5)
         if 200 <= resp.status_code <= 299:
@@ -95,7 +94,7 @@ class PowerPages:
                 error_code = resp_json.get("error", {}).get("code", "")
                 if not error_code == "90040101":
                     raise Exception("Unknown error code")
-            except Exception as e:
+            except Exception:
                 print(f"Table {table_name} data is safe through the API")
                 return
             print(f"Table {table_name} data is not exposed as a whole, checking each column...")
@@ -135,7 +134,7 @@ class PowerPages:
                 error_code = resp_json.get("error", {}).get("code", "")
                 if not error_code == "90040101":
                     raise Exception("Unknown error code")
-            except Exception as e:
+            except Exception:
                 print(f"Table {table_name} data is safe through the odata")
                 return
             print(f"Table {table_name} data is not exposed as a whole, checking each column...")
