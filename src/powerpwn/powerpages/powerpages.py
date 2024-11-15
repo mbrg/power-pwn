@@ -3,8 +3,6 @@ import json
 import requests
 import xmltodict
 
-base_url = "https://aim.powerappsportals.com"
-
 
 class PowerPages:
     """
