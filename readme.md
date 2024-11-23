@@ -4,9 +4,9 @@
 		<br>
 		<br>
 		<a href="https://www.zenity.io">
-			<img src="/zenity_logo.svg"/>
+			<img src="/zenity_logo.png"/>
 		</a>
-        <p>
+        <p>git
         Empower your business, not the adversaries.
         </p>
 	</p>
@@ -40,22 +40,22 @@ An review of the tool's basic modules is available here:
    - [CopilotM365](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Connector-and-Automator)
   
 ## Quick Guide for Developers
-Clone the repository and setup a virtual environment in your IDE. Install python packages by running:
+1. Clone the repository and setup a virtual environment in your IDE. Install python packages by running:
 
 ```
-python init_repo.py
+  python init_repo.py
 ```
-To activate the virtual environment (.venv) run:
+2. If not active already, run the folloeing to activate the virtual environment (.venv):
 ```
-.\.venv\Scripts\activate (Windows)
+  .\.venv\Scripts\activate (Windows)
 
-./.venv/bin/activate (Linux)
+  source .venv/bin/activate (Linux & MacOS)
 ```
 
-Run:
+3. Verify all dependencies are installed:
 
 ```
-pip install .
+  pip install .
 ```
 
 **Notes**: 
@@ -68,5 +68,12 @@ pip install .
 4. When pushing PR, you can run `black -C -l 150 {file to path}` to fix any formatting issues related to _black_.
 
 # Usage
+## Quick Start
 1. For quickly getting started with scanning your tenant, please check the [powerdump](https://github.com/mbrg/power-pwn/wiki/Modules:-PowerDump) module here.
-2. Please check out the relevant [Wiki](https://github.com/mbrg/power-pwn/wiki) page for each module for further information.
+2. For testing your M365 Copilot for retrieval of internal information (e.g., via a compromised user), please check the C365 modules:
+  * [whoami](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-M365-%E2%80%90-Whoami)
+  * [C365 dump](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-M365-%E2%80%90-Dump)
+3. For testing misconfigured Copilot Studio bots available to unauthenticated users please check the Copilot Hunter _deep-scan_ module [here](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Deep-Scan).
+4. To test misconfigured Power Pages which could allow for Dataverse tables to be leak, please check the [powerpages](https://github.com/mbrg/power-pwn/wiki/Modules:-Power-Pages) module.
+
+Please review the [Wiki](https://github.com/mbrg/power-pwn/wiki) for a full module list and detailed usage.
