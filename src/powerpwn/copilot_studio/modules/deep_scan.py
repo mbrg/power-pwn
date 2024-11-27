@@ -519,7 +519,7 @@ def query_using_pup(open_bots: List[str]):
     import logging
 
     pup_path = get_project_file_path("tools/pup_query_webchat", "query_chat.js")
-    bots_has_knowledge_path = get_project_file_path("final_results/", "chat_exists_output.xlsx")
+    bots_has_knowledge_path = get_project_file_path("final_results/", "extracted_knowledge.xlsx")
 
     # Delete the existing Excel file to start fresh
     if os.path.exists(bots_has_knowledge_path):
@@ -793,7 +793,7 @@ class DeepScan:
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
                         self.bot_has_knowledge = query_using_pup(self.open_bots)
-                        print("Done, extracted knowledge results saved under final_results/chat_exists_output.txt")
+                        print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
 
                     else:
                         logging.error("Did not find a solution publisher prefix")
@@ -876,7 +876,7 @@ class DeepScan:
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
                         self.bot_has_knowledge = query_using_pup(self.open_bots)
-                        print("Done, extracted knowledge results saved under final_results/chat_exists_output.txt")
+                        print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
 
                     else:
                         logging.error("Did not find a solution publisher prefix")
@@ -965,7 +965,7 @@ class DeepScan:
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
                     self.bot_has_knowledge = query_using_pup(self.open_bots)
-                    print("Done, extracted knowledge results saved under final_results/chat_exists_output.txt")
+                    print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
 
                 else:
                     logging.error("Did not find a default solution publisher prefix")
@@ -1049,7 +1049,7 @@ class DeepScan:
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
                     self.bot_has_knowledge = query_using_pup(self.open_bots)
-                    print("Done, extracted knowledge results saved under final_results/chat_exists_output.txt")
+                    print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
 
                 else:
                     logging.error("Did not find a solution publisher prefix")
