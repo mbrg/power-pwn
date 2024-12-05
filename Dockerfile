@@ -15,7 +15,7 @@ COPY --chown=powerpwn:powerpwn . .
 RUN chmod +x .devcontainer/setup.sh && ./.devcontainer/setup.sh
 RUN chmod +x start-container-webserver.sh
 
-RUN echo "/power-pwn/start-container-webserver.sh> /dev/null 2>&1 &" >> /home/powerpwn/.bashrc
+RUN echo "/home/powerpwn/power-pwn/start-container-webserver.sh> /dev/null 2>&1 &" >> /home/powerpwn/.bashrc
 RUN echo "clear" >> /home/powerpwn/.bashrc
 RUN echo "echo Please visit http://localhost:8765 in your browser to access result files" >> /home/powerpwn/.bashrc
 
