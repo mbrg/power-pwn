@@ -136,16 +136,3 @@ function delay(time) {
     await browser.close();
   }
 })();
-
-
-
-
-
-
-
-
-
-
-
-
-
