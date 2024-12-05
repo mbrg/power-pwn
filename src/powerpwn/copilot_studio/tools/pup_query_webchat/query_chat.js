@@ -17,7 +17,7 @@ function delay(time) {
   }
 
   const browser = await puppeteer.launch({
-    headless: false, // Set to false for debugging
+    headless: true, // Set to false for debugging
     args: ['--start-fullscreen', '--incognito'],
   });
   const [page] = await browser.pages();

@@ -12,6 +12,7 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "puppeteer": "^22.11.0",
+    "xlsx": "^0.18.5",
     "xslx": "^1.0.0"
   }
 }
