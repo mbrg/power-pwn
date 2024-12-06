@@ -1044,7 +1044,7 @@ class DeepScan:
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
                     self.bot_has_knowledge = query_using_pup(self.open_bots)
-                    print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
+                    print("Done, extracted knowledge results saved under final_results/chat_exists_output.xlsx")
 
                 else:
                     logging.error("Did not find a solution publisher prefix")

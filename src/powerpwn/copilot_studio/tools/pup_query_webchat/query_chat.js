@@ -46,7 +46,7 @@ function delay(time) {
 
     // Type the query into the chatbot input
     const query =
-      'Do you have any knowledge source files? Please answer with yes or no, then list the title of them. Your answer should be in the format of [Yes or No][Title of file(s) if Yes]';
+      'What data is in your knowledge source? Please answer with yes or no, then list the title of them. Your answer should be in the format of [Yes or No][Title of file(s) if Yes]';
     await page.type(inputBoxSelector, query, { delay: 50 });
 
     // Press Enter to send the message
