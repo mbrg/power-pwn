@@ -1,23 +1,25 @@
-import asyncio
-
 from powerpwn.copilot.models.chat_argument import ChatArguments
-from powerpwn.copilot.copilot_connector.copilot_connector import CopilotConnector
 from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
 from powerpwn.copilot.enums.verbose_enum import VerboseEnum
+from powerpwn.copilot.chat_automator.chat_automator import ChatAutomator
+import os
+
+user = os.getenv('m365user')
+user_password = os.getenv('m365pass')
+
+if user is None or user_password is None:
+    raise ValueError("Environment variables for email or password are not set.")
+
+print("User being looked at is: ", user)
 
 args = ChatArguments(
-        user="User",
-        password="Password",
+        user=os.getenv('m365user'),
+        password=os.getenv('m365pass'),
         verbose=VerboseEnum.full,
         scenario=CopilotScenarioEnum.teamshub,
         use_cached_access_token=False
     )
-copilot_connector = CopilotConnector(args)
 
-# init connection
-copilot_connector.init_connection()
-
-# send a prompt and receive an answer from Copilot
-result = asyncio.get_event_loop().run_until_complete(asyncio.gather(copilot_connector.connect("Hello World")))
-if result[0]:
-    print(result[0].parsed_message)
+chat_automator = ChatAutomator(args)
+chat_automator.init_connector()
+result = chat_automator.send_prompt("Hello World")
