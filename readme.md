@@ -6,7 +6,7 @@
 		<a href="https://www.zenity.io">
 			<img src="/zenity_logo.png"/>
 		</a>
-        <p>git
+        <p>
         Empower your business, not the adversaries.
         </p>
 	</p>
