@@ -28,7 +28,7 @@ function delay(time) {
         // For windows the executable path is to open the existing chrome instead of the
         // "Chrome for testing" that is included with puppeteer - solves white screen bug
         browser = await puppeteer.launch({
-            headless: true, // Change to 'false' to see the browser actions for debugging
+            headless: false, // Change to 'false' to see the browser actions for debugging
             // Use the default windows path for chrome exe - solves white window bug for windows
             executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
             // Start the browser in incognito mode
@@ -36,7 +36,7 @@ function delay(time) {
         });
     } catch(e) {
          browser = await puppeteer.launch({
-            headless: true, // Change to 'false' to see the browser actions for debugging
+            headless: false, // Change to 'false' to see the browser actions for debugging
             // Start the browser in fullscreen and incognito mode
             args: ['--start-fullscreen', '--incognito']
         });

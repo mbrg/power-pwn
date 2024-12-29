@@ -204,10 +204,15 @@ def run_copilot_chat_command(args):
         if args.gui:
             CopilotGui().run(output_dir)
         return
-
     elif args.copilot_subcommand == "dump":
         dump = Dump(parsed_args, args.directory)
         output_dir = dump.run()
+        if args.gui:
+            CopilotGui().run(output_dir)
+        return
+    elif args.copilot_subcommand == "oversharing":
+        oversharing = Oversharing(parsed_args, args.directory)
+        output_dir = oversharing.run()
         if args.gui:
             CopilotGui().run(output_dir)
         return

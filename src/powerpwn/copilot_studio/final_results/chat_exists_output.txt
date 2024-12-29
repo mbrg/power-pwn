@@ -1,0 +1,4 @@
+https://copilotstudio.microsoft.com/environments/Default-32f814a9-68c8-4ca1-93aa-5594523476b3/bots/cr6e4_agent7/canvas?__version__=2
+https://copilotstudio.microsoft.com/environments/Default-32f814a9-68c8-4ca1-93aa-5594523476b3/bots/cr6e4_copilot2/canvas?__version__=2
+https://copilotstudio.microsoft.com/environments/Default-32f814a9-68c8-4ca1-93aa-5594523476b3/bots/cr6e4_copilot7/canvas?__version__=2
+https://copilotstudio.microsoft.com/environments/Default-32f814a9-68c8-4ca1-93aa-5594523476b3/bots/cr6e4_copilotPoc/canvas?__version__=2

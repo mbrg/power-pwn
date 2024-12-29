@@ -125,10 +125,6 @@ def handle_response(raw_message):
     print("DEBUG: Extracted files:", extracted_files)
     return extracted_files
 
-
-
-# ---------------- MAIN SCRIPT ----------------
-
 if __name__ == "__main__":
     user = os.getenv('m365user')
     user_password = os.getenv('m365pass')

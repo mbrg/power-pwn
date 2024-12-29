@@ -365,7 +365,7 @@ class CopilotConnector:
         url = self.__get_websocket_url(access_token, self.__arguments.scenario, parsed_jwt)
         session_id = self.__get_session_from_url(url)
 
-        available_plugins: list[PluginInfo] = self.__get_plugins(access_token)
+        available_plugins: list[PluginInfo] = []
 
         return ConversationParameters(
             conversation_id=str(uuid.uuid4()), url=url, session_id=session_id, available_plugins=available_plugins, used_plugins=[]
