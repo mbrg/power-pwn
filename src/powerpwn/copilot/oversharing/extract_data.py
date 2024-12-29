@@ -1,17 +1,19 @@
-import os
-import openpyxl
-import re
 import asyncio
-from powerpwn.copilot.models.chat_argument import ChatArguments
-from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
-from powerpwn.copilot.enums.verbose_enum import VerboseEnum
+import os
+import re
+
+import openpyxl
+
 from powerpwn.copilot.chat_automator.chat_automator import ChatAutomator
 from powerpwn.copilot.copilot_connector.copilot_connector import CopilotConnector
+from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
+from powerpwn.copilot.enums.verbose_enum import VerboseEnum
+from powerpwn.copilot.models.chat_argument import ChatArguments
 
 # Set environment variables (if not already set)
-user = os.getenv('m365user')
-user_password = os.getenv('m365pass')
-third_prompt = os.getenv('thirdprompt')
+user = os.getenv("m365user")
+user_password = os.getenv("m365pass")
+third_prompt = os.getenv("thirdprompt")
 
 if user is None or user_password is None:
     raise ValueError("Environment variables for email or password are not set.")
@@ -19,15 +21,12 @@ if user is None or user_password is None:
 print("User being looked at is:", user)
 
 args = ChatArguments(
-    user=user,
-    password=user_password,
-    verbose=VerboseEnum.full,
-    scenario=CopilotScenarioEnum.officeweb,
-    use_cached_access_token=False
+    user=user, password=user_password, verbose=VerboseEnum.full, scenario=CopilotScenarioEnum.officeweb, use_cached_access_token=False
 )
 
 copilot_connector = CopilotConnector(args)
 copilot_connector.init_connection()
+
 
 # Load the Excel file and extract file names
 def extract_file_names_from_excel(file_path):
@@ -43,7 +42,7 @@ def extract_file_names_from_excel(file_path):
     for row in ws.iter_rows(min_row=2, min_col=1, max_col=1):  # Skip header row
         file_name = row[0].value
         if file_name:
-            match = re.search(r'\[(.*?)\]', file_name)  # Extract text inside []
+            match = re.search(r"\[(.*?)\]", file_name)  # Extract text inside []
             if match:
                 file_names.append(match.group(1))  # Append the extracted file name
     return file_names
@@ -59,7 +58,7 @@ async def get_file_content_and_save(file_name):
     result = await copilot_connector.connect(prompt)
 
     # Check if the result contains a valid message
-    if hasattr(result, 'parsed_message') and result.parsed_message:
+    if hasattr(result, "parsed_message") and result.parsed_message:
         raw_message = result.parsed_message
         print(f"Content retrieved for {file_name}:")
         print(raw_message.copilot_message)  # Display the content
@@ -81,6 +80,7 @@ async def main():
     # For each file name, request content from Copilot and save it to a text file
     for file_name in file_names:
         await get_file_content_and_save(file_name)
+
 
 # Run the async script
 if __name__ == "__main__":
