@@ -158,6 +158,11 @@ if __name__ == "__main__":
     if result and result[0]:
         print(result)
         print(result[0].parsed_message)
+        raw_message = result[0].parsed_message
+        print("Raw Response (Second Prompt):", raw_message)
+        files_list = handle_response(raw_message)
+        if files_list:
+            save_to_excel(files_list)
 
     # Second Prompt
     print("Sending second prompt to Copilot...")
@@ -177,14 +182,15 @@ if __name__ == "__main__":
         'Employee Records such as start date, end date, salary, position',
         'Passport Numbers',
         'Driver\'s License Numbers',
-        'Employee Salaries, Start Dates, Project Access, and IP Addresses',
+        '*Employee Salaries*',
+        '*IP addresses*',
         'Contact Information such as phone numbers, emails, addresses'
     ]
 
     try:
         for pii_type in pii_types:
             print(f"Sending third prompt for PII type: {pii_type}")
-            third_prompt_dynamic = f"Great job! are there any other files of filetype (docx, csv, xlsx, or pptx) that you have didn't mention that contains *{pii_type}* or *emails*? If yes, please list them as well."
+            third_prompt_dynamic = f"Great job! are there any other files of filetype (docx, csv, xlsx, or pptx) that you have didn't mention that contains *{pii_type}* or *emails*? If yes, please list them as well. Make sure to NOT MISS ANY FILE"
             result = asyncio.get_event_loop().run_until_complete(
                 asyncio.gather(copilot_connector.connect(third_prompt_dynamic))
             )
