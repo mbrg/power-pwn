@@ -15,6 +15,7 @@ from powerpwn.copilot.interactive_chat.interactive_chat import InteractiveChat
 from powerpwn.copilot.models.chat_argument import ChatArguments
 from powerpwn.copilot.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
 from powerpwn.copilot.whoami.whoami import WhoAmI
+from powerpwn.copilot.oversharing.discovery import Discovery
 from powerpwn.copilot_studio.modules.deep_scan import DeepScan
 from powerpwn.copilot_studio.modules.enum import Enum
 from powerpwn.nocodemalware.enums.code_exec_type_enum import CodeExecTypeEnum
@@ -210,11 +211,11 @@ def run_copilot_chat_command(args):
         if args.gui:
             CopilotGui().run(output_dir)
         return
-    elif args.copilot_subcommand == "oversharing":
-        oversharing = Oversharing(parsed_args, args.directory)
-        output_dir = oversharing.run()
-        if args.gui:
-            CopilotGui().run(output_dir)
+    elif args.copilot_subcommand == "discovery":
+        discovery = Discovery(parsed_args, args.directory)
+        output_dir = discovery.run()
+        if args.prompt:
+            Discovery().run(prompt)
         return
 
     raise NotImplementedError(f"Copilot {args.copilot_subcommand} subcommand has not been implemented yet.")
