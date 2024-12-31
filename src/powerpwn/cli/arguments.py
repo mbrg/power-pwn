@@ -152,10 +152,10 @@ def module_copilot(command_subparsers: argparse.ArgumentParser):
     copilot_modules(whoami)
     whoami.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
 
-    oversharing = copilot_subparsers.add_parser("oversharing", description="Get the sensitive files that user has access to",
+    discovery = copilot_subparsers.add_parser("discovery", description="Get the sensitive files that user has access to",
                                            help="Get the current user's information")
-    copilot_modules(oversharing)
-    oversharing.add_argument("-p", "--prompts", action="store_true", help="Run local file for prompts")
+    copilot_modules(discovery)
+    discovery.add_argument("-p", "--prompts", type=str, required=True, help="Run local file for prompts from the directory")
 
     dump = copilot_subparsers.add_parser(
         "dump",
