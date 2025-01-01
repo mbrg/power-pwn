@@ -9,7 +9,7 @@ from powerpwn.copilot.models.chat_argument import ChatArguments
 
 
 class Discovery:
-    def __init__(self, prompts_file="pii.txt", output_file="new_pii_sensitive_files_report.xlsx"):
+    def __init__(self, prompts_file="pii.txt", output_file="osharefiles_report.xlsx"):
         self.prompts_file = prompts_file
         self.output_file = output_file
         self.user = os.getenv("m365user")
@@ -46,49 +46,96 @@ class Discovery:
 
     def enhanced_parser(self, raw_message):
         """
-        Extracts file_name, link, and author from free-text, Markdown, or structured formats.
+        Parses the LLM response in a chunk-by-chunk manner to extract file info.
         """
-        extracted_files = []
+        # Split by numbered items or bullet points
+        # This handles lines like "1. **File Name:** [something]" etc.
+        chunks = re.split(r"\n\s*(?=\d+\.\s)", raw_message)
 
-        # Use regex to find file details in free-text or Markdown-like formats
-        file_pattern = re.compile(
-            r"\*\*File Name:\*\*\s*(?P<file_name>.*?)\n.*?" r"\*\*Author:\*\*\s*(?P<author>.*?)\n.*?" r"\*\*Link:\*\*\s*\[.*?\]\((?P<link>.*?)\)",
-            re.DOTALL,
-        )
+        files = []
 
-        # Match all occurrences of the pattern
-        matches = file_pattern.finditer(raw_message)
-        for match in matches:
-            extracted_files.append(
-                {"file_name": match.group("file_name").strip(), "link": match.group("link").strip(), "author": match.group("author").strip()}
+        for chunk in chunks:
+            file_info = {}
+
+            # 1) Try to extract a file name line with "File Name:" or "File: ..."
+            match_file = re.search(
+                r"(?:File Name\s*:|File\s*:|File:\s*)(.*)",
+                chunk,
+                re.IGNORECASE
             )
+            if match_file:
+                file_name_line = match_file.group(1).strip()
+                # Optionally, parse out the text in brackets vs the link
+                # E.g., [MyFile.docx](http://...)
+                bracket_match = re.search(r"\[([^\]]+)\]\(([^)]+)\)", file_name_line)
+                if bracket_match:
+                    file_info["file_name"] = bracket_match.group(1)
+                    file_info["file_link"] = bracket_match.group(2)
+                else:
+                    # Fallback if there's no bracket/link pattern
+                    file_info["file_name"] = file_name_line
+            else:
+                # 1a) Fallback: maybe the chunk has a bracketed link but not prefixed with "File:"
+                bracket_only_match = re.search(r"\[([^\]]+)\]\(([^)]+)\)", chunk)
+                if bracket_only_match:
+                    file_info["file_name"] = bracket_only_match.group(1).strip()
+                    file_info["file_link"] = bracket_only_match.group(2).strip()
 
-        # Fallback: Find lines that match individual fields if no comprehensive match found
-        if not extracted_files:
-            print("DEBUG: No structured matches found. Attempting fallback extraction.")
-            file_lines = raw_message.splitlines()
-            current_file = {}
+            # 2) Extract the author line:
+            #    e.g., "- **Author:** Owner Owner"
+            #    or "Author: Kris Smith"
+            #    or "The author is indicated as **python-docx;[Kris Smith](...)**."
+            match_author = re.search(
+                r"(?:Author[s]*:\s*|The\s+author[s]?\s+(?:is|are)\s+(?:indicated\s+as\s+)?)([^\n]+)",
+                chunk,
+                re.IGNORECASE
+            )
+            if match_author:
+                # Clean up any markdown or extra characters
+                authors = match_author.group(1).strip().replace("**", "")
+                file_info["author"] = authors
 
-            for line in file_lines:
-                if "File Name:" in line:
-                    current_file["file_name"] = line.split("File Name:")[1].strip()
-                elif "Author:" in line:
-                    current_file["author"] = line.split("Author:")[1].strip()
-                elif "Link:" in line and "(" in line:
-                    link_match = re.search(r"\((.*?)\)", line)
-                    if link_match:
-                        current_file["link"] = link_match.group(1).strip()
+            # 3) If you also want to capture "Contains:" or "Last Modified:", do something similar:
+            # Example: "Contains: Salary info, IP addresses"
+            match_contains = re.search(
+                r"(?:Contains:?\s*)([^\n]+)",
+                chunk,
+                re.IGNORECASE
+            )
+            if match_contains:
+                file_info["contains"] = [
+                    c.strip() for c in match_contains.group(1).split(",")
+                ]
 
-                # If all fields are populated, add to extracted_files and reset
-                if all(k in current_file for k in ["file_name", "link", "author"]):
-                    extracted_files.append(current_file)
-                    current_file = {}
+            # Similarly for "Last Modified:" if you want it:
+            # match_last_modified = re.search(
+            #     r"(?:Last Modified:\s*)([^\n]+)",
+            #     chunk,
+            #     re.IGNORECASE
+            # )
+            # if match_last_modified:
+            #     file_info["last_modified"] = match_last_modified.group(1).strip()
 
-        return extracted_files
+            # 4) Check if we actually found anything that looks like a file name
+            if "file_name" in file_info:
+                # If no file_link was found, default to "N/A"
+                file_info.setdefault("file_link", "N/A")
+                # If no author was found, default to "N/A"
+                file_info.setdefault("author", "N/A")
+
+                # Optional: Filter out obviously invalid file names
+                # (for example, if it’s just “Here” or “I have found”)
+                # if not is_likely_valid_file(file_info["file_name"]):
+                #     continue
+
+                files.append(file_info)
+
+        return files
 
     def save_to_excel(self, categorized_files):
         """
         Append new file entries to 'pii_sensitive_files_report.xlsx' if not duplicates.
+        Each file will have its own separate columns for File Name, File Link, and Author.
         """
         if os.path.exists(self.output_file):
             wb = openpyxl.load_workbook(self.output_file)
@@ -97,17 +144,22 @@ class Discovery:
             wb = openpyxl.Workbook()
             ws = wb.active
             ws.title = "Sensitive PII Files"
-            headers = ["File Name - Link", "Author", "Contains"]
+            headers = ["File Name", "File Link", "Author", "Contains"]
             ws.append(headers)
 
         existing_files = set()
         for row in ws.iter_rows(min_row=2, values_only=True):
-            existing_files.add((row[0], row[1]))
+            existing_files.add((row[0], row[1]))  # Check for duplicates based on file name and link
 
         for file in categorized_files:
-            file_name_link = file["file_name"] + " - " + file["link"]
-            if (file_name_link, file["author"]) not in existing_files:
-                ws.append([file_name_link, file["author"], ", ".join(file.get("contains", []))])
+            file_name = file["file_name"]
+            file_link = file["file_link"]
+            author = file["author"]
+            if (file_name, file_link) not in existing_files:
+                # Append separate file details to the Excel sheet
+                ws.append([file_name, file_link, author, ", ".join(file.get("contains", []))])
+                existing_files.add((file_name, file_link))  # Add to existing files set to avoid duplicates
+
         wb.save(self.output_file)
         print(f"Excel file updated: {self.output_file}")
 
@@ -153,17 +205,21 @@ class Discovery:
 
         # Dynamic third prompts
         pii_types = [
-            "Social Security Numbers",
-            "Employee Records such as start date, end date, salary, position",
-            "Passport Numbers",
-            "Driver's License Numbers",
+            "*Social Security Numbers*",
+            "*Employee Records*",
+            "*Employee Records* such as start dates, end dates, and date of births",
+            "*Employee Records* such as salary and job position",
+            "*Employee Records* such as addresses",
+            "*Passport Numbers*",
+            "*Driver's License Numbers*",
             "*Employee Salaries*",
             "*IP addresses*",
-            "Contact Information such as phone numbers, emails, addresses",
+            "*Contact Information such as phone numbers*",
+            "*Contact Information such as emails*"
         ]
 
         for pii_type in pii_types:
-            third_prompt_dynamic = f"Great job! are there any other files of filetype (docx, csv, xlsx, or pptx) that you have didn't mention that contains *{pii_type}* or *emails*? If yes, please list them as well. Make sure to NOT MISS ANY FILE"
+            third_prompt_dynamic = f"are there any other sensitive files that contains {pii_type}? i believe you are missing quite a lot. be sure to also search for different formats such as .csv, .xlsx, and .pptx!"
             print(f"Sending third prompt for PII type: {pii_type}")
             asyncio.run(self.process_prompt(third_prompt_dynamic))
 
