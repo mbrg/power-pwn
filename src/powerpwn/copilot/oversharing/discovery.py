@@ -9,7 +9,7 @@ from powerpwn.copilot.models.chat_argument import ChatArguments
 
 
 class Discovery:
-    def __init__(self, prompts_file="pii.txt", output_file="osharefiles_report.xlsx"):
+    def __init__(self, prompts_file="pii.txt", output_file="oversharedfiles_report.xlsx"):
         self.prompts_file = prompts_file
         self.output_file = output_file
         self.user = os.getenv("m365user")
@@ -44,91 +44,122 @@ class Discovery:
                     print(f"Warning: Skipping invalid section: {section}")
         return prompts
 
+    import re
+
     def enhanced_parser(self, raw_message):
         """
         Parses the LLM response in a chunk-by-chunk manner to extract file info.
         """
         # Split by numbered items or bullet points
-        # This handles lines like "1. **File Name:** [something]" etc.
         chunks = re.split(r"\n\s*(?=\d+\.\s)", raw_message)
+
+        # A small set of known file extensions we might expect.
+        # You can expand as needed.
+        FILE_EXTENSIONS = [".docx", ".xlsx", ".csv", ".pdf", ".pptx", ".aspx"]
 
         files = []
 
         for chunk in chunks:
             file_info = {}
 
-            # 1) Try to extract a file name line with "File Name:" or "File: ..."
+            # Option 1: If there's a "File Name:" or "File:" pattern, handle as before
             match_file = re.search(
                 r"(?:File Name\s*:|File\s*:|File:\s*)(.*)",
                 chunk,
                 re.IGNORECASE
             )
+
+            # We will store a "candidate filename" in file_info["file_name"]
+            # and "candidate link" in file_info["file_link"]
             if match_file:
                 file_name_line = match_file.group(1).strip()
-                # Optionally, parse out the text in brackets vs the link
-                # E.g., [MyFile.docx](http://...)
+                # Remove trailing bracket references like [1], [2], etc., if any
+                file_name_line = re.sub(r"\[\d+\]", "", file_name_line).strip()
+
+                # Check for Markdown link pattern: [someFile.ext](URL)
                 bracket_match = re.search(r"\[([^\]]+)\]\(([^)]+)\)", file_name_line)
                 if bracket_match:
-                    file_info["file_name"] = bracket_match.group(1)
-                    file_info["file_link"] = bracket_match.group(2)
+                    file_info["file_name"] = bracket_match.group(1).strip()
+                    file_info["file_link"] = bracket_match.group(2).strip()
                 else:
                     # Fallback if there's no bracket/link pattern
                     file_info["file_name"] = file_name_line
             else:
-                # 1a) Fallback: maybe the chunk has a bracketed link but not prefixed with "File:"
-                bracket_only_match = re.search(r"\[([^\]]+)\]\(([^)]+)\)", chunk)
-                if bracket_only_match:
-                    file_info["file_name"] = bracket_only_match.group(1).strip()
-                    file_info["file_link"] = bracket_only_match.group(2).strip()
+                # No explicit "File:" line found => fallback to extension-based detection
+                # We look for something that ends with .docx or .csv, etc.
+                # Then, in the same chunk, see if there's a URL (http/https).
+                # This might look for lines like:
+                # "employee_records.csv[1](https://...)"
+                # or "SensitiveInformation.docx (http://...)"
 
-            # 2) Extract the author line:
-            #    e.g., "- **Author:** Owner Owner"
-            #    or "Author: Kris Smith"
-            #    or "The author is indicated as **python-docx;[Kris Smith](...)**."
+                # a) Look for any potential link
+                url_match = re.search(r"(https?://[^\s]+)", chunk)
+                if url_match:
+                    candidate_url = url_match.group(1).strip()
+                    file_info["file_link"] = candidate_url
+                else:
+                    candidate_url = None  # no link found
+
+                # b) Try to find a filename with known extension before or around that link
+                #    We can attempt a regex that captures something like "SomeFile.pdf[1]" or "SomeFile.pdf"
+                #    prior to the link.
+                if candidate_url:
+                    # If there's a bracket pattern, e.g. "employee_records.csv[1](...)"
+                    # we can capture everything up to "[1]("
+                    # Example: "employee_records.csv[1](https://...)"
+                    # We'll match group(1) = "employee_records.csv"
+                    pattern_before_url = rf"([^\s]+(?:{'|'.join(FILE_EXTENSIONS)})(?:\[\d+\])?)\("
+                    fallback_match = re.search(pattern_before_url, chunk, re.IGNORECASE)
+                    if fallback_match:
+                        # strip any trailing [1], [2], etc.
+                        raw_name = re.sub(r"\[\d+\]$", "", fallback_match.group(1).strip())
+                        file_info["file_name"] = raw_name
+                    else:
+                        # If we can't find that pattern, look for a simpler approach
+                        # e.g. "employee_records.csv https://..."
+                        # We'll assume there's a space or punctuation before the link
+                        pattern_before_url = rf"([^\s]+(?:{'|'.join(FILE_EXTENSIONS)}))(?=\s*\(?https?)"
+                        fallback_match2 = re.search(pattern_before_url, chunk, re.IGNORECASE)
+                        if fallback_match2:
+                            file_info["file_name"] = fallback_match2.group(1).strip()
+
+            # 2) Extract the author line or “Author:”
+            #    e.g., "- **Author:** Kris Smith[1](...)"
+            #    or "The author is indicated as Kris Smith"
             match_author = re.search(
                 r"(?:Author[s]*:\s*|The\s+author[s]?\s+(?:is|are)\s+(?:indicated\s+as\s+)?)([^\n]+)",
                 chunk,
                 re.IGNORECASE
             )
             if match_author:
-                # Clean up any markdown or extra characters
-                authors = match_author.group(1).strip().replace("**", "")
+                authors = match_author.group(1).strip()
+                # Remove markdown asterisks
+                authors = authors.replace("**", "")
+                # Remove bracket references like [1](http...)
+                authors = re.sub(r"\[\d+\]\([^)]*\)", "", authors).strip()
                 file_info["author"] = authors
 
-            # 3) If you also want to capture "Contains:" or "Last Modified:", do something similar:
-            # Example: "Contains: Salary info, IP addresses"
-            match_contains = re.search(
-                r"(?:Contains:?\s*)([^\n]+)",
-                chunk,
-                re.IGNORECASE
-            )
+            # If we also want "Contains:" or "File Type:" or "Last Modified:"
+            match_file_type = re.search(r"(?:File Type:\s*)([^\n]+)", chunk, re.IGNORECASE)
+            if match_file_type:
+                file_info["file_type"] = match_file_type.group(1).strip()
+
+            match_contains = re.search(r"(?:Contains:\s*)([^\n]+)", chunk, re.IGNORECASE)
             if match_contains:
-                file_info["contains"] = [
-                    c.strip() for c in match_contains.group(1).split(",")
-                ]
+                file_info["contains"] = [c.strip() for c in match_contains.group(1).split(",")]
 
-            # Similarly for "Last Modified:" if you want it:
-            # match_last_modified = re.search(
-            #     r"(?:Last Modified:\s*)([^\n]+)",
-            #     chunk,
-            #     re.IGNORECASE
-            # )
-            # if match_last_modified:
-            #     file_info["last_modified"] = match_last_modified.group(1).strip()
-
-            # 4) Check if we actually found anything that looks like a file name
-            if "file_name" in file_info:
-                # If no file_link was found, default to "N/A"
+            # 4) Validate file_info
+            if "file_name" in file_info or "file_link" in file_info:
+                file_info.setdefault("file_name", "N/A")
                 file_info.setdefault("file_link", "N/A")
-                # If no author was found, default to "N/A"
                 file_info.setdefault("author", "N/A")
 
-                # Optional: Filter out obviously invalid file names
-                # (for example, if it’s just “Here” or “I have found”)
-                # if not is_likely_valid_file(file_info["file_name"]):
-                #     continue
-
-                files.append(file_info)
+                # Optionally filter out if it doesn't look legit
+                # (for example, if file_name is still "1" or "N/A")
+                valid_ext = any(file_info["file_name"].lower().endswith(ext) for ext in FILE_EXTENSIONS)
+                # If you want to ensure there's at least a link or something:
+                if valid_ext or file_info["file_link"].startswith("http"):
+                    files.append(file_info)
 
         return files
 
@@ -219,7 +250,7 @@ class Discovery:
         ]
 
         for pii_type in pii_types:
-            third_prompt_dynamic = f"are there any other sensitive files that contains {pii_type}? i believe you are missing quite a lot. be sure to also search for different formats such as .csv, .xlsx, and .pptx!"
+            third_prompt_dynamic = f"great job! but are there any other sensitive files that contains {pii_type}? i believe you are missing quite a lot. For each file be sure to include the file name, file link and author. be sure to also search for different formats such as .csv, .xlsx, and .pdf!"
             print(f"Sending third prompt for PII type: {pii_type}")
             asyncio.run(self.process_prompt(third_prompt_dynamic))
 
