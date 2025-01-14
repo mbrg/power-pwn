@@ -212,10 +212,7 @@ def run_copilot_chat_command(args):
             CopilotGui().run(output_dir)
         return
     elif args.copilot_subcommand == "discovery":
-        discovery = Discovery(parsed_args, args.directory)
-        output_dir = discovery.run()
-        if args.prompt:
-            Discovery().run(prompt)
+        Discovery(parsed_args).run()
         return
 
     raise NotImplementedError(f"Copilot {args.copilot_subcommand} subcommand has not been implemented yet.")

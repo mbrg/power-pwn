@@ -155,7 +155,6 @@ def module_copilot(command_subparsers: argparse.ArgumentParser):
     discovery = copilot_subparsers.add_parser("discovery", description="Get the sensitive files that user has access to",
                                            help="Get the current user's information")
     copilot_modules(discovery)
-    discovery.add_argument("-p", "--prompts", type=str, required=True, help="Run local file for prompts from the directory")
 
     dump = copilot_subparsers.add_parser(
         "dump",

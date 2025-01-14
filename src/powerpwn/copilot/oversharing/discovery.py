@@ -3,25 +3,14 @@ import os
 import re
 import openpyxl
 from powerpwn.copilot.copilot_connector.copilot_connector import CopilotConnector
-from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
-from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.copilot.models.chat_argument import ChatArguments
 
 
 class Discovery:
-    def __init__(self, prompts_file="pii.txt", output_file="oversharedfiles_report.xlsx"):
+    def __init__(self, parsed_args: ChatArguments, prompts_file="pii.txt", output_file="oversharedfiles_report1.xlsx"):
         self.prompts_file = prompts_file
         self.output_file = output_file
-        self.user = os.getenv("m365user")
-        self.user_password = os.getenv("m365pass")
-
-        if not self.user or not self.user_password:
-            raise ValueError("Environment variables 'm365user' or 'm365pass' are not set.")
-
-        self.args = ChatArguments(
-            user=self.user, password=self.user_password, verbose=VerboseEnum.full, scenario=CopilotScenarioEnum.officeweb, use_cached_access_token=False
-        )
-        self.copilot_connector = CopilotConnector(self.args)
+        self.copilot_connector = CopilotConnector(parsed_args)
         self.prompts = self.read_prompts_from_file(self.prompts_file)
 
     def read_prompts_from_file(self, file_path):
@@ -194,6 +183,59 @@ class Discovery:
         wb.save(self.output_file)
         print(f"Excel file updated: {self.output_file}")
 
+    import re
+
+    def post_process_files(self, files_list):
+        """
+        Given a list of dictionaries (each with file_name, file_link, author, etc.),
+        perform some clean-up:
+        1) Remove duplicates by file link.
+        2) Skip files whose file_name is numeric or N/A.
+        3) Clean author field by removing bracket references and parentheses text.
+        """
+
+        unique_links = set()
+        cleaned_files = []
+
+        for f in files_list:
+            link = f.get("file_link", "")
+
+            # 1) Remove duplicates based on link
+            #    If the link is already encountered, skip
+            if link in unique_links:
+                continue
+            unique_links.add(link)
+
+            # 2) Skip if file_name is numeric (e.g. '1') or 'N/A'
+            file_name = f.get("file_name", "").strip()
+            if file_name.isdigit() or file_name == "N/A":
+                continue
+
+            # 3) Clean up author field
+            #    Remove everything in parentheses ( ... ) and also [ ... ](...) references
+            #    e.g. "[Kris Smith](https://...)" or "Kris Smith (Dept Head)"
+            author = f.get("author", "")
+
+            # Remove "[anything](anything)" references first
+            author = re.sub(r"\[.*?\]\(.*?\)", "", author)
+
+            # Remove parentheses and their contents, e.g. "(Dept Head)"
+            author = re.sub(r"\(.*?\)", "", author)
+
+            # Trim whitespace, semicolons, extra commas
+            author = author.strip().strip(";").strip(",")
+
+            # If you'd like to replace semicolons with commas (in case of multiple authors)
+            # author = author.replace(";", ",").strip(",")
+
+            # Put cleaned author back into the dictionary
+            f["author"] = author if author else "N/A"
+
+            # Add the cleaned file entry to the final list
+            cleaned_files.append(f)
+
+        return cleaned_files
+
     def handle_response(self, raw_message):
         """
         Processes the raw response using the enhanced parser.
@@ -206,6 +248,8 @@ class Discovery:
             raise TypeError("raw_message must be a string or an object containing a message string.")
 
         extracted_files = self.enhanced_parser(raw_message)
+        extracted_files = self.enhanced_parser(raw_message)
+        cleaned_files = self.post_process_files(extracted_files)
         print("DEBUG: Extracted files:", extracted_files)
         return extracted_files
 
