@@ -1048,5 +1048,5 @@ class DeepScan:
 
                 else:
                     logging.error("Did not find a solution publisher prefix")
-
+                    
         self.dump_results()
