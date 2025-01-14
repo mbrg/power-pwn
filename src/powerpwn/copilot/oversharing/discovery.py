@@ -35,8 +35,6 @@ class Discovery:
                     print(f"Warning: Skipping invalid section: {section}")
         return prompts
 
-    import re
-
     def enhanced_parser(self, raw_message):
         """
         Parses the LLM response in a chunk-by-chunk manner to extract file info.
@@ -177,8 +175,6 @@ class Discovery:
         wb.save(self.output_file)
         print(f"Excel file updated: {self.output_file}")
 
-    import re
-
     def post_process_files(self, files_list):
         """
         Given a list of dictionaries (each with file_name, file_link, author, etc.),
@@ -242,8 +238,6 @@ class Discovery:
             raise TypeError("raw_message must be a string or an object containing a message string.")
 
         extracted_files = self.enhanced_parser(raw_message)
-        extracted_files = self.enhanced_parser(raw_message)
-        cleaned_files = self.post_process_files(extracted_files)
         print("DEBUG: Extracted files:", extracted_files)
         return extracted_files
 

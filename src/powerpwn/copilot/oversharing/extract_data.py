@@ -4,7 +4,6 @@ import re
 
 import openpyxl
 
-from powerpwn.copilot.chat_automator.chat_automator import ChatAutomator
 from powerpwn.copilot.copilot_connector.copilot_connector import CopilotConnector
 from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
 from powerpwn.copilot.enums.verbose_enum import VerboseEnum
