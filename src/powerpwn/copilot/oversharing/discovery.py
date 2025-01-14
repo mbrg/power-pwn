@@ -52,11 +52,7 @@ class Discovery:
             file_info = {}
 
             # Option 1: If there's a "File Name:" or "File:" pattern, handle as before
-            match_file = re.search(
-                r"(?:File Name\s*:|File\s*:|File:\s*)(.*)",
-                chunk,
-                re.IGNORECASE
-            )
+            match_file = re.search(r"(?:File Name\s*:|File\s*:|File:\s*)(.*)", chunk, re.IGNORECASE)
 
             # We will store a "candidate filename" in file_info["file_name"]
             # and "candidate link" in file_info["file_link"]
@@ -115,11 +111,7 @@ class Discovery:
             # 2) Extract the author line or “Author:”
             #    e.g., "- **Author:** Kris Smith[1](...)"
             #    or "The author is indicated as Kris Smith"
-            match_author = re.search(
-                r"(?:Author[s]*:\s*|The\s+author[s]?\s+(?:is|are)\s+(?:indicated\s+as\s+)?)([^\n]+)",
-                chunk,
-                re.IGNORECASE
-            )
+            match_author = re.search(r"(?:Author[s]*:\s*|The\s+author[s]?\s+(?:is|are)\s+(?:indicated\s+as\s+)?)([^\n]+)", chunk, re.IGNORECASE)
             if match_author:
                 authors = match_author.group(1).strip()
                 # Remove markdown asterisks
@@ -290,7 +282,7 @@ class Discovery:
             "*Employee Salaries*",
             "*IP addresses*",
             "*Contact Information such as phone numbers*",
-            "*Contact Information such as emails*"
+            "*Contact Information such as emails*",
         ]
 
         for pii_type in pii_types:
@@ -300,8 +292,8 @@ class Discovery:
 
         print("Finished processing.")
 
+
 # Example usage:
 if __name__ == "__main__":
     discovery = Discovery()
     discovery.run()
-

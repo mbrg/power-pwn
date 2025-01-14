@@ -152,8 +152,9 @@ def module_copilot(command_subparsers: argparse.ArgumentParser):
     copilot_modules(whoami)
     whoami.add_argument("-g", "--gui", action="store_true", help="Run local server for gui.")
 
-    discovery = copilot_subparsers.add_parser("discovery", description="Get the sensitive files that user has access to",
-                                           help="Get the current user's information")
+    discovery = copilot_subparsers.add_parser(
+        "discovery", description="Get the sensitive files that user has access to", help="Get the current user's information"
+    )
     copilot_modules(discovery)
 
     dump = copilot_subparsers.add_parser(
