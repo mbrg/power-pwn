@@ -346,11 +346,18 @@ class CopilotConnector:
         return plugins
 
     def __get_conversation_parameters(self, refresh: bool = False) -> ConversationParameters:
+        print("hi")
         print("Getting bearer token...")
         access_token = self.__get_access_token(refresh)
         if not access_token:
             print("Failed to get bearer token. Exiting...")
             raise CopilotConnectionFailedException("Could not get access token to connect to copilot.")
+
+        print(f"Access token: {access_token}")
+        token_parts = access_token.split('.')
+        if len(token_parts) != 3:
+            print(f"Invalid JWT format. Expected 3 segments, got {len(token_parts)}.")
+            raise ValueError(f"Invalid JWT format: {access_token}")
 
         parsed_jwt = jwt.decode(access_token, algorithms=["RS256"], options={"verify_signature": False})
         upn = parsed_jwt.get("upn")

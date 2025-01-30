@@ -184,17 +184,22 @@ function delay(time) {
     // Retrieve the value of 'secret' from local storage if the key's value includes a reference to 'https://substrate.office.com/sydney/.default'
     // This is the bearer token for the Substrate API (also seen in the network tab WS under the access_token parameter)
     const secretValue = await page.evaluate(() => {
-        const key = Object.keys(localStorage).find(k => {
-            const value = localStorage.getItem(k);
-            return value.includes('https://substrate.office.com/sydney/.default');
-        });
-
-        if (key) {
-            const data = JSON.parse(localStorage.getItem(key));
-            return data.secret;
-        }
-        return null;
+    // Find the key with the specific URL pattern
+    const key = Object.keys(localStorage).find(k => {
+        const value = localStorage.getItem(k);
+        return k.includes('https://substrate.office.com/sydney/.default');
     });
+
+    if (key) {
+        const data = JSON.parse(localStorage.getItem(key)); // Parse the JSON string
+        return data.secret; // Return the 'secret' (bearer token)
+    }
+
+    print("Not found")
+    return null; // If not found, return null
+
+    });
+
 
     // Print the bearer token to the console (change this to save it to a file or a secure location)
     console.log('access_token:%s', secretValue);
