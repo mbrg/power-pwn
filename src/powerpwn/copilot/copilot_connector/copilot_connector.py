@@ -276,11 +276,13 @@ class CopilotConnector:
             # print(result.stdout)
             access_token_array = result.stdout.split("access_token:")
             if len(access_token_array) < 2 or access_token_array[1] == "null":
-                print("Failed to get access token. Exiting...")
+                print("Failed to get access token here. Exiting...")
                 return None
             access_token = access_token_array[1].strip()
             self.__token_cache.put_token(CachedEntity(key=self._SUBSTRATE_TOKEN_CACHE_KEY, val=access_token))
+            print("here1")
             print(f"Access token cached successfully in {self.__token_cache.cache_path}.")
+            print("here2")
             return access_token
 
         except FileNotFoundError:
@@ -304,7 +306,7 @@ class CopilotConnector:
         if not tenant_id or not object_id:
             raise ValueError("Failed to parse tenant_id or object_id from bearer token.")
 
-        prefix = f"wss://substrate.office.com/m365chat/SecuredChathub/{object_id}@{tenant_id}?X-ClientRequestId={client_request_id}&X-SessionId={session_id}&access_token={bearer_token}"
+        prefix = f"wss://substrate.office.com/m365Copilot/Chathub/{object_id}@{tenant_id}?X-ClientRequestId={client_request_id}&X-SessionId={session_id}&access_token={bearer_token}"
 
         return (
             f"{prefix}&X-variants=feature.includeExternal,feature.AssistantConnectorsContentSources,3S.BizChatWprBoostAssistant,3S.EnableMEFromSkillDiscovery,feature.EnableAuthErrorMessage,EnableRequestPlugins,feature.EnableSensitivityLabels,feature.IsEntityAnnotationsEnabled,EnableUnsupportedUrlDetector&source=%22officeweb%22&scenario=officeweb"
@@ -346,9 +348,9 @@ class CopilotConnector:
         return plugins
 
     def __get_conversation_parameters(self, refresh: bool = False) -> ConversationParameters:
-        print("hi")
         print("Getting bearer token...")
         access_token = self.__get_access_token(refresh)
+        print(f"Access token: {access_token}")
         if not access_token:
             print("Failed to get bearer token. Exiting...")
             raise CopilotConnectionFailedException("Could not get access token to connect to copilot.")

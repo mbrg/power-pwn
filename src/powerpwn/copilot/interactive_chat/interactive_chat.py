@@ -56,12 +56,16 @@ class InteractiveChat:
                     print(self.__websocket_formatter.format(result[0].parsed_message))
 
         except CopilotConnectionNotInitializedException as e:
+            print("hi1")
             print(f"{TOOL_PROMPT}{e.message}")
         except CopilotConnectionFailedException as e:
+            print("hi2")
             print(f"{TOOL_PROMPT}{e.message}")
         except CopilotConnectedUserMismatchException as e:
+            print ("hi3")
             print(f"{TOOL_PROMPT}{e.message}")
         except Exception as e:
+            print("hi4")
             print(f"{TOOL_PROMPT}An error occurred: {e}")
 
     def __add_plugins(self, prompt: str) -> None:
