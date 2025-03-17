@@ -6,10 +6,13 @@ const fs = require('fs');
 const ARGS = Utils.getArguments();
 const PASSWORD = ARGS["password"];
 const USER = ARGS["user"];
+const DEBUGMODE = ARGS["debugMode"]
 
-// Create a network log file (clear previous logs)
+// Create a network log file (clear previous logs) only if DEBUGMODE is 'yes'
 const NETWORK_LOG_FILE = 'network_log.txt';
-fs.writeFileSync(NETWORK_LOG_FILE, '', { encoding: 'utf8' });
+if (DEBUGMODE === 'yes') {
+  fs.writeFileSync(NETWORK_LOG_FILE, '', { encoding: 'utf8' });
+}
 
 function delay(time) {
   return new Promise(resolve => setTimeout(resolve, time));
@@ -67,8 +70,12 @@ function logMessage(message) {
       } catch (e) {
         text = 'Could not read response body.';
       }
-      const logEntry = `URL: ${url}\nStatus: ${status}\nResponse Snippet: ${text.substring(0,200)}\n--------------------------------\n`;
-      fs.appendFileSync(NETWORK_LOG_FILE, logEntry, { encoding: 'utf8' });
+
+      // Log to file only if DEBUGMODE is 'yes'
+      if (DEBUGMODE === 'yes') {
+        const logEntry = `URL: ${url}\nStatus: ${status}\nResponse Snippet: ${text.substring(0,200)}\n--------------------------------\n`;
+        fs.appendFileSync(NETWORK_LOG_FILE, logEntry, { encoding: 'utf8' });
+      }
 
       // Filter responses: process if the URL is the OAuth token endpoint,
       // the response contains a bearer token indicator, the "Pacman" keyword,
