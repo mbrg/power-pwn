@@ -122,7 +122,7 @@ class CopilotConnector:
             raise CopilotConnectionNotInitializedException("Copilot connection not initialized.")
         self.__conversation_params.used_plugins = []
 
-    def use_agent(self, agent_index: int) -> None:
+    def use_agent(self, agent_index: int) -> str:
         if not self.__is_initialized:
             raise CopilotConnectionNotInitializedException("Copilot connection not initialized.")
         if agent_index >= len(self.__conversation_params.available_gpts):
@@ -130,6 +130,7 @@ class CopilotConnector:
             return
         agent = self.__conversation_params.available_gpts[agent_index]
         self.__conversation_params.used_agent.append(agent)
+        return agent.displayName
 
     def use_copilot365(self) -> None:
         if not self.__is_initialized:

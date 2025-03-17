@@ -51,10 +51,12 @@ class InteractiveChat:
                     continue
 
                 if prompt.startswith(self._USE_AGENT_PROMPT):
-                    self.__use_agent(prompt)
+                    agent = self.__use_agent(prompt)
+                    print(f"{TOOL_PROMPT}Switched to {agent} agent.")
                     continue
                 if prompt == self._USE_COPILOT365_PROMPT:
                     self.__copilot_connector.use_copilot365()
+                    print(f"{TOOL_PROMPT}Switched to Copilot365 agent.")
                     continue
                 if prompt == self._ENABLE_BING_WEB_SEARCH_PROMPT:
                     self.__copilot_connector.enable_bing_web_search()
@@ -83,6 +85,6 @@ class InteractiveChat:
         except Exception as e:
             print(f"{TOOL_PROMPT}An error occurred: {e}")
 
-    def __use_agent(self, prompt: str) -> None:
+    def __use_agent(self, prompt: str) -> str:
         agent_index = int(prompt.split(self._USE_AGENT_PROMPT)[1].strip())
-        self.__copilot_connector.use_agent(agent_index)
+        return self.__copilot_connector.use_agent(agent_index)
