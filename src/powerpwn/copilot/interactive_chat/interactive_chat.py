@@ -8,7 +8,6 @@ from powerpwn.copilot.exceptions.copilot_connection_not_initialized_exception im
 from powerpwn.copilot.interactive_chat.interactive_chat_websocket_formatter import InterActiveChatWebsocketMessageFormatter
 from powerpwn.copilot.models.chat_argument import ChatArguments
 
-
 class InteractiveChat:
     """
     A class that is responsible for the interactive chat with Copilot (interactive mode)
@@ -38,22 +37,29 @@ class InteractiveChat:
                 if prompt == self._EXIT_PROMPT:
                     print("Exiting...")
                     break
-                if prompt == self._AVAILABLE_PLUGINS_PROMPT:
-                    print(f"{TOOL_PROMPT}Available plugins:")
-                    for plugin in conversation_parameters.available_plugins:
-                        print(f"[{plugin.index}] - {plugin.displayName} - {plugin.id}")
-                    print(f"{TOOL_PROMPT}To select plugins, type '{self._SELECT_PLUGIN_PROMPT_PREFIX}<idx1>,<idx2>,...'")
-                    print(f"{TOOL_PROMPT}To unselect plugins, type '{self._UNSELECT_PLUGIN_PROMPT_PREFIX}<idx1>,<idx2>,...'")
-                    continue
-                if prompt.startswith(self._SELECT_PLUGIN_PROMPT_PREFIX):
-                    self.__add_plugins(prompt)
-                    continue
-                if prompt.startswith(self._UNSELECT_PLUGIN_PROMPT_PREFIX):
-                    self.__remove_plugins(prompt)
-                    continue
+
+                # TODO: investigate plugins unauthorized issues github issue # 92
+                # link to github issue : https://github.com/mbrg/power-pwn/issues/92
+                # if prompt == self._AVAILABLE_PLUGINS_PROMPT:
+                #     print(f"{TOOL_PROMPT}Available plugins:")
+                #     for plugin in conversation_parameters.available_plugins:
+                #         print(f"[{plugin.index}] - {plugin.displayName} - {plugin.id}")
+                #     print(f"{TOOL_PROMPT}To select plugins, type '{self._SELECT_PLUGIN_PROMPT_PREFIX}<idx1>,<idx2>,...'")
+                #     print(f"{TOOL_PROMPT}To unselect plugins, type '{self._UNSELECT_PLUGIN_PROMPT_PREFIX}<idx1>,<idx2>,...'")
+                #     continue
+                # if prompt.startswith(self._SELECT_PLUGIN_PROMPT_PREFIX):
+                #     self.__add_plugins(prompt)
+                #     continue
+                # if prompt.startswith(self._UNSELECT_PLUGIN_PROMPT_PREFIX):
+                #     self.__remove_plugins(prompt)
+                #     continue
                 result = asyncio.get_event_loop().run_until_complete(asyncio.gather(self.__copilot_connector.connect(prompt)))
                 if result[0]:
                     print(self.__websocket_formatter.format(result[0].parsed_message))
+                    if result[0].parsed_message.is_disengaged:
+                        print(f"{TOOL_PROMPT}Conversation is disengaged, re-initiating connection.")
+                        self.__copilot_connector.refresh_connection()
+                        print(f"{TOOL_PROMPT}Connection refreshed.")
 
         except CopilotConnectionNotInitializedException as e:
             print(f"{TOOL_PROMPT}{e.message}")
