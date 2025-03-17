@@ -8,6 +8,7 @@ from powerpwn.copilot.exceptions.copilot_connection_not_initialized_exception im
 from powerpwn.copilot.interactive_chat.interactive_chat_websocket_formatter import InterActiveChatWebsocketMessageFormatter
 from powerpwn.copilot.models.chat_argument import ChatArguments
 
+
 class InteractiveChat:
     """
     A class that is responsible for the interactive chat with Copilot (interactive mode)

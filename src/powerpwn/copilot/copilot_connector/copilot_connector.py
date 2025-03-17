@@ -312,12 +312,11 @@ class CopilotConnector:
             else f"{prefix}&X-variants=feature.includeExternal,feature.AssistantConnectorsContentSources,3S.BizChatWprBoostAssistant,3S.EnableMEFromSkillDiscovery,feature.EnableAuthErrorMessage,feature.EnableRequestPlugins,3S.SKDS_EnablePluginManagement,EnableRequestPlugins,feature.EnableSensitivityLabels,feature.IsEntityAnnotationsEnabled,EnableUnsupportedUrlDetector&source=%22teamshub%22&scenario=teamshub"
         )
 
-
     def __get_plugins(self, access_token: str) -> list:
         # TODO: investigate plugins unauthorized issues github issue # 92
         # link to github issue : https://github.com/mbrg/power-pwn/issues/92
         return []
-    
+
         plugins_url = "https://substrate.office.com/search/api/v1/userconfig"
         payload = {
             "RequestedConfigTypes": ["PluginDefinitions", "CopilotPlugins"],
@@ -363,7 +362,6 @@ class CopilotConnector:
 
         if self.__arguments.user not in (upn, unique_name):
             raise CopilotConnectedUserMismatchException("Cached token is not for the user provided in the arguments.")
-
 
         print("Acquired bearer token successfully.")
         url = self.__get_websocket_url(access_token, self.__arguments.scenario, parsed_jwt)

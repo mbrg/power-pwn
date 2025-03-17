@@ -88,17 +88,16 @@ class WebsocketMessage(IWebsocketMessage):
                                     suggestions.extend(self.__extract_suggestions(next_message))
                             break
 
-
         return WebsocketParsedMessage(
             copilot_message=copilot_message, is_success=is_success, is_disengaged=is_disengaged, suggestions=suggestions, type=self.type()
         )
-    
+
     def __extract_suggestions(self, message: dict) -> list[str]:
         suggestions: list[str] = []
         for suggestion in message.get("suggestedResponses", []):
             suggestions.append(suggestion["text"])
         return suggestions
-    
+
     def __parse_message_for_copilot_final(self) -> str:
         messages = self.__json_message["item"]["messages"]
         copilot_message = ""
