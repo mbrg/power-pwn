@@ -88,9 +88,3 @@ class InteractiveChat:
     def __use_agent(self, prompt: str) -> None:
         agent_index = int(prompt.split(self._USE_AGENT_PROMPT)[1].strip())
         self.__copilot_connector.use_agent(agent_index)
-
-
-if __name__ == "__main__":
-    arguments = ChatArguments("kris@zenitystage.onmicrosoft.com", "U*S+#XL)cw?d,7AQ", True, CopilotScenarioEnum.officeweb, VerboseEnum.off)
-    chat = InteractiveChat(arguments)
-    chat.start_chat()
