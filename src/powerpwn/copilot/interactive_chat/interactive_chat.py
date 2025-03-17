@@ -1,7 +1,6 @@
 import asyncio
 
 from powerpwn.copilot.copilot_connector.copilot_connector import TOOL_PROMPT, CopilotConnector
-from powerpwn.copilot.enums.plugin_action_enum import PluginActionEnum
 from powerpwn.copilot.exceptions.copilot_connected_user_mismatch import CopilotConnectedUserMismatchException
 from powerpwn.copilot.exceptions.copilot_connection_failed_exception import CopilotConnectionFailedException
 from powerpwn.copilot.exceptions.copilot_connection_not_initialized_exception import CopilotConnectionNotInitializedException
@@ -15,9 +14,12 @@ class InteractiveChat:
     """
 
     _USER_PROMPT = "[User]: "
-    _SELECT_PLUGIN_PROMPT_PREFIX = "select plugins "
-    _UNSELECT_PLUGIN_PROMPT_PREFIX = "unselect plugins "
-    _AVAILABLE_PLUGINS_PROMPT = "list available plugins"
+    _ENABLE_BING_WEB_SEARCH_PROMPT = "enable BingWebSearch"
+    _DISABLE_BING_WEB_SEARCH_PROMPT = "disable BingWebSearch"
+    _LIST_AVAILABLE_AGENTS_PROMPT = "list available agents"
+    _USE_AGENT_PROMPT = "use agent"
+    _USE_COPILOT365_PROMPT = "use copilot365"
+
     _EXIT_PROMPT = "exit"
 
     def __init__(self, parsed_args: ChatArguments) -> None:
@@ -39,21 +41,31 @@ class InteractiveChat:
                     print("Exiting...")
                     break
 
-                # TODO: investigate plugins unauthorized issues github issue # 92
-                # link to github issue : https://github.com/mbrg/power-pwn/issues/92
-                # if prompt == self._AVAILABLE_PLUGINS_PROMPT:
-                #     print(f"{TOOL_PROMPT}Available plugins:")
-                #     for plugin in conversation_parameters.available_plugins:
-                #         print(f"[{plugin.index}] - {plugin.displayName} - {plugin.id}")
-                #     print(f"{TOOL_PROMPT}To select plugins, type '{self._SELECT_PLUGIN_PROMPT_PREFIX}<idx1>,<idx2>,...'")
-                #     print(f"{TOOL_PROMPT}To unselect plugins, type '{self._UNSELECT_PLUGIN_PROMPT_PREFIX}<idx1>,<idx2>,...'")
-                #     continue
-                # if prompt.startswith(self._SELECT_PLUGIN_PROMPT_PREFIX):
-                #     self.__add_plugins(prompt)
-                #     continue
-                # if prompt.startswith(self._UNSELECT_PLUGIN_PROMPT_PREFIX):
-                #     self.__remove_plugins(prompt)
-                #     continue
+                if prompt == self._LIST_AVAILABLE_AGENTS_PROMPT:
+                    print(f"{TOOL_PROMPT}Available agents:")
+                    for agent in conversation_parameters.available_gpts:
+                        print(f"[{agent.index}] - {agent.displayName}({agent.version})")
+                        print(f"\t{agent.description}")
+                    print(f"{TOOL_PROMPT}To switch to agent, type '{self._USE_AGENT_PROMPT} <agent_index>'")
+                    print(f"{TOOL_PROMPT}To switch to copilot365, type '{self._USE_COPILOT365_PROMPT}'")
+                    continue
+
+                if prompt.startswith(self._USE_AGENT_PROMPT):
+                    agent = self.__use_agent(prompt)
+                    print(f"{TOOL_PROMPT}Switched to {agent} agent.")
+                    continue
+                if prompt == self._USE_COPILOT365_PROMPT:
+                    self.__copilot_connector.use_copilot365()
+                    print(f"{TOOL_PROMPT}Switched to Copilot365 agent.")
+                    continue
+                if prompt == self._ENABLE_BING_WEB_SEARCH_PROMPT:
+                    self.__copilot_connector.enable_bing_web_search()
+                    print(f"{TOOL_PROMPT}Bing Web Search enabled.")
+                    continue
+                if prompt == self._DISABLE_BING_WEB_SEARCH_PROMPT:
+                    self.__copilot_connector.disable_bing_web_search()
+                    print(f"{TOOL_PROMPT}Bing Web Search disabled.")
+                    continue
                 result = asyncio.get_event_loop().run_until_complete(asyncio.gather(self.__copilot_connector.connect(prompt)))
                 if result[0]:
                     print(self.__websocket_formatter.format(result[0].parsed_message))
@@ -68,23 +80,11 @@ class InteractiveChat:
             print(f"{TOOL_PROMPT}{e.message}")
         except CopilotConnectedUserMismatchException as e:
             print(f"{TOOL_PROMPT}{e.message}")
+        except TimeoutError:
+            print(f"{TOOL_PROMPT}Timeout - try to re-authenticate")
         except Exception as e:
             print(f"{TOOL_PROMPT}An error occurred: {e}")
 
-    def __add_plugins(self, prompt: str) -> None:
-        self.__copilot_connector.add_plugins(self.__extract_plugins(prompt, PluginActionEnum.add))
-
-    def __remove_plugins(self, prompt: str) -> None:
-        self.__copilot_connector.remove_plugins(self.__extract_plugins(prompt, PluginActionEnum.remove))
-
-    def __extract_plugins(self, prompt: str, action: PluginActionEnum) -> None:
-        separator = self._SELECT_PLUGIN_PROMPT_PREFIX if action == PluginActionEnum.add else self._UNSELECT_PLUGIN_PROMPT_PREFIX
-        error_message = f"{TOOL_PROMPT}No plugins selected." if action == PluginActionEnum.add else "No plugins to unselect"
-
-        plugins_str = prompt.split(separator)
-        if len(plugins_str) < 2:
-            print(error_message)
-            return []
-
-        plugin_indices = plugins_str[1].split(",")
-        return [int(plugin_index) for plugin_index in plugin_indices]
+    def __use_agent(self, prompt: str) -> str:
+        agent_index = int(prompt.split(self._USE_AGENT_PROMPT)[1].strip())
+        return self.__copilot_connector.use_agent(agent_index)

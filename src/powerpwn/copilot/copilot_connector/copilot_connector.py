@@ -16,9 +16,9 @@ from powerpwn.copilot.exceptions.copilot_connected_user_mismatch import CopilotC
 from powerpwn.copilot.exceptions.copilot_connection_failed_exception import CopilotConnectionFailedException
 from powerpwn.copilot.exceptions.copilot_connection_not_initialized_exception import CopilotConnectionNotInitializedException
 from powerpwn.copilot.loggers.file_logger import FileLogger
+from powerpwn.copilot.models.agent_info_model import AgentInfoModel
 from powerpwn.copilot.models.chat_argument import ChatArguments
 from powerpwn.copilot.models.conversation_parameters import ConversationParameters
-from powerpwn.copilot.models.plugin_info_model import PluginInfo
 from powerpwn.copilot.websocket_message.websocket_message import WebsocketMessage
 
 TOOL_PROMPT = "[Tool]: "
@@ -112,73 +112,30 @@ class CopilotConnector:
                         elif interaction_type == MessageTypeEnum.unknown:
                             print(f"{TOOL_PROMPT} Got unknown message type : {websocket_message.message}")
 
-    # TODO: investigate plugins unauthorized issues github issue # 92
-    # link to github issue : https://github.com/mbrg/power-pwn/issues/92
+    def enable_bing_web_search(self) -> None:
+        if not self.__is_initialized:
+            raise CopilotConnectionNotInitializedException("Copilot connection not initialized.")
+        self.__conversation_params.used_plugins.append({"Id": "BingWebSearch", "Source": "BuiltIn"})
 
-    # def add_plugins(self, plugins_indices: list) -> None:
-    #     """
-    #     Adds plugins to the conversation
+    def disable_bing_web_search(self) -> None:
+        if not self.__is_initialized:
+            raise CopilotConnectionNotInitializedException("Copilot connection not initialized.")
+        self.__conversation_params.used_plugins = []
 
-    #     :param plugins_indices: list of plugin indices as they appear in the available plugins list
-    #     """
-    #     available_plugins = self.__conversation_params.available_plugins
-    #     plugins_indices_set = set(plugins_indices)
-    #     unavailable_plugins = set([plugin_idx for plugin_idx in plugins_indices_set if plugin_idx < 1 or plugin_idx > len(available_plugins)])
-    #     if len(unavailable_plugins) > 0:
-    #         print(f"{TOOL_PROMPT}Plugins {unavailable_plugins} not found.")
+    def use_agent(self, agent_index: int) -> str:
+        if not self.__is_initialized:
+            raise CopilotConnectionNotInitializedException("Copilot connection not initialized.")
+        if agent_index >= len(self.__conversation_params.available_gpts):
+            print(f"Invalid agent index: {agent_index}")
+            return
+        agent = self.__conversation_params.available_gpts[agent_index]
+        self.__conversation_params.used_agent.append(agent)
+        return agent.displayName
 
-    #     available_plugins_indices_to_add = plugins_indices_set - unavailable_plugins
-    #     used_plugin_ids = set([plugin["Id"] for plugin in self.__conversation_params.used_plugins])
-    #     for plugin_idx in available_plugins_indices_to_add:
-    #         plugin_id = available_plugins[plugin_idx - 1].id
-    #         if plugin_id not in used_plugin_ids:
-    #             self.__conversation_params.used_plugins.append({"Id": plugin_id, "Source": available_plugins[plugin_idx - 1].source})
-    #             print(f"{TOOL_PROMPT}Plugin [{plugin_idx}] added.")
-    #         else:
-    #             print(f"{TOOL_PROMPT}Plugin [{plugin_idx}] already added.")
-
-    # def remove_plugins(self, plugins_indices: list) -> None:
-    #     """
-    #     Removes plugins from the conversation
-
-    #     :param plugins_indices: list of plugin indices as they appear in the available plugins list
-    #     """
-
-    #     available_plugins = self.__conversation_params.available_plugins
-    #     plugins = self.__conversation_params.used_plugins
-    #     used_plugin_ids_set = set(plugins_indices)
-    #     unavailable_plugins = set([plugin_idx for plugin_idx in used_plugin_ids_set if plugin_idx < 1 or plugin_idx > len(available_plugins)])
-
-    #     if len(unavailable_plugins) > 0:
-    #         print(f"{TOOL_PROMPT}Plugins {unavailable_plugins} not found.")
-
-    #     plugin_indices_to_remove = used_plugin_ids_set - unavailable_plugins
-
-    #     plugins_idx_not_selected = []
-    #     for plugin_idx in plugin_indices_to_remove:
-    #         relevant_plugin = available_plugins[plugin_idx - 1]
-    #         plugin_index_found = -1
-    #         for idx, plugin in enumerate(plugins):
-    #             if relevant_plugin.id == plugin["Id"]:
-    #                 plugin_index_found = idx
-    #                 break
-
-    #         if plugin_index_found == -1:
-    #             plugins_idx_not_selected.append(plugin_idx)
-    #         else:
-    #             plugins.pop(plugin_index_found)
-
-    #     if len(plugins_idx_not_selected) > 0:
-    #         print(f"{TOOL_PROMPT}Plugins {plugins_idx_not_selected} not selected.")
-
-    #     removed_plugins = [
-    #         idx
-    #         for idx in plugins_indices
-    #         if idx not in self.__conversation_params.used_plugins + plugins_idx_not_selected + list(unavailable_plugins)
-    #     ]
-
-    #     if len(removed_plugins) > 0:
-    #         print(f"{TOOL_PROMPT}Plugins {removed_plugins} removed.")
+    def use_copilot365(self) -> None:
+        if not self.__is_initialized:
+            raise CopilotConnectionNotInitializedException("Copilot connection not initialized.")
+        self.__conversation_params.used_agent.pop()
 
     def __get_session_from_url(self, url: str) -> str:
         if "X-SessionId=" not in url:
@@ -187,13 +144,33 @@ class CopilotConnector:
 
     def __get_prompt(self, prompt: str) -> dict:
         is_start_of_session = self.__index == 0
-        return {
+        used_agent_params = {}
+        if len(self.__conversation_params.used_agent) > 0:
+            used_agent = self.__conversation_params.used_agent[0]
+            used_agent_params = {"id": used_agent.id, "source": used_agent.source}
+
+        prompt_message_dict = {
             "arguments": [
                 {
                     "source": self.__arguments.scenario.value,
                     "clientCorrelationId": "60c2ee92-64f1-cef5-555a-b7ad5ad2c21c",
                     "sessionId": self.__conversation_params.session_id,
-                    "optionsSets": ["enterprise_flux_handoff_outlook_compose"],
+                    "optionsSets": [
+                        "enterprise_flux_web",
+                        "enterprise_flux_work",
+                        "enable_request_response_interstitials",
+                        "enterprise_flux_image_v1",
+                        "enterprise_toolbox_with_skdsstore",
+                        "enterprise_toolbox_with_skdsstore_search_message_extensions",
+                        "enable_ME_auth_interstitial",
+                        "skdsstorethirdparty",
+                        "enable_confirmation_interstitial",
+                        "enable_plugin_auth_interstitial",
+                        "enable_response_action_processing",
+                        "enterprise_flux_work_gptv",
+                        "enterprise_flux_work_code_interpreter",
+                        "enable_batch_token_processing",
+                    ],
                     "options": {},
                     "allowedMessageTypes": [
                         "Chat",
@@ -212,7 +189,7 @@ class CopilotConnector:
                         "DeveloperLogs",
                     ],
                     "sliceIds": [],
-                    "threadLevelGptId": {},
+                    "threadLevelGptId": used_agent_params,
                     "conversationId": self.__conversation_params.conversation_id,
                     "traceId": "6eaf112117f7ecbfa4cef5495f098e59",
                     "isStartOfSession": is_start_of_session,
@@ -222,7 +199,7 @@ class CopilotConnector:
                         "author": "user",
                         "inputMethod": "Keyboard",
                         "text": prompt,
-                        "entityAnnotationTypes": ["People", "File", "Event"],
+                        "entityAnnotationTypes": ["People", "File", "Event", "Email", "TeamsMessage"],
                         "requestId": "6eaf112117f7ecbfa4cef5495f098e59",
                         "locationInfo": {"timeZoneOffset": 3, "timeZone": "Asia/Jerusalem"},
                         "locale": "en-US",
@@ -236,6 +213,11 @@ class CopilotConnector:
             "target": "chat",
             "type": 4,
         }
+
+        if used_agent_params:
+            prompt_message_dict["arguments"][0]["gpts"] = [used_agent_params]
+
+        return prompt_message_dict
 
     def __get_access_token(self, refresh: bool = False) -> Optional[str]:
         scenario = self.__arguments.scenario
@@ -312,42 +294,37 @@ class CopilotConnector:
             else f"{prefix}&X-variants=feature.includeExternal,feature.AssistantConnectorsContentSources,3S.BizChatWprBoostAssistant,3S.EnableMEFromSkillDiscovery,feature.EnableAuthErrorMessage,feature.EnableRequestPlugins,3S.SKDS_EnablePluginManagement,EnableRequestPlugins,feature.EnableSensitivityLabels,feature.IsEntityAnnotationsEnabled,EnableUnsupportedUrlDetector&source=%22teamshub%22&scenario=teamshub"
         )
 
-    def __get_plugins(self, access_token: str) -> list:
-        # TODO: investigate plugins unauthorized issues github issue # 92
-        # link to github issue : https://github.com/mbrg/power-pwn/issues/92
-        return []
-
-        plugins_url = "https://substrate.office.com/search/api/v1/userconfig"
-        payload = {
-            "RequestedConfigTypes": ["PluginDefinitions", "CopilotPlugins"],
-            "Scenario": {"Name": "sydney"},
-            "TextDecorations": "Off",
-            "UICulture": "en-us",
-        }
-        auth_header = {"Authorization": f"Bearer {access_token}"}
-        plugins_response = requests.post(plugins_url, headers=auth_header, json=payload)  # nosec
-        if plugins_response.status_code != 200:
-            if plugins_response.status_code == 401:
-                raise CopilotConnectionFailedException("Unauthorized. Try to delete cached token and retry")
-            print(f"Failed to get plugins. Error: {plugins_response.text}. status_code: {plugins_response.status_code}")
+    def __get_available_agents(self, access_token: str) -> list:
+        if self.__arguments.scenario == CopilotScenarioEnum.teamshub:
             return []
 
-        plugins: list[PluginInfo] = []
-        index = 1
+        agents: list[AgentInfoModel] = []
+        url = "https://substrate.office.com/m365Copilot/GetGptList"
 
-        plugin_groups = plugins_response.json().get("CopilotPluginConfiguration", {"PluginGroups": []}).get("PluginGroups")
-        for plugin_group in plugin_groups:
-            group_display_name = plugin_group["DisplayName"]
-            plugin_descriptions = plugin_group["PluginDescriptions"]
-            for plugin_description in plugin_descriptions:
-                plugin_full_display_name = group_display_name
-                if plugin_display_name := plugin_description.get("DisplayName"):
-                    plugin_full_display_name = f"{plugin_full_display_name} - {plugin_display_name}"
-                    plugin_info = plugin_description["CopilotPluginInfo"]
-                    plugins.append(PluginInfo(index=index, id=plugin_info["Id"], displayName=plugin_full_display_name, source=plugin_info["Source"]))
-                    index += 1
+        url = "https://substrate.office.com/m365Copilot//GetGptList?request=%7B%22optionsSets%22%3A%5B%22flux_gpt_data_retriever_enterprise%22%2C%22plugins_as_declarative_agents%22%5D%2C%22traceId%22%3A%228883a40d990df8b1fb0c9b3166a9b78e%22%7D&variants=feature.disabledisallowedmsgs"
 
-        return plugins
+        headers = {"Authorization": f"Bearer {access_token}", "X-Scenario": "officeweb"}
+
+        agents_response = requests.get(url, headers=headers)  # nosec
+        if agents_response.status_code != 200:
+            if agents_response.status_code == 401:
+                raise CopilotConnectionFailedException("Unauthorized. Try to delete cached token and retry")
+            print(f"Failed to get agents. Error: {agents_response.text}. status_code: {agents_response.status_code}")
+            return []
+        for index, agent in enumerate(agents_response.json().get("gptList", [])):
+            gpt_identifier = agent.get("gptIdentifier")
+            agents.append(
+                AgentInfoModel(
+                    index=index,
+                    id=gpt_identifier["id"],
+                    displayName=agent["name"],
+                    version=gpt_identifier.get("version", "N/A"),
+                    description=agent.get("description", "N/A"),
+                    source=gpt_identifier["source"],
+                    type=agent.get("type"),
+                )
+            )
+        return agents
 
     def __get_conversation_parameters(self, refresh: bool = False) -> ConversationParameters:
         print("Getting bearer token...")
@@ -367,10 +344,10 @@ class CopilotConnector:
         url = self.__get_websocket_url(access_token, self.__arguments.scenario, parsed_jwt)
         session_id = self.__get_session_from_url(url)
 
-        available_plugins: list[PluginInfo] = self.__get_plugins(access_token)
+        available_agents: list[AgentInfoModel] = self.__get_available_agents(access_token)
 
         return ConversationParameters(
-            conversation_id=str(uuid.uuid4()), url=url, session_id=session_id, available_plugins=available_plugins, used_plugins=[]
+            conversation_id=str(uuid.uuid4()), url=url, session_id=session_id, used_plugins=[], available_gpts=available_agents, used_agent=[]
         )
 
     def __log(self, message: WebsocketMessage) -> None:

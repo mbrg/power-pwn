@@ -5,7 +5,7 @@ from powerpwn.copilot.websocket_message.websocket_parsed_message import Websocke
 
 class InterActiveChatWebsocketMessageFormatter(IWebsocketMessageFormatter):
     __SUGGESTIONS_PREFIX = "Suggestions:"
-    _COPILOT_PROMPT = "[Copilot]: "
+    _COPILOT_PROMPT = "[Agent]: "
 
     def format(self, message: WebsocketParsedMessage) -> str:
         if message.type == MessageTypeEnum.copilot_final:

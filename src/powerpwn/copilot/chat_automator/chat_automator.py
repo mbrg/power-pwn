@@ -42,16 +42,14 @@ class ChatAutomator:
             return result[0]
         return None
 
-    def add_plugins(self, plugin_indices: list) -> None:
+    def enable_bing_web_search(self) -> None:
         """
-        Adds plugins to the conversation
+        Enables Bing Web Search plugin
+        """
+        self.__copilot_connector.enable_bing_web_search()
 
-        :param plugin_ids: list of plugin indices as they appear in the available plugins list
+    def disable_bing_web_search(self) -> None:
         """
-        self.__copilot_connector.add_plugins(plugin_indices)
-
-    def get_available_plugins(self) -> list:
+        Disables Bing Web Search plugin
         """
-        Returns the available plugins for the conversation
-        """
-        return self.__copilot_connector.conversation_parameters.available_plugins
+        self.__copilot_connector.disable_bing_web_search()

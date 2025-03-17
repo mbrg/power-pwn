@@ -10,5 +10,6 @@ class ConversationParameters(NamedTuple):
     conversation_id: str
     session_id: str
     url: str
-    available_plugins: list
     used_plugins: list
+    available_gpts: list
+    used_agent: list
