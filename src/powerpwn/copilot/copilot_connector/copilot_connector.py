@@ -144,7 +144,7 @@ class CopilotConnector:
     def __get_prompt(self, prompt: str) -> dict:
         is_start_of_session = self.__index == 0
         used_agent_params = {}
-        if len(self.__conversation_params.used_agent)>0:
+        if len(self.__conversation_params.used_agent) > 0:
             used_agent = self.__conversation_params.used_agent[0]
             used_agent_params = {"id": used_agent.id, "source": used_agent.source}
 
@@ -215,7 +215,7 @@ class CopilotConnector:
 
         if used_agent_params:
             prompt_message_dict["arguments"][0]["gpts"] = [used_agent_params]
-    
+
         return prompt_message_dict
 
     def __get_access_token(self, refresh: bool = False) -> Optional[str]:
@@ -344,12 +344,7 @@ class CopilotConnector:
         available_agents: list[AgentInfoModel] = self.__get_available_agents(access_token)
 
         return ConversationParameters(
-            conversation_id=str(uuid.uuid4()),
-            url=url,
-            session_id=session_id,
-            used_plugins=[],
-            available_gpts=available_agents,
-            used_agent=[],
+            conversation_id=str(uuid.uuid4()), url=url, session_id=session_id, used_plugins=[], available_gpts=available_agents, used_agent=[]
         )
 
     def __log(self, message: WebsocketMessage) -> None:
