@@ -1,4 +1,6 @@
-from typing import NamedTuple
+from typing import NamedTuple, Optional
+
+from powerpwn.copilot.models.agent_info_model import AgentInfoModel
 
 
 class ConversationParameters(NamedTuple):
@@ -10,5 +12,6 @@ class ConversationParameters(NamedTuple):
     conversation_id: str
     session_id: str
     url: str
-    available_plugins: list
     used_plugins: list
+    available_gpts: list
+    used_agent: list
