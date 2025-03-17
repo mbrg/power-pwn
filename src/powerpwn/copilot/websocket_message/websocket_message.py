@@ -67,22 +67,36 @@ class WebsocketMessage(IWebsocketMessage):
                 copilot_message = self.__parse_message_for_copilot_final_failed()
             else:
                 messages = self.__json_message["item"]["messages"]
-                for message in messages:
-                    message_type = message["messageType"]
+                for index, message in enumerate(messages):
+                    # bot message with final text answer no longer has "messageType" key
+                    # other messages in websocket sent from bot observed to have some types of
+                    # InternalSearchResult, InternalLoaderMessage, InternalSearchQuery, Disengaged
+                    message_type = message.get("messageType", "Chat")
                     if message["author"] == "bot":
                         if message_type == "Chat":
                             copilot_message = message["text"]
-                            message_suggestions = message.get("suggestedResponses", [])
-                            for suggestion in message_suggestions:
-                                suggestions.append(suggestion["text"])
+                            suggestions.extend(self.__extract_suggestions(message))
                         elif message_type == "Disengaged":
                             copilot_message = message["hiddenText"]
                             is_disengaged = True
+
+                            # try to get full copilot message when disangaged and suggestions
+                            if index + 1 < len(messages):
+                                next_message = messages[index + 1]
+                                if next_message["author"] == "bot" and next_message.get("messageType", "Chat") == "Chat":
+                                    copilot_message = next_message.get("text") or next_message.get("hiddenText") or copilot_message
+                                    suggestions.extend(self.__extract_suggestions(next_message))
                             break
 
         return WebsocketParsedMessage(
             copilot_message=copilot_message, is_success=is_success, is_disengaged=is_disengaged, suggestions=suggestions, type=self.type()
         )
+
+    def __extract_suggestions(self, message: dict) -> list[str]:
+        suggestions: list[str] = []
+        for suggestion in message.get("suggestedResponses", []):
+            suggestions.append(suggestion["text"])
+        return suggestions
 
     def __parse_message_for_copilot_final(self) -> str:
         messages = self.__json_message["item"]["messages"]
