@@ -13,6 +13,7 @@ from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.copilot.gui.gui import Gui as CopilotGui
 from powerpwn.copilot.interactive_chat.interactive_chat import InteractiveChat
 from powerpwn.copilot.models.chat_argument import ChatArguments
+from powerpwn.copilot.oversharing.discovery import Discovery
 from powerpwn.copilot.spearphishing.automated_spear_phisher import AutomatedSpearPhisher
 from powerpwn.copilot.whoami.whoami import WhoAmI
 from powerpwn.copilot_studio.modules.deep_scan import DeepScan
@@ -204,12 +205,14 @@ def run_copilot_chat_command(args):
         if args.gui:
             CopilotGui().run(output_dir)
         return
-
     elif args.copilot_subcommand == "dump":
         dump = Dump(parsed_args, args.directory)
         output_dir = dump.run()
         if args.gui:
             CopilotGui().run(output_dir)
+        return
+    elif args.copilot_subcommand == "discovery":
+        Discovery(parsed_args).run()
         return
 
     raise NotImplementedError(f"Copilot {args.copilot_subcommand} subcommand has not been implemented yet.")
