@@ -1,8 +1,6 @@
 import asyncio
 
 from powerpwn.copilot.copilot_connector.copilot_connector import TOOL_PROMPT, CopilotConnector
-from powerpwn.copilot.enums.copilot_scenario_enum import CopilotScenarioEnum
-from powerpwn.copilot.enums.verbose_enum import VerboseEnum
 from powerpwn.copilot.exceptions.copilot_connected_user_mismatch import CopilotConnectedUserMismatchException
 from powerpwn.copilot.exceptions.copilot_connection_failed_exception import CopilotConnectionFailedException
 from powerpwn.copilot.exceptions.copilot_connection_not_initialized_exception import CopilotConnectionNotInitializedException

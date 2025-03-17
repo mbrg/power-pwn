@@ -304,8 +304,8 @@ class CopilotConnector:
 
         headers = {"Authorization": f"Bearer {access_token}", "X-Scenario": "officeweb"}
 
-        agents_response = requests.get(url, headers=headers)
-        if agents_response.status_code != 200:  # nosec
+        agents_response = requests.get(url, headers=headers)  # nosec
+        if agents_response.status_code != 200:
             if agents_response.status_code == 401:
                 raise CopilotConnectionFailedException("Unauthorized. Try to delete cached token and retry")
             print(f"Failed to get agents. Error: {agents_response.text}. status_code: {agents_response.status_code}")
