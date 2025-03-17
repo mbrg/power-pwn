@@ -1,208 +1,188 @@
-// Description: This script logs into Microsoft Office and retrieves the bearer token for the Substrate API.
-// If you need the results faster, you can reduce the delays' values, but do so with caution (it's a clean-and-dirty way to make things work for this POC).
-
 const puppeteer = require('puppeteer'); // Ensure you have puppeteer installed
-require('dotenv').config(); // Include the dotenv package to read the .env file
+require('dotenv').config(); // Read environment variables from .env
 let Utils = require("./utils.js");
+const fs = require('fs');
 
-const ARGS = Utils.getArguments()
-const PASSWORD = ARGS["password"]
-const USER = ARGS["user"]
+const ARGS = Utils.getArguments();
+const PASSWORD = ARGS["password"];
+const USER = ARGS["user"];
+
+// Create a network log file (clear previous logs)
+const NETWORK_LOG_FILE = 'network_log.txt';
+fs.writeFileSync(NETWORK_LOG_FILE, '', { encoding: 'utf8' });
 
 function delay(time) {
-    return new Promise(function (resolve) {
-        setTimeout(resolve, time)
-    });
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
+function logMessage(message) {
+  console.log(message);
 }
 
 (async () => {
 
-    const windowWidth = 1920;
-    const windowHeight = 1080;
+  const windowWidth = 1920;
+  const windowHeight = 1080;
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: true, // Set to false if you want to see the browser actions
+      executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      args: ['--incognito']
+    });
+  } catch (e) {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--start-fullscreen', '--incognito']
+    });
+  }
 
-    let browser;
-    // In case you have issues, you can try to use the following flags (often issues can occur from specific Chrome instances or profiles, sometimes clean ones help)
-    // https://stackoverflow.com/questions/57623828/in-puppeteer-how-to-switch-to-chrome-window-from-default-profile-to-desired-prof/57662769#57662769
+  const [page] = await browser.pages();
+  await page.setViewport({
+    width: windowWidth,
+    height: windowHeight
+  });
+  const timeout = 15000;
+  page.setDefaultTimeout(timeout);
 
+  // -----------------------------------------------------------
+  // SET UP TOKEN CAPTURE PROMISE
+  // -----------------------------------------------------------
+  let bearerToken = null;
+  let tokenCapturedResolver;
+  const tokenCapturedPromise = new Promise(resolve => {
+    tokenCapturedResolver = resolve;
+  });
+
+  // -----------------------------------------------------------
+  // SET UP NETWORK RESPONSE INTERCEPTION WITH LOGGING AND FILTERING
+  // -----------------------------------------------------------
+  const tokenResponseHandler = async response => {
     try {
-        // For windows the executable path is to open the existing chrome instead of the
-        // "Chrome for testing" that is included with puppeteer - solves white screen bug
-        browser = await puppeteer.launch({
-            headless: true, // Change to 'false' to see the browser actions for debugging
-            // Use the default windows path for chrome exe - solves white window bug for windows
-            executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-            // Start the browser in incognito mode
-            args: ['--incognito']
-        });
-    } catch(e) {
-         browser = await puppeteer.launch({
-            headless: true, // Change to 'false' to see the browser actions for debugging
-            // Start the browser in fullscreen and incognito mode
-            args: ['--start-fullscreen', '--incognito']
-        });
-    }
+      const url = response.url();
+      const status = response.status();
+      let text = '';
+      try {
+        text = await response.text();
+      } catch (e) {
+        text = 'Could not read response body.';
+      }
+      const logEntry = `URL: ${url}\nStatus: ${status}\nResponse Snippet: ${text.substring(0,200)}\n--------------------------------\n`;
+      fs.appendFileSync(NETWORK_LOG_FILE, logEntry, { encoding: 'utf8' });
 
-    // Create a new page
-    const [page] = await browser.pages(); // Get the only page opened by Puppeteer
-
-    // Set the viewport size
-    await page.setViewport({
-        width: windowWidth,
-        height: windowHeight
-    });
-
-    const timeout = 15000; // Set the timeout to 15 seconds
-    page.setDefaultTimeout(timeout);
-
-    // Go to a the Teams URL (will be changed with the dynamics URL in the future)
-    await page.goto('https://www.office.com/');
-    console.log("Starting the login process");
-
-    // Enter the test username
-
-    {
-        const targetPage = page;
-        const promises = [];
-        const startWaitingForEvents = () => {
-            promises.push(targetPage.waitForNavigation());
+      // Filter responses: process if the URL is the OAuth token endpoint,
+      // the response contains a bearer token indicator, the "Pacman" keyword,
+      // and the expected scope fragment.
+      if (
+        url.includes("/oauth2/v2.0/token") &&
+        (text.includes('"token_type":"Bearer"') || text.includes('"tokenType":"Bearer"')) &&
+        text.includes("sydney")
+      ) {
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          // Fallback: attempt to extract the token using regex if JSON parsing fails.
         }
-
-        console.log("Locating sign in button");
-
-        await puppeteer.Locator.race([
-            targetPage.locator('#mectrl_headerPicture')
-        ])
-            .setTimeout(timeout)
-            .on('action', () => startWaitingForEvents())
-            .click();
-        await Promise.all(promises);
-    }
-    {
-        const targetPage = page;
-        await puppeteer.Locator.race([
-            targetPage.locator(':scope >>> #i0116')
-        ])
-            .setTimeout(timeout)
-            .fill(USER);
-    }
-
-    // Click on the 'Next' button
-
-    {
-        const targetPage = page;
-        await puppeteer.Locator.race([
-            targetPage.locator('#idSIButton9'),
-        ])
-            .setTimeout(timeout)
-            .click();
-    }
-
-    // Wait for the password field and enter the password in it
-
-    await delay(2000); // Wait for 2 seconds to avoid sync issues
-
-    {
-        const targetPage = page;
-        await puppeteer.Locator.race([
-            targetPage.locator('#i0118'),
-        ])
-            .setTimeout(timeout)
-            .click();
-    }
-
-    {
-        const targetPage = page;
-        await puppeteer.Locator.race([
-            targetPage.locator('#i0118'),
-        ])
-            .setTimeout(timeout)
-            .fill(PASSWORD);
-    }
-    await delay(2000); // Wait for 2 seconds to avoid sync issues
-
-    console.log("Logging in");
-
-    {
-        const targetPage = page;
-        const promises = [];
-        const startWaitingForEvents = () => {
-            promises.push(targetPage.waitForNavigation());
+        if (json && json.access_token) {
+          bearerToken = json.access_token;
+          console.log("Bearer token captured: " + bearerToken);
+          page.off('response', tokenResponseHandler);
+          if (tokenCapturedResolver) {
+            tokenCapturedResolver(bearerToken);
+            tokenCapturedResolver = null;
+          }
+        } else {
+          // Fallback using regex extraction for "access_token"
+          const match = text.match(/"access_token"\s*:\s*"([^"]+)"/);
+          if (match && match[1]) {
+            bearerToken = match[1];
+            console.log("Bearer token captured (via regex): " + bearerToken);
+            page.off('response', tokenResponseHandler);
+            if (tokenCapturedResolver) {
+              tokenCapturedResolver(bearerToken);
+              tokenCapturedResolver = null;
+            }
+          }
         }
-        await puppeteer.Locator.race([
-            targetPage.locator('#idSIButton9'),
-        ])
-            .setTimeout(timeout)
-            .on('action', () => startWaitingForEvents())
-            .click();
-        await Promise.all(promises);
+      }
+    } catch (err) {
+      console.error("Error capturing network response: ", err);
     }
+  };
 
-    // Click 'Yes' button to stay signed in
+  page.on('response', tokenResponseHandler);
 
-    {
-        const targetPage = page;
-        const promises = [];
-        const startWaitingForEvents = () => {
-            promises.push(targetPage.waitForNavigation());
-        }
-        await puppeteer.Locator.race([
-            targetPage.locator('#idSIButton9'),
-        ])
-            .setTimeout(timeout)
-            .on('action', () => startWaitingForEvents())
-            .click();
-        await Promise.all(promises);
-    }
+  // -----------------------------------------------------------
+  // ORIGINAL, WORKING UI/Journey for Login and Navigation
+  // -----------------------------------------------------------
+  await page.goto('https://www.office.com/');
 
-    //
+  await page.waitForSelector('#mectrl_headerPicture', { timeout });
+  await page.click('#mectrl_headerPicture');
 
-    console.log("Completed logging in");
+  await page.waitForSelector('#i0116', { timeout });
+  await page.type('#i0116', USER);
+  await page.click('#idSIButton9');
 
-    await delay(10000); // Wait for 10 seconds to avoid sync issues
+  await delay(2000);
+  await page.waitForSelector('#i0118', { timeout });
+  await page.type('#i0118', PASSWORD);
+  logMessage("Entering password...");
+  await page.click('#idSIButton9');
 
-    console.log("Starting user journey to get the substrate token");
+  await delay(5000);
+  await page.waitForSelector('#idSIButton9', { timeout });
+  await page.click('#idSIButton9'); // Click "Stay signed in"
 
-    // Go to the CoPilot URL
-    {
-        const targetPage = page;
-        await puppeteer.Locator.race([
-            targetPage.locator('#d870f6cd-4aa5-4d42-9626-ab690c041429'),
-        ])
-            .setTimeout(timeout)
-            .click();
-    }
+  logMessage("Successfully logged in.");
+  await delay(10000);
+  await delay(10000); // Extra delay to avoid sync issues
 
-    await delay(10000); // Wait for 10 seconds to avoid sync issues
+  console.log("Starting user journey to get the Pacman token");
 
-    // Go to the Outlook URL, since the local storage with the key containing the substrate token is for this subdomain
-    await page.goto('https://outlook.office.com/mail/');
+  // Navigate to the CoPilot URL (this action should trigger the network request that contains the token)
+  {
+    const targetPage = page;
+    await puppeteer.Locator.race([
+      targetPage.locator('#d870f6cd-4aa5-4d42-9626-ab690c041429'),
+    ])
+      .setTimeout(timeout)
+      .click();
+  }
+  await delay(10000); // Wait for network activity
 
-    console.log("Completed user journey, grabbing substrate token from the headless browser's local storage key");
+  console.log("Completed user journey, capturing Pacman token from network responses");
 
-    await delay(10000); // Wait for 10 seconds to avoid sync issues
+  // -----------------------------------------------------------
+  // WAIT FOR THE TOKEN OR TIMEOUT
+  // -----------------------------------------------------------
+  const token = await Promise.race([
+    tokenCapturedPromise,
+    delay(60000).then(() => null)  // timeout after 60 seconds
+  ]);
 
-    // Retrieve the value of 'secret' from local storage if the key's value includes a reference to 'https://substrate.office.com/sydney/.default'
-    // This is the bearer token for the Substrate API (also seen in the network tab WS under the access_token parameter)
-    const secretValue = await page.evaluate(() => {
-        const key = Object.keys(localStorage).find(k => {
-            const value = localStorage.getItem(k);
-            return value.includes('https://substrate.office.com/sydney/.default');
-        });
-
-        if (key) {
-            const data = JSON.parse(localStorage.getItem(key));
-            return data.secret;
-        }
-        return null;
-    });
-
-    // Print the bearer token to the console (change this to save it to a file or a secure location)
-    console.log('access_token:%s', secretValue);
-
-    await browser.close(); // Close the browser
-
-    // Catch errors and log them to the console
-})().catch(err => {
-    console.error(err);
+  // -----------------------------------------------------------
+  // OUTPUT THE CAPTURED TOKEN TO A FILE
+  // -----------------------------------------------------------
+  if (bearerToken) {
+    fs.writeFileSync('token_output.txt', bearerToken, { encoding: 'utf8' });
+    console.log('access_token: ' + bearerToken);
+    await browser.close();
+    return bearerToken;
+    process.exit(0);
+  } else {
+    fs.writeFileSync('token_output.txt', '❌ No valid token captured from network responses.', { encoding: 'utf8' });
+    console.log('❌ No valid token captured from network responses.');
+    await browser.close();
+    return null;
     process.exit(1);
+  }
+
+  return bearerToken;
+  await browser.close();
+
+})().catch(err => {
+  console.error(err);
+  process.exit(1);
 });
