@@ -80,6 +80,8 @@ class InteractiveChat:
             print(f"{TOOL_PROMPT}{e.message}")
         except CopilotConnectedUserMismatchException as e:
             print(f"{TOOL_PROMPT}{e.message}")
+        except TimeoutError:
+            print(f"{TOOL_PROMPT}Timeout - try to re-authenticate")
         except Exception as e:
             print(f"{TOOL_PROMPT}An error occurred: {e}")
 
