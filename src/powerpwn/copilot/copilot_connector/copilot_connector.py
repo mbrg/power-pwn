@@ -112,70 +112,73 @@ class CopilotConnector:
                         elif interaction_type == MessageTypeEnum.unknown:
                             print(f"{TOOL_PROMPT} Got unknown message type : {websocket_message.message}")
 
-    def add_plugins(self, plugins_indices: list) -> None:
-        """
-        Adds plugins to the conversation
+    # TODO: investigate plugins unauthorized issues github issue # 92
+    # link to github issue : https://github.com/mbrg/power-pwn/issues/92
 
-        :param plugins_indices: list of plugin indices as they appear in the available plugins list
-        """
-        available_plugins = self.__conversation_params.available_plugins
-        plugins_indices_set = set(plugins_indices)
-        unavailable_plugins = set([plugin_idx for plugin_idx in plugins_indices_set if plugin_idx < 1 or plugin_idx > len(available_plugins)])
-        if len(unavailable_plugins) > 0:
-            print(f"{TOOL_PROMPT}Plugins {unavailable_plugins} not found.")
+    # def add_plugins(self, plugins_indices: list) -> None:
+    #     """
+    #     Adds plugins to the conversation
 
-        available_plugins_indices_to_add = plugins_indices_set - unavailable_plugins
-        used_plugin_ids = set([plugin["Id"] for plugin in self.__conversation_params.used_plugins])
-        for plugin_idx in available_plugins_indices_to_add:
-            plugin_id = available_plugins[plugin_idx - 1].id
-            if plugin_id not in used_plugin_ids:
-                self.__conversation_params.used_plugins.append({"Id": plugin_id, "Source": available_plugins[plugin_idx - 1].source})
-                print(f"{TOOL_PROMPT}Plugin [{plugin_idx}] added.")
-            else:
-                print(f"{TOOL_PROMPT}Plugin [{plugin_idx}] already added.")
+    #     :param plugins_indices: list of plugin indices as they appear in the available plugins list
+    #     """
+    #     available_plugins = self.__conversation_params.available_plugins
+    #     plugins_indices_set = set(plugins_indices)
+    #     unavailable_plugins = set([plugin_idx for plugin_idx in plugins_indices_set if plugin_idx < 1 or plugin_idx > len(available_plugins)])
+    #     if len(unavailable_plugins) > 0:
+    #         print(f"{TOOL_PROMPT}Plugins {unavailable_plugins} not found.")
 
-    def remove_plugins(self, plugins_indices: list) -> None:
-        """
-        Removes plugins from the conversation
+    #     available_plugins_indices_to_add = plugins_indices_set - unavailable_plugins
+    #     used_plugin_ids = set([plugin["Id"] for plugin in self.__conversation_params.used_plugins])
+    #     for plugin_idx in available_plugins_indices_to_add:
+    #         plugin_id = available_plugins[plugin_idx - 1].id
+    #         if plugin_id not in used_plugin_ids:
+    #             self.__conversation_params.used_plugins.append({"Id": plugin_id, "Source": available_plugins[plugin_idx - 1].source})
+    #             print(f"{TOOL_PROMPT}Plugin [{plugin_idx}] added.")
+    #         else:
+    #             print(f"{TOOL_PROMPT}Plugin [{plugin_idx}] already added.")
 
-        :param plugins_indices: list of plugin indices as they appear in the available plugins list
-        """
+    # def remove_plugins(self, plugins_indices: list) -> None:
+    #     """
+    #     Removes plugins from the conversation
 
-        available_plugins = self.__conversation_params.available_plugins
-        plugins = self.__conversation_params.used_plugins
-        used_plugin_ids_set = set(plugins_indices)
-        unavailable_plugins = set([plugin_idx for plugin_idx in used_plugin_ids_set if plugin_idx < 1 or plugin_idx > len(available_plugins)])
+    #     :param plugins_indices: list of plugin indices as they appear in the available plugins list
+    #     """
 
-        if len(unavailable_plugins) > 0:
-            print(f"{TOOL_PROMPT}Plugins {unavailable_plugins} not found.")
+    #     available_plugins = self.__conversation_params.available_plugins
+    #     plugins = self.__conversation_params.used_plugins
+    #     used_plugin_ids_set = set(plugins_indices)
+    #     unavailable_plugins = set([plugin_idx for plugin_idx in used_plugin_ids_set if plugin_idx < 1 or plugin_idx > len(available_plugins)])
 
-        plugin_indices_to_remove = used_plugin_ids_set - unavailable_plugins
+    #     if len(unavailable_plugins) > 0:
+    #         print(f"{TOOL_PROMPT}Plugins {unavailable_plugins} not found.")
 
-        plugins_idx_not_selected = []
-        for plugin_idx in plugin_indices_to_remove:
-            relevant_plugin = available_plugins[plugin_idx - 1]
-            plugin_index_found = -1
-            for idx, plugin in enumerate(plugins):
-                if relevant_plugin.id == plugin["Id"]:
-                    plugin_index_found = idx
-                    break
+    #     plugin_indices_to_remove = used_plugin_ids_set - unavailable_plugins
 
-            if plugin_index_found == -1:
-                plugins_idx_not_selected.append(plugin_idx)
-            else:
-                plugins.pop(plugin_index_found)
+    #     plugins_idx_not_selected = []
+    #     for plugin_idx in plugin_indices_to_remove:
+    #         relevant_plugin = available_plugins[plugin_idx - 1]
+    #         plugin_index_found = -1
+    #         for idx, plugin in enumerate(plugins):
+    #             if relevant_plugin.id == plugin["Id"]:
+    #                 plugin_index_found = idx
+    #                 break
 
-        if len(plugins_idx_not_selected) > 0:
-            print(f"{TOOL_PROMPT}Plugins {plugins_idx_not_selected} not selected.")
+    #         if plugin_index_found == -1:
+    #             plugins_idx_not_selected.append(plugin_idx)
+    #         else:
+    #             plugins.pop(plugin_index_found)
 
-        removed_plugins = [
-            idx
-            for idx in plugins_indices
-            if idx not in self.__conversation_params.used_plugins + plugins_idx_not_selected + list(unavailable_plugins)
-        ]
+    #     if len(plugins_idx_not_selected) > 0:
+    #         print(f"{TOOL_PROMPT}Plugins {plugins_idx_not_selected} not selected.")
 
-        if len(removed_plugins) > 0:
-            print(f"{TOOL_PROMPT}Plugins {removed_plugins} removed.")
+    #     removed_plugins = [
+    #         idx
+    #         for idx in plugins_indices
+    #         if idx not in self.__conversation_params.used_plugins + plugins_idx_not_selected + list(unavailable_plugins)
+    #     ]
+
+    #     if len(removed_plugins) > 0:
+    #         print(f"{TOOL_PROMPT}Plugins {removed_plugins} removed.")
 
     def __get_session_from_url(self, url: str) -> str:
         if "X-SessionId=" not in url:
@@ -296,56 +299,30 @@ class CopilotConnector:
             return None
         return token
 
-    def __get_websocket_url(self, bearer_token: str, scenario: CopilotScenarioEnum, parsed_token: dict) -> str:
+    def __get_websocket_url(self, bearer_token: str, conversation_id: str, scenario: CopilotScenarioEnum, parsed_token: dict) -> str:
         session_id = uuid.uuid4()
         client_request_id = uuid.uuid4()
-
+        request_routing_session_key = uuid.uuid4()
         tenant_id = parsed_token.get("tid")
         object_id = parsed_token.get("oid")
 
         if not tenant_id or not object_id:
             raise ValueError("Failed to parse tenant_id or object_id from bearer token.")
 
+       # prefix = f"wss://substrate.office.com/m365Copilot/Chathub/{object_id}@{tenant_id}?X-ClientRequestId={client_request_id}&X-SessionId={session_id}&access_token={bearer_token}"
+       # prefix = f"wss://substrate.office.com/m365Copilot/Chathub/{object_id}@{tenant_id}?X-RoutingParameter-SessionKey={request_routing_session_key}&X-ClientRequestId={client_request_id}&X-SessionId={session_id}&ConversationId={conversation_id}&access_token={bearer_token}"
         prefix = f"wss://substrate.office.com/m365Copilot/Chathub/{object_id}@{tenant_id}?X-ClientRequestId={client_request_id}&X-SessionId={session_id}&access_token={bearer_token}"
+        # missing = X-RequestRoutingParameter-SessionKey, ConversationID where to find in parsed token?
 
         return (
-            f"{prefix}&X-variants=feature.includeExternal,feature.AssistantConnectorsContentSources,3S.BizChatWprBoostAssistant,3S.EnableMEFromSkillDiscovery,feature.EnableAuthErrorMessage,EnableRequestPlugins,feature.EnableSensitivityLabels,feature.IsEntityAnnotationsEnabled,EnableUnsupportedUrlDetector&source=%22officeweb%22&scenario=officeweb"
+            f"{prefix}&variants=feature.includeExternal,feature.EnableAuthErrorMessage,feature.EnableRequestPlugins,EnableRequestPlugins,feature.EnableSensitivityLabels,EnableUnsupportedUrlDetector,feature.IsCustomEngineCopilotEnabled,feature.disabledisallowedmsgs&source=%22officeweb%22&scenario=officeweb"
             if scenario == CopilotScenarioEnum.officeweb
             else f"{prefix}&X-variants=feature.includeExternal,feature.AssistantConnectorsContentSources,3S.BizChatWprBoostAssistant,3S.EnableMEFromSkillDiscovery,feature.EnableAuthErrorMessage,feature.EnableRequestPlugins,3S.SKDS_EnablePluginManagement,EnableRequestPlugins,feature.EnableSensitivityLabels,feature.IsEntityAnnotationsEnabled,EnableUnsupportedUrlDetector&source=%22teamshub%22&scenario=teamshub"
         )
 
     def __get_plugins(self, access_token: str) -> list:
-        plugins_url = "https://substrate.office.com/search/api/v1/userconfig"
-        payload = {
-            "RequestedConfigTypes": ["PluginDefinitions", "CopilotPlugins"],
-            "Scenario": {"Name": "sydney"},
-            "TextDecorations": "Off",
-            "UICulture": "en-us",
-        }
-        auth_header = {"Authorization": f"Bearer {access_token}"}
-        plugins_response = requests.post(plugins_url, headers=auth_header, json=payload)  # nosec
-        if plugins_response.status_code != 200:
-            if plugins_response.status_code == 401:
-                raise CopilotConnectionFailedException("Unauthorized. Try to delete cached token and retry")
-            print(f"Failed to get plugins. Error: {plugins_response.text}. status_code: {plugins_response.status_code}")
-            return []
 
-        plugins: list[PluginInfo] = []
-        index = 1
-
-        plugin_groups = plugins_response.json().get("CopilotPluginConfiguration", {"PluginGroups": []}).get("PluginGroups")
-        for plugin_group in plugin_groups:
-            group_display_name = plugin_group["DisplayName"]
-            plugin_descriptions = plugin_group["PluginDescriptions"]
-            for plugin_description in plugin_descriptions:
-                plugin_full_display_name = group_display_name
-                if plugin_display_name := plugin_description.get("DisplayName"):
-                    plugin_full_display_name = f"{plugin_full_display_name} - {plugin_display_name}"
-                    plugin_info = plugin_description["CopilotPluginInfo"]
-                    plugins.append(PluginInfo(index=index, id=plugin_info["Id"], displayName=plugin_full_display_name, source=plugin_info["Source"]))
-                    index += 1
-
-        return plugins
+        return []
 
     def __get_conversation_parameters(self, refresh: bool = False) -> ConversationParameters:
         print("Getting bearer token...")
@@ -369,15 +346,16 @@ class CopilotConnector:
             raise CopilotConnectedUserMismatchException("Cached token is not for the user provided in the arguments.")
 
         # print(access_token)
+        conversation_id = str(uuid.uuid4())
 
         print("Acquired bearer token successfully.")
-        url = self.__get_websocket_url(access_token, self.__arguments.scenario, parsed_jwt)
+        url = self.__get_websocket_url(access_token, conversation_id, self.__arguments.scenario, parsed_jwt)
         session_id = self.__get_session_from_url(url)
 
         available_plugins: list[PluginInfo] = []
 
         return ConversationParameters(
-            conversation_id=str(uuid.uuid4()), url=url, session_id=session_id, available_plugins=available_plugins, used_plugins=[]
+            conversation_id = conversation_id, url=url, session_id=session_id, available_plugins=available_plugins, used_plugins=[]
         )
 
     def __log(self, message: WebsocketMessage) -> None:
