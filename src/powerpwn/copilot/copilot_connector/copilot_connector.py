@@ -257,7 +257,7 @@ class CopilotConnector:
         print("Falling back to getting access token with user password sign in..")
 
         module = "get_substrate_bearer_office" if scenario == CopilotScenarioEnum.officeweb else "get_substrate_bearer_teams"
-        debugMode = "yes" if debugging == VerboseEnum.full else "no"
+        debugMode = "true" if debugging == VerboseEnum.full else "false" #passing in boolean values as string makes it easier
         try:
             # Run the Node.js script using subprocess
             result = subprocess.run(  # nosec

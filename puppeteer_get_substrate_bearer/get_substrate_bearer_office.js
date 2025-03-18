@@ -8,9 +8,9 @@ const PASSWORD = ARGS["password"];
 const USER = ARGS["user"];
 const DEBUGMODE = ARGS["debugMode"]
 
-// Create a network log file (clear previous logs) only if DEBUGMODE is 'yes'
+// Create a network log file (clear previous logs) only if DEBUGMODE is 'true'
 const NETWORK_LOG_FILE = 'network_log.txt';
-if (DEBUGMODE === 'yes') {
+if (DEBUGMODE === 'true') {
   fs.writeFileSync(NETWORK_LOG_FILE, '', { encoding: 'utf8' });
 }
 
@@ -71,8 +71,8 @@ function logMessage(message) {
         text = 'Could not read response body.';
       }
 
-      // Log to file only if DEBUGMODE is 'yes'
-      if (DEBUGMODE === 'yes') {
+      // Log to file only if DEBUGMODE is 'true'
+      if (DEBUGMODE === 'true') {
         const logEntry = `URL: ${url}\nStatus: ${status}\nResponse Snippet: ${text.substring(0,200)}\n--------------------------------\n`;
         fs.appendFileSync(NETWORK_LOG_FILE, logEntry, { encoding: 'utf8' });
       }
