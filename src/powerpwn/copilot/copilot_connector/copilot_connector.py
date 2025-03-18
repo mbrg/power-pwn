@@ -221,6 +221,7 @@ class CopilotConnector:
 
     def __get_access_token(self, refresh: bool = False) -> Optional[str]:
         scenario = self.__arguments.scenario
+        debugging = self.__arguments.verbose
         user = self.__arguments.user
         password = self.__arguments.password
 
@@ -238,6 +239,7 @@ class CopilotConnector:
         print("Falling back to getting access token with user password sign in..")
 
         module = "get_substrate_bearer_office" if scenario == CopilotScenarioEnum.officeweb else "get_substrate_bearer_teams"
+        debugMode = "true" if debugging == VerboseEnum.full else "false"  # passing in boolean values as string makes it easier
         try:
             # Run the Node.js script using subprocess
             result = subprocess.run(  # nosec
@@ -246,6 +248,7 @@ class CopilotConnector:
                     pathlib.Path("puppeteer_get_substrate_bearer") / f"{module}.js",  # nosec
                     f"user={user}",  # nosec
                     f"password={password}",  # nosec
+                    f"debugMode={debugMode}",
                 ],
                 capture_output=True,
                 text=True,
