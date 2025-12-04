@@ -60,7 +60,7 @@ def install_nodejs(os_type: str) -> bool:
     log_section("Installing Node.js")
 
     if command_exists("node"):
-        node_version = subprocess.run(["node", "--version"], capture_output=True, text=True).stdout.strip()
+        node_version = subprocess.run(["node", "--version"], capture_output=True, text=True).stdout.strip()  # nosec B603 B607 - Hardcoded command, no user input
         log(f"✓ Node.js already installed: {node_version}")
         return True
 
@@ -78,7 +78,7 @@ def install_nodejs(os_type: str) -> bool:
             return False
 
         if command_exists("node"):
-            node_version = subprocess.run(["node", "--version"], capture_output=True, text=True).stdout.strip()
+            node_version = subprocess.run(["node", "--version"], capture_output=True, text=True).stdout.strip()  # nosec B603 B607 - Hardcoded command, no user input
             log(f"✅ Node.js installed successfully: {node_version}")
             return True
         else:

@@ -526,7 +526,7 @@ def run_custom_gpt_hunter_command(args):
     """
     Run Custom GPT Hunter to discover and catalog Custom GPTs on ChatGPT.
     """
-    import subprocess
+    import subprocess  # nosec B404 - Required for security toolset to execute Node.js scripts
     from pathlib import Path
 
     # Get the path to the custom_gpt_hunter module
@@ -535,7 +535,7 @@ def run_custom_gpt_hunter_command(args):
 
     # Check if Node.js is available
     try:
-        subprocess.run(["node", "--version"], capture_output=True, check=True)
+        subprocess.run(["node", "--version"], capture_output=True, check=True)  # nosec B603 B607 - Hardcoded version check
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.error("Node.js is not installed or not in PATH.")
         logger.error("Please install Node.js from https://nodejs.org/ or using your package manager.")
@@ -568,7 +568,7 @@ def run_custom_gpt_hunter_command(args):
 
     # Run the Node.js script
     try:
-        subprocess.run(cmd, cwd=os.getcwd(), check=True)
+        subprocess.run(cmd, cwd=os.getcwd(), check=True)  # nosec B603 - Controlled command list with hardcoded script path
     except subprocess.CalledProcessError as e:
         logger.error(f"Custom GPT Hunter failed with exit code {e.returncode}")
     except KeyboardInterrupt:

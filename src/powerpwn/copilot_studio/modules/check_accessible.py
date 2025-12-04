@@ -4,7 +4,7 @@ Module for checking accessibility of Copilot Studio bots and optionally checking
 
 import logging
 import os
-import subprocess
+import subprocess  # nosec B404 - Required for security toolset to execute Node.js validation scripts
 from typing import List
 
 from powerpwn.copilot_studio.modules.deep_scan import get_project_file_path, sort_unique_values_in_file

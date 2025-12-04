@@ -7,7 +7,7 @@ and integrations.
 """
 
 import logging
-import subprocess
+import subprocess  # nosec B404 - Required for security toolset to execute Node.js scripts
 from pathlib import Path
 from typing import List, Optional
 
@@ -113,7 +113,7 @@ class AgentBuilderToolsRecon:
             install_dir = self.script_dir.parent
             logger.info(f"Running npm install in {install_dir}...")
 
-            result = subprocess.run(["npm", "install"], cwd=install_dir, capture_output=True, text=True, timeout=300)  # 5 minute timeout
+            result = subprocess.run(["npm", "install"], cwd=install_dir, capture_output=True, text=True, timeout=300)  # nosec B603 B607 - Hardcoded npm install command
 
             if result.returncode != 0:
                 logger.error(f"npm install failed: {result.stderr}")
@@ -209,7 +209,7 @@ class AgentBuilderToolsRecon:
         """
         try:
             # Run the Node.js query script
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 B607 - Controlled script path, hardcoded node command
                 ["node", str(self.query_script), url],
                 cwd=self.script_dir.parent,
                 capture_output=True,

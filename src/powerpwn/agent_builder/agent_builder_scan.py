@@ -13,7 +13,7 @@ Features:
 import logging
 import re
 import select
-import subprocess
+import subprocess  # nosec B404 - Required for security toolset to execute external tools
 import sys
 import time
 from pathlib import Path
@@ -193,7 +193,7 @@ class ProgressiveFFUF:
 
         try:
             # Start ffuf process - redirect stderr to DEVNULL to suppress calibration errors
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)  # nosec B603 - Controlled command list, security tool requirement
 
             # Monitor output in real-time
             start_time = time.time()

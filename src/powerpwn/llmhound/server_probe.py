@@ -123,8 +123,8 @@ class MCPProbe:
                     parsed = self._parse_sse_content(content)
                     if parsed:
                         return parsed
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"SSE POST connection failed: {e}")
 
         try:
             # Try GET with SSE headers
@@ -134,8 +134,8 @@ class MCPProbe:
                     parsed = self._parse_sse_content(content)
                     if parsed:
                         return parsed
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"SSE GET connection failed: {e}")
 
         return None
 
