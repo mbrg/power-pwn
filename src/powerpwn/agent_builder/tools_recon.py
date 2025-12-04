@@ -7,10 +7,7 @@ and integrations.
 """
 
 import logging
-import os
 import subprocess
-import sys
-from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 

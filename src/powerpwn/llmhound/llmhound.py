@@ -3,12 +3,9 @@ LLM Hound - Main module for discovering and probing AI integration surfaces
 Discovers Claude/OpenAI APIs, Model Context Protocol (MCP) servers, LLM proxies, and API endpoints
 """
 
-import asyncio
 import json
 import logging
-import os
 from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from powerpwn.cli.const import LOGGER_NAME
@@ -245,7 +242,7 @@ class LLMHound:
                     logger.info(f"  • {COLOR_GREEN}{prompt}{COLOR_RESET}")
 
             if result.get("swagger_endpoints"):
-                logger.info(f"\nSwagger Documentation:")
+                logger.info("\nSwagger Documentation:")
                 for endpoint_url in result["swagger_endpoints"]:
                     logger.info(f"  • {COLOR_GREEN}{endpoint_url}{COLOR_RESET}")
         else:

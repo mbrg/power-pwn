@@ -284,7 +284,7 @@ def run_get_tenant_command(args) -> None:
 
     if tenant_id:
         logger.info(f"\n{'=' * 70}")
-        logger.info(f"✓ Tenant ID found:")
+        logger.info("✓ Tenant ID found:")
         logger.info(f"  Domain: {domain}")
         logger.info(f"  Tenant ID: {tenant_id}")
         logger.info(f"{'=' * 70}")
@@ -561,7 +561,7 @@ def run_custom_gpt_hunter_command(args):
     if args.additional_pages > 0:
         cmd.append(str(args.additional_pages))
 
-    logger.info(f"Starting Custom GPT Hunter...")
+    logger.info("Starting Custom GPT Hunter...")
     logger.info(f"Search Query: {args.search_query}")
     logger.info(f"Additional Pages: {args.additional_pages} (Total: {args.additional_pages + 1} pages)")
     logger.info("")
@@ -601,7 +601,6 @@ def run_agent_builder_scan(args):
     """
     import glob
     from datetime import datetime
-    from pathlib import Path
 
     # Validate arguments
     if hasattr(args, "timeout_per_endpoint") and args.timeout_per_endpoint and not args.timeout:

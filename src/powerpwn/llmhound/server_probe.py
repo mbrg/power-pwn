@@ -6,7 +6,6 @@ Probes for MCP capabilities, Claude/OpenAI APIs, swagger documentation, and LLM 
 import asyncio
 import json
 import logging
-import time
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -208,7 +207,7 @@ class MCPProbe:
             # Check for indicators
             for indicator in swagger_ui_indicators + redoc_indicators:
                 if indicator in content_lower:
-                    logger.debug(f"    Validated Swagger UI/ReDoc page")
+                    logger.debug("    Validated Swagger UI/ReDoc page")
                     return True
 
             return False

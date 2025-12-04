@@ -67,7 +67,6 @@ class GroupedCommandHelpFormatter(argparse.RawDescriptionHelpFormatter):
             parts.append("TEST YOURSELF AS AN INSIDER (requires at least guest user authentication to access the MSFT tenant):\n")
             for cmd_name in TENANT_OPERATIONS:
                 if cmd_name in action.choices:
-                    subparser = action.choices[cmd_name]
                     help_text = TENANT_OPERATIONS[cmd_name]
                     parts.append(f"  {cmd_name:<20}  {help_text}\n")
 
@@ -77,7 +76,6 @@ class GroupedCommandHelpFormatter(argparse.RawDescriptionHelpFormatter):
             parts.append("TEST YOURSELF AS AN OUTSIDER (focused and broad scanning of AI & LCNC resources):\n")
             for cmd_name in RECON_DISCOVERY:
                 if cmd_name in action.choices:
-                    subparser = action.choices[cmd_name]
                     help_text = RECON_DISCOVERY[cmd_name]
                     parts.append(f"  {cmd_name:<20}  {help_text}\n")
 
@@ -842,7 +840,7 @@ Examples:
         help="Enumerate tools and integrations from Agent Builder chatbots.",
         epilog="""
 Examples:
-  powerpwn agent-builder-hunter tools-recon -u https://openai-chatkit-example123.vercel.app 
+  powerpwn agent-builder-hunter tools-recon -u https://openai-chatkit-example123.vercel.app
   powerpwn agent-builder-hunter tools-recon -f agent_urls.txt
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,

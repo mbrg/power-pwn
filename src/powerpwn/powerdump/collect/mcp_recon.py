@@ -239,7 +239,7 @@ class MCPRecon:
         if urls_only or (not probe_results):
             # Save as simple text file (URLs only)
             with open(output_path, "w") as f:
-                f.write(f"# MCP Server URLs\n")
+                f.write("# MCP Server URLs\n")
                 f.write(f"# Generated: {datetime.now().isoformat()}\n")
                 f.write(f"# Total servers found: {len(mcp_servers)}\n\n")
                 for url in mcp_servers:
@@ -284,7 +284,7 @@ class MCPRecon:
         logger.info(f"{'=' * 70}")
 
         # Discovery phase
-        logger.info(f"\n[1/2] Discovery Phase")
+        logger.info("\n[1/2] Discovery Phase")
         logger.info(f"{'-' * 70}")
         logger.info("Scanning collected connector resources for MCP servers...")
 
@@ -307,7 +307,7 @@ class MCPRecon:
         # Probe phase
         probe_results = None
         if probe:
-            logger.info(f"\n[2/2] Probe Phase")
+            logger.info("\n[2/2] Probe Phase")
             logger.info(f"{'-' * 70}")
             try:
                 probe_results = asyncio.run(self.probe_servers(mcp_servers))
@@ -324,7 +324,7 @@ class MCPRecon:
                 logger.info("Continuing with discovery results only...")
                 logger.debug(f"Full error: {e}", exc_info=True)
         else:
-            logger.info(f"\n[2/2] Skipping probe phase (--no-probe specified)")
+            logger.info("\n[2/2] Skipping probe phase (--no-probe specified)")
 
         # Save results
         output_file = self.save_results(mcp_servers, probe_results, output_path, urls_only)
