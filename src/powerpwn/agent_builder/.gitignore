@@ -1,0 +1,19 @@
+# Node.js dependencies
+node_modules/
+package-lock.json
+
+# Results and output files
+results/*.xlsx
+results/*.json
+
+# Keep the directory structure
+!results/.gitkeep
+!tools/.gitkeep
+
+# Progress files
+*.progress
+
+# Temporary files
+*.tmp
+.temp_*
+

@@ -1,0 +1,20 @@
+{
+  "name": "custom-gpt-hunter",
+  "version": "1.0.0",
+  "description": "A security research tool for discovering and cataloging Custom GPTs on ChatGPT",
+  "main": "custom_gpt_hunter.js",
+  "scripts": {
+    "start": "node custom_gpt_hunter.js",
+    "hunt": "node custom_gpt_hunter.js"
+  },
+  "keywords": ["chatgpt", "custom-gpt", "security-research", "automation"],
+  "author": "Security Researcher",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "puppeteer": "^24.30.0",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "readline-sync": "^1.4.10"
+  }
+}

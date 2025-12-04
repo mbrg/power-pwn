@@ -3,14 +3,51 @@ import os
 import re
 import signal
 import subprocess  # nosec
+import time
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import requests
 import xlsxwriter
 
 from powerpwn.copilot_studio.modules.path_utils import get_project_file_path
+
+# ANSI color codes for terminal output
+GREEN = "\033[92m"
+RED = "\033[91m"
+RESET = "\033[0m"
+
+
+def colorize_ffuf_output(line: str) -> str:
+    """
+    Colorize ffuf output lines that indicate successful matches (bots found).
+    Lines containing FUZZ keywords or status codes like 200 will be highlighted in green.
+
+    :param line: The ffuf output line to potentially colorize
+    :return: The line, possibly with green color codes
+    """
+    # Check if line contains indicators of a successful match
+    # In verbose mode, successful hits contain FUZZ1:, FUZZ2:, etc.
+    # or contain status codes and URLs
+    if any(
+        indicator in line
+        for indicator in [
+            "FUZZ1:",
+            "FUZZ2:",
+            "FUZZ3:",
+            "FUZZ4:",
+            "[Status: 200",
+            "Status: 200",
+            "| URL |",  # URL column header or actual URL matches
+            "https://",  # Direct URL matches
+            "canvassettings",  # The API endpoint in matches
+            ":: Progress:",  # Progress indicators
+            "[INF]",  # Info messages about matches
+        ]
+    ):
+        return f"{GREEN}{line}{RESET}"
+    return line
 
 
 def sort_unique_values_in_file(file_path):
@@ -43,10 +80,21 @@ def sort_unique_values_in_file(file_path):
 
 # Function to transform the URL
 def transform_url(url):
-    pattern = re.compile(
+    # Handle non-string values (NaN, None, etc.)
+    if not isinstance(url, str):
+        return url
+
+    # Pattern for URLs with "default" prefix
+    pattern_default = re.compile(
         r"https://default([a-z0-9]+)\.([a-z0-9]+)\.environment\.api\.powerplatform\.com/powervirtualagents/botsbyschema/([^/]+)/canvassettings\?api-version=2022-03-01-preview"
     )
-    match = pattern.match(url)
+    # Pattern for URLs without "default" prefix
+    pattern_no_default = re.compile(
+        r"https://([a-z0-9]+)\.([a-z0-9]+)\.environment\.api\.powerplatform\.com/powervirtualagents/botsbyschema/([^/]+)/canvassettings\?api-version=2022-03-01-preview"
+    )
+
+    # Try matching with "default" prefix first
+    match = pattern_default.match(url)
     if match:
         env_part = match.group(1)
         additional_part = match.group(2)
@@ -54,6 +102,18 @@ def transform_url(url):
         bot_part = match.group(3)
         transformed_url = f"https://copilotstudio.microsoft.com/environments/Default-{formatted_env_part}/bots/{bot_part}/canvas\\?__version__\\=2"
         return transformed_url
+
+    # Try matching without "default" prefix
+    match = pattern_no_default.match(url)
+    if match:
+        env_part = match.group(1)
+        additional_part = match.group(2)
+        # Format the environment part with dashes (UUID format)
+        formatted_env_part = f"{env_part[:8]}-{env_part[8:12]}-{env_part[12:16]}-{env_part[16:20]}-{env_part[20:24]}{env_part[24:]}{additional_part}"
+        bot_part = match.group(3)
+        transformed_url = f"https://copilotstudio.microsoft.com/environments/{formatted_env_part}/bots/{bot_part}/canvas\\?__version__\\=2"
+        return transformed_url
+
     return url
 
 
@@ -118,6 +178,8 @@ def get_ffuf_results(
     domain: str,
     ffuf_flag: str,
     timeout: int,
+    proxy: Optional[str] = None,
+    delay: float = 0,
 ) -> str:
     """
     Run FFUF on the input endpoint:
@@ -135,11 +197,13 @@ def get_ffuf_results(
     :param domain: The domain to be scanned
     :param ffuf_flag: The FFUF flag to use (silent/verbose)
     :param timeout: The timeout (in seconds) to set for each one of the FFUF scans (1-word/2-word/3-word)
+    :param proxy: The proxy URL to use for requests (e.g., http://127.0.0.1:8080). Useful for rotating proxies.
+    :param delay: The delay between requests in seconds. Helps avoid IP-based rate limiting.
     :return: Returns the FFUF terminal output per line, to allow users to see progress (-s can be used to silence this)
     """
     ffuf_path_1 = get_project_file_path("internal_results/ffuf_results", f"ffuf_results_{domain}_one_word_names.csv")
 
-    # Run first for one-letter words
+    # Run first for one-word bot names
     command = [
         "ffuf",
         ffuf_flag,
@@ -159,37 +223,48 @@ def get_ffuf_results(
         "-se",
         "-maxtime-job",
         str(timeout),
+        "-p",
+        str(delay),
         "-of",
         "csv",
         "-o",
         f"{ffuf_path_1}",
-        "-H",
-        "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "-H",
-        "Accept: application/json, text/plain, */*",
-        "-H",
-        "Accept-Language: en-US,en;q=0.5",
-        "-H",
-        "Accept-Encoding: gzip, deflate, br, zstd",
-        "-H",
-        "Origin: https://copilotstudio.microsoft.com",
-        "-H",
-        "DNT: 1",
-        "-H",
-        "Connection: keep-alive",
-        "-H",
-        "Sec-Fetch-Dest: empty",
-        "-H",
-        "Sec-Fetch-Mode: cors",
-        "-H",
-        "Sec-Fetch-Site: cross-site",
-        "-H",
-        "Sec-GPC: 1",
-        "-H",
-        "Via: 1.1 103.230.38.175",
-        "-H",
-        "TE: trailers",
     ]
+
+    # Add proxy if provided
+    if proxy:
+        command.extend(["-x", proxy])
+
+    command.extend(
+        [
+            "-H",
+            "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "-H",
+            "Accept: application/json, text/plain, */*",
+            "-H",
+            "Accept-Language: en-US,en;q=0.5",
+            "-H",
+            "Accept-Encoding: gzip, deflate, br, zstd",
+            "-H",
+            "Origin: https://copilotstudio.microsoft.com",
+            "-H",
+            "DNT: 1",
+            "-H",
+            "Connection: keep-alive",
+            "-H",
+            "Sec-Fetch-Dest: empty",
+            "-H",
+            "Sec-Fetch-Mode: cors",
+            "-H",
+            "Sec-Fetch-Site: cross-site",
+            "-H",
+            "Sec-GPC: 1",
+            "-H",
+            "Via: 1.1 103.230.38.176",
+            "-H",
+            "TE: trailers",
+        ]
+    )
 
     print("\nScanning for 1-word bot names")
 
@@ -204,7 +279,7 @@ def get_ffuf_results(
 
     ffuf_path_2 = get_project_file_path("internal_results/ffuf_results", f"ffuf_results_{domain}_two_word_names.csv")
 
-    # Run for 2-letter words
+    # Run for 2-word bot names
     command = [
         "ffuf",
         ffuf_flag,
@@ -226,37 +301,48 @@ def get_ffuf_results(
         "-se",
         "-maxtime-job",
         str(timeout),
+        "-p",
+        str(delay),
         "-of",
         "csv",
         "-o",
         f"{ffuf_path_2}",
-        "-H",
-        "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "-H",
-        "Accept: application/json, text/plain, */*",
-        "-H",
-        "Accept-Language: en-US,en;q=0.5",
-        "-H",
-        "Accept-Encoding: gzip, deflate, br, zstd",
-        "-H",
-        "Origin: https://copilotstudio.microsoft.com",
-        "-H",
-        "DNT: 1",
-        "-H",
-        "Connection: keep-alive",
-        "-H",
-        "Sec-Fetch-Dest: empty",
-        "-H",
-        "Sec-Fetch-Mode: cors",
-        "-H",
-        "Sec-Fetch-Site: cross-site",
-        "-H",
-        "Sec-GPC: 1",
-        "-H",
-        "Via: 1.1 103.230.38.175",
-        "-H",
-        "TE: trailers",
     ]
+
+    # Add proxy if provided
+    if proxy:
+        command.extend(["-x", proxy])
+
+    command.extend(
+        [
+            "-H",
+            "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "-H",
+            "Accept: application/json, text/plain, */*",
+            "-H",
+            "Accept-Language: en-US,en;q=0.5",
+            "-H",
+            "Accept-Encoding: gzip, deflate, br, zstd",
+            "-H",
+            "Origin: https://copilotstudio.microsoft.com",
+            "-H",
+            "DNT: 1",
+            "-H",
+            "Connection: keep-alive",
+            "-H",
+            "Sec-Fetch-Dest: empty",
+            "-H",
+            "Sec-Fetch-Mode: cors",
+            "-H",
+            "Sec-Fetch-Site: cross-site",
+            "-H",
+            "Sec-GPC: 1",
+            "-H",
+            "Via: 1.1 103.230.38.176",
+            "-H",
+            "TE: trailers",
+        ]
+    )
 
     print("\nScanning for 2-word bot names")
 
@@ -271,7 +357,7 @@ def get_ffuf_results(
 
     ffuf_path_3 = get_project_file_path("internal_results/ffuf_results", f"ffuf_results_{domain}.csv")
 
-    # Use for 3-letter words
+    # Use for 3-word bot names
     command = [
         "ffuf",
         ffuf_flag,
@@ -295,37 +381,48 @@ def get_ffuf_results(
         "-se",
         "-maxtime-job",
         str(timeout),
+        "-p",
+        str(delay),
         "-of",
         "csv",
         "-o",
         f"{ffuf_path_3}",
-        "-H",
-        "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "-H",
-        "Accept: application/json, text/plain, */*",
-        "-H",
-        "Accept-Language: en-US,en;q=0.5",
-        "-H",
-        "Accept-Encoding: gzip, deflate, br, zstd",
-        "-H",
-        "Origin: https://copilotstudio.microsoft.com",
-        "-H",
-        "DNT: 1",
-        "-H",
-        "Connection: keep-alive",
-        "-H",
-        "Sec-Fetch-Dest: empty",
-        "-H",
-        "Sec-Fetch-Mode: cors",
-        "-H",
-        "Sec-Fetch-Site: cross-site",
-        "-H",
-        "Sec-GPC: 1",
-        "-H",
-        "Via: 1.1 103.230.38.175",
-        "-H",
-        "TE: trailers",
     ]
+
+    # Add proxy if provided
+    if proxy:
+        command.extend(["-x", proxy])
+
+    command.extend(
+        [
+            "-H",
+            "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "-H",
+            "Accept: application/json, text/plain, */*",
+            "-H",
+            "Accept-Language: en-US,en;q=0.5",
+            "-H",
+            "Accept-Encoding: gzip, deflate, br, zstd",
+            "-H",
+            "Origin: https://copilotstudio.microsoft.com",
+            "-H",
+            "DNT: 1",
+            "-H",
+            "Connection: keep-alive",
+            "-H",
+            "Sec-Fetch-Dest: empty",
+            "-H",
+            "Sec-Fetch-Mode: cors",
+            "-H",
+            "Sec-Fetch-Site: cross-site",
+            "-H",
+            "Sec-GPC: 1",
+            "-H",
+            "Via: 1.1 103.230.38.176",
+            "-H",
+            "TE: trailers",
+        ]
+    )
 
     print("\nScanning for 3-word bot names")
 
@@ -339,7 +436,16 @@ def get_ffuf_results(
         raise subprocess.CalledProcessError(return_code, command)
 
 
-def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix_1: str, rate_limit: int, threads: int, timeout: int) -> str:
+def get_ffuf_results_prefix(
+    endpoint: str,
+    wordlist_prefix: str,
+    wordlist_suffix_1: str,
+    rate_limit: int,
+    threads: int,
+    timeout: int,
+    proxy: Optional[str] = None,
+    delay: float = 0,
+) -> str:
     """
     Run FFUF on the input endpoint:
       1. Use fuzzing locations in the URL based on the FUZZ1/2/3 keywords.
@@ -352,6 +458,8 @@ def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix
     :param rate_limit: Request per second to use
     :param threads: Threads to use
     :param timeout: The timeout (in seconds) to set for each one of the FFUF scans (1-word/2-word/3-word)
+    :param proxy: The proxy URL to use for requests (e.g., http://127.0.0.1:8080). Useful for rotating proxies.
+    :param delay: The delay between requests in seconds. Helps avoid IP-based rate limiting.
     :return: Returns the FFUF terminal output per line, to allow users to see progress (-s can be used to silence this)
     """
     command = [
@@ -373,33 +481,44 @@ def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix
         "-se",
         "-maxtime-job",
         str(timeout),
-        "-H",
-        "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "-H",
-        "Accept: application/json, text/plain, */*",
-        "-H",
-        "Accept-Language: en-US,en;q=0.5",
-        "-H",
-        "Accept-Encoding: gzip, deflate, br, zstd",
-        "-H",
-        "Origin: https://copilotstudio.microsoft.com",
-        "-H",
-        "DNT: 1",
-        "-H",
-        "Connection: keep-alive",
-        "-H",
-        "Sec-Fetch-Dest: empty",
-        "-H",
-        "Sec-Fetch-Mode: cors",
-        "-H",
-        "Sec-Fetch-Site: cross-site",
-        "-H",
-        "Sec-GPC: 1",
-        "-H",
-        "Via: 1.1 103.230.38.175",
-        "-H",
-        "TE: trailers",
+        "-p",
+        str(delay),
     ]
+
+    # Add proxy if provided
+    if proxy:
+        command.extend(["-x", proxy])
+
+    command.extend(
+        [
+            "-H",
+            "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+            "-H",
+            "Accept: application/json, text/plain, */*",
+            "-H",
+            "Accept-Language: en-US,en;q=0.5",
+            "-H",
+            "Accept-Encoding: gzip, deflate, br, zstd",
+            "-H",
+            "Origin: https://copilotstudio.microsoft.com",
+            "-H",
+            "DNT: 1",
+            "-H",
+            "Connection: keep-alive",
+            "-H",
+            "Sec-Fetch-Dest: empty",
+            "-H",
+            "Sec-Fetch-Mode: cors",
+            "-H",
+            "Sec-Fetch-Site: cross-site",
+            "-H",
+            "Sec-GPC: 1",
+            "-H",
+            "Via: 1.1 103.230.38.176",
+            "-H",
+            "TE: trailers",
+        ]
+    )
 
     # TODO: Verify and improve guardrails for using subprocess
     popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)  # nosec
@@ -416,77 +535,75 @@ def get_ffuf_results_prefix(endpoint: str, wordlist_prefix: str, wordlist_suffix
         raise subprocess.CalledProcessError(return_code, command)
 
 
-def print_brand(tenant: str, timeout: int = 10):
-    """
-    Retrieve and print the brand for a given tenant ID.
-    Using AADInternals, possible TBD directly to MSFT in the future.
+# def print_brand(tenant: str, timeout: int = 10):
+#     """
+#     Retrieve and print the brand for a given tenant ID.
+#     Using AADInternals, possible TBD directly to MSFT in the future.
 
-    :param tenant: The tenant ID to query.
-    :param timeout: The timeout (in seconds) for the HTTP request.
-    """
-    # URL and headers for the request (using a set of valid request headers)
-    url = f"https://aadinternals.azurewebsites.net/api/tenantinfo?tenantId={tenant}"
-    headers = {
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Connection": "keep-alive",
-        "Origin": "https://aadinternals.com",
-        "Referer": "https://aadinternals.com/",
-        "Sec-Fetch-Dest": "empty",
-        "Sec-Fetch-Mode": "cors",
-        "Sec-Fetch-Site": "cross-site",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "sec-ch-ua": '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": '"macOS"',
-        "sec-gpc": "1",
-    }
+#     :param tenant: The tenant ID to query.
+#     :param timeout: The timeout (in seconds) for the HTTP request.
+#     """
+#     # URL and headers for the request (using a set of valid request headers)
+#     url = f"https://aadinternals.azurewebsites.net/api/tenantinfo?tenantId={tenant}"
+#     headers = {
+#         "Accept": "application/json, text/javascript, */*; q=0.01",
+#         "Accept-Language": "en-US,en;q=0.9",
+#         "Connection": "keep-alive",
+#         "Origin": "https://aadinternals.com",
+#         "Referer": "https://aadinternals.com/",
+#         "Sec-Fetch-Dest": "empty",
+#         "Sec-Fetch-Mode": "cors",
+#         "Sec-Fetch-Site": "cross-site",
+#         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+#         "sec-ch-ua": '"Not/A)Brand";v="8", "Chromium";v="126", "Google Chrome";v="126"',
+#         "sec-ch-ua-mobile": "?0",
+#         "sec-ch-ua-platform": '"macOS"',
+#         "sec-gpc": "1",
+#     }
 
-    try:
-        # Make the request with a timeout
-        response = requests.get(url, headers=headers, timeout=timeout)
+#     try:
+#         # Make the request with a timeout
+#         response = requests.get(url, headers=headers, timeout=timeout)
 
-        # Check if the request was successful
-        if response.status_code == 200:
-            data = response.json()
-            domain = data.get("tenantBrand", None)
-            print(f"Brand found for tenant {tenant}: {domain}")
-        else:
-            print(f"No brand found for tenant {tenant}")
-            logging.error(f"Failed to retrieve tenant brand: {response.status_code} {response.text}")
+#         # Check if the request was successful
+#         if response.status_code == 200:
+#             data = response.json()
+#             domain = data.get("tenantBrand", None)
+#             print(f"Brand found for tenant {tenant}: {domain}")
+#         else:
+#             print(f"No brand found for tenant {tenant}")
+#             logging.error(f"Failed to retrieve tenant brand: {response.status_code} {response.text}")
 
-    except requests.Timeout:
-        print(f"Request timed out after {timeout} seconds")
-        logging.error(f"Request timed out after {timeout} seconds")
+#     except requests.Timeout:
+#         print(f"Request timed out after {timeout} seconds")
+#         logging.error(f"Request timed out after {timeout} seconds")
 
-    except requests.RequestException as e:
-        print(f"An error occurred: {e}")
-        logging.error(f"An error occurred: {e}")
+#     except requests.RequestException as e:
+#         print(f"An error occurred: {e}")
+#         logging.error(f"An error occurred: {e}")
 
-    # Make the request
-    response = requests.get(url, headers=headers, timeout=timeout)
+#     # Make the request
+#     response = requests.get(url, headers=headers, timeout=timeout)
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        data = response.json()
-        domain = data.get("tenantBrand", None)
-        print(f"Brand found for tenant {tenant}: {domain}")
+#     # Check if the request was successful
+#     if response.status_code == 200:
+#         data = response.json()
+#         domain = data.get("tenantBrand", None)
+#         print(f"Brand found for tenant {tenant}: {domain}")
 
-    else:
-        print(f"No brand found for tenant {tenant}")
+#     else:
+#         print(f"No brand found for tenant {tenant}")
 
 
 def run_pup_commands(existing_bots: List[str]):
     """
     Execute the puppeteer javascript code for each bot url given.
-    The function calls a different javascript file depending on the OS.
+    The function uses the cross-platform is_chat_live.js which works on all OSes.
 
     :param existing_bots: The list of bot urls needed to check
     """
-    if os.name == "nt":  # Windows
-        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live_windows.js")
-    else:
-        pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
+    # Use the cross-platform script (supports Windows, macOS, and Linux)
+    pup_path = get_project_file_path("tools/pup_is_webchat_live", "is_chat_live.js")
     # Construct the command to run the Node.js script
     open_bots_path = get_project_file_path("final_results/", "chat_exists_output.txt")
     # Empty the file
@@ -628,8 +745,12 @@ class DeepScan:
             file_name = f"{self.args.tenant_id}_{today_str}.xlsx"
             title = "Tenant ID"
             value = self.args.tenant_id
+        elif self.args.environment_id:
+            file_name = f"{self.args.environment_id}_{today_str}.xlsx"
+            title = "Environment ID"
+            value = self.args.environment_id
         else:
-            logging.info("No domain/ tenant supplied, exiting...")
+            logging.info("No domain/ tenant/ environment supplied, exiting...")
             return
 
         out_file_path = get_project_file_path("final_results/", file_name)
@@ -748,8 +869,10 @@ class DeepScan:
                             self.args.domain,
                             ffuf_flag,
                             self.args.timeout_bots,
+                            self.args.proxy,
+                            self.args.delay,
                         ):
-                            print(line, end="")
+                            print(colorize_ffuf_output(line), end="")
 
                         logging.info(
                             f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.domain}.txt"
@@ -765,10 +888,13 @@ class DeepScan:
 
                         if dfs:
                             df = pd.concat(dfs, ignore_index=True)
+                            # Print found bots in green
+                            print(f"\n{GREEN}✓ Found {len(df)} bot(s)!{RESET}")
                             # Transform the URL column
                             transformed_urls = df["url"].apply(transform_url)
                         else:
                             transformed_urls = []
+                            print(f"\n{RED}No bots found{RESET}")
 
                         url_file = f"url_output_{self.args.domain}.txt"
                         url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -781,16 +907,21 @@ class DeepScan:
                         self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                         print(f"\nTransformed URLs saved to {url_file_path}")
+
+                        # Wait to verify network load is freed locally before testing connectivity to demo websites
+                        time.sleep(5)
                         print("\nChecking accessible CoPilot demo websites")
 
                         self.open_bots = run_pup_commands(self.existing_bots)
 
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
+                        print("\nTesting open bots for attached knowledge sources...")
                         self.bot_has_knowledge = query_using_pup(self.open_bots)
                         print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
 
                     else:
+                        print(f"{RED}Did not find a solution publisher prefix{RESET}")
                         logging.error("Did not find a solution publisher prefix")
                 else:
                     print("No existing solution publisher prefix value found for this domain, starting prefix scan.")
@@ -802,10 +933,13 @@ class DeepScan:
                         self.args.rate,
                         self.args.threads,
                         self.args.timeout_prefix,
+                        self.args.proxy,
+                        self.args.delay,
                     ):
                         if value:
                             fuzz1_value = value
-                            print("Found default solution publisher prefix, proceeding to scan bot names")
+                            print(f"\n{GREEN}Found default solution publisher prefix: {value}{RESET}")
+                            print(f"{GREEN}Proceeding to scan bot names{RESET}")
                             break
 
                     fuzz_file_name = f"fuzz1_value_{self.args.domain}.txt"
@@ -817,7 +951,6 @@ class DeepScan:
                             file.write(fuzz1_value + "\n")
 
                         # Continue with further logic using the new FUZZ1 wordlist
-                        logging.info(f"Found solution publisher prefix: {fuzz1_value}")
                         logging.info("Running ffuf with new FUZZ1 values")
 
                         for line, popen in get_ffuf_results(
@@ -831,8 +964,10 @@ class DeepScan:
                             self.args.domain,
                             ffuf_flag,
                             self.args.timeout_bots,
+                            self.args.proxy,
+                            self.args.delay,
                         ):
-                            print(line, end="")
+                            print(colorize_ffuf_output(line), end="")
 
                         logging.info(
                             f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.domain}.txt"
@@ -848,10 +983,13 @@ class DeepScan:
 
                         if dfs:
                             df = pd.concat(dfs, ignore_index=True)
+                            # Print found bots in green
+                            print(f"\n{GREEN}✓ Found {len(df)} bot(s)!{RESET}")
                             # Transform the URL column
                             transformed_urls = df["url"].apply(transform_url)
                         else:
                             transformed_urls = []
+                            print(f"\n{RED}No bots found{RESET}")
 
                         url_file = f"url_output_{self.args.domain}.txt"
                         url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -864,24 +1002,29 @@ class DeepScan:
                         self.existing_bots = sort_unique_values_in_file(url_file_path)
 
                         print(f"\nTransformed URLs saved to {url_file_path}")
+
+                        # Wait to verify network load is freed locally before testing connectivity to demo websites
+                        time.sleep(5)
                         print("\nChecking accessible CoPilot demo websites")
 
                         self.open_bots = run_pup_commands(self.existing_bots)
 
                         print("Done, results saved under final_results/chat_exists_output.txt")
 
+                        print("\nTesting open bots for attached knowledge sources...")
                         self.bot_has_knowledge = query_using_pup(self.open_bots)
                         print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
 
                     else:
+                        print(f"{RED}Did not find a solution publisher prefix{RESET}")
                         logging.error("Did not find a solution publisher prefix")
 
         elif self.args.tenant_id:
 
             self.default_env = self.args.tenant_id
 
-            # Print the tenant's domain if available
-            print_brand(self.args.tenant_id)
+            # # Print the tenant's domain if available
+            # print_brand(self.args.tenant_id)
 
             ffuf_path_1 = get_project_file_path("internal_results/ffuf_results", f"ffuf_results_{self.args.tenant_id}_one_word_names.csv")
 
@@ -889,7 +1032,8 @@ class DeepScan:
 
             ffuf_path_3 = get_project_file_path("internal_results/ffuf_results", f"ffuf_results_{self.args.tenant_id}.csv")
 
-            ten_id = self.args.tenant_id.replace("-", "").replace("Default", "")
+            # Handle both "Default" and "default" prefixes case-insensitively
+            ten_id = self.args.tenant_id.replace("-", "").replace("Default", "").replace("default", "")
             env_bots_endpoint = f"https://default{ten_id[:-2]}.{ten_id[-2:]}.environment.api.powerplatform.com/powervirtualagents/botsbyschema/"
             logging.info(f"Endpoint for the environment ID bots schema: {env_bots_endpoint}")
 
@@ -920,8 +1064,10 @@ class DeepScan:
                         self.args.tenant_id,
                         ffuf_flag,
                         self.args.timeout_bots,
+                        self.args.proxy,
+                        self.args.delay,
                     ):
-                        print(line, end="")
+                        print(colorize_ffuf_output(line), end="")
 
                     logging.info(
                         f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.tenant_id}.txt"
@@ -937,10 +1083,13 @@ class DeepScan:
 
                     if dfs:
                         df = pd.concat(dfs, ignore_index=True)
+                        # Print found bots in green
+                        print(f"\n{GREEN}✓ Found {len(df)} bot(s)!{RESET}")
                         # Transform the URL column
                         transformed_urls = df["url"].apply(transform_url)
                     else:
                         transformed_urls = []
+                        print(f"\n{RED}No bots found{RESET}")
 
                     url_file = f"url_output_{self.args.tenant_id}.txt"
                     url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -953,16 +1102,21 @@ class DeepScan:
                     self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                     print(f"\nTransformed URLs saved to {url_file_path}")
+
+                    # Wait to verify network load is freed locally before testing connectivity to demo websites
+                    time.sleep(5)
                     print("\nChecking accessible CoPilot demo websites")
 
                     self.open_bots = run_pup_commands(self.existing_bots)
 
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
+                    print("\nTesting open bots for attached knowledge sources...")
                     self.bot_has_knowledge = query_using_pup(self.open_bots)
                     print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
 
                 else:
+                    print(f"{RED}Did not find a default solution publisher prefix{RESET}")
                     logging.error("Did not find a default solution publisher prefix")
 
             else:
@@ -976,10 +1130,13 @@ class DeepScan:
                     self.args.rate,
                     self.args.threads,
                     self.args.timeout_prefix,
+                    self.args.proxy,
+                    self.args.delay,
                 ):
                     if value:
                         fuzz1_value = value
-                        print("Found solution publisher prefix, proceeding to scan bot names")
+                        print(f"\n{GREEN}Found solution publisher prefix: {value}{RESET}")
+                        print(f"{GREEN}Proceeding to scan bot names{RESET}")
                         break
 
                 fuzz_file_name = f"fuzz1_value_{self.args.tenant_id}.txt"
@@ -1004,8 +1161,10 @@ class DeepScan:
                         self.args.tenant_id,
                         ffuf_flag,
                         self.args.timeout_bots,
+                        self.args.proxy,
+                        self.args.delay,
                     ):
-                        print(line, end="")
+                        print(colorize_ffuf_output(line), end="")
 
                     logging.info(
                         f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.tenant_id}.txt"
@@ -1021,10 +1180,13 @@ class DeepScan:
 
                     if dfs:
                         df = pd.concat(dfs, ignore_index=True)
+                        # Print found bots in green
+                        print(f"\n{GREEN}✓ Found {len(df)} bot(s)!{RESET}")
                         # Transform the URL column
                         transformed_urls = df["url"].apply(transform_url)
                     else:
                         transformed_urls = []
+                        print(f"\n{RED}No bots found{RESET}")
 
                     url_file = f"url_output_{self.args.tenant_id}.txt"
                     url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
@@ -1037,16 +1199,212 @@ class DeepScan:
                     self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
 
                     print(f"\nTransformed URLs saved to {url_file_path}")
+
+                    # Wait to verify network load is freed locally before testing connectivity to demo websites
+                    time.sleep(5)
                     print("\nChecking accessible CoPilot demo websites")
 
                     self.open_bots = run_pup_commands(self.existing_bots)
 
                     print("Done, results saved under final_results/chat_exists_output.txt")
 
+                    print("\nTesting open bots for attached knowledge sources...")
                     self.bot_has_knowledge = query_using_pup(self.open_bots)
-                    print("Done, extracted knowledge results saved under final_results/chat_exists_output.xlsx")
+                    print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
 
                 else:
+                    print(f"{RED}Did not find a solution publisher prefix{RESET}")
+                    logging.error("Did not find a solution publisher prefix")
+
+        elif self.args.environment_id:
+
+            ffuf_path_1 = get_project_file_path("internal_results/ffuf_results", f"ffuf_results_{self.args.environment_id}_one_word_names.csv")
+
+            ffuf_path_2 = get_project_file_path("internal_results/ffuf_results", f"ffuf_results_{self.args.environment_id}_two_word_names.csv")
+
+            ffuf_path_3 = get_project_file_path("internal_results/ffuf_results", f"ffuf_results_{self.args.environment_id}.csv")
+
+            env_id = self.args.environment_id.replace("-", "")
+            env_bots_endpoint = f"https://{env_id[:-2]}.{env_id[-2:]}.environment.api.powerplatform.com/powervirtualagents/botsbyschema/"
+            logging.info(f"Endpoint for the environment ID bots schema: {env_bots_endpoint}")
+
+            fuzz1_value = None
+            fuzz_file_name = f"fuzz1_value_{self.args.environment_id}.txt"
+            fuzz_file_path = get_project_file_path("internal_results/prefix_fuzz_values", f"{fuzz_file_name}")
+
+            print("Checking if an existing solution publisher prefix value exists for this environment.")
+
+            # Check if the file exists
+            if os.path.exists(fuzz_file_path):
+                # Open the file and read the first line
+                with open(fuzz_file_path, "r") as file:
+                    first_line = file.readline().strip()  # .strip() removes any leading/trailing whitespace
+
+                print("An existing publisher prefix value was found for this environment, continuing to search for CoPilot demo websites.")
+
+                if first_line:
+                    self.default_solution_prefix = first_line
+                    for line, popen in get_ffuf_results(
+                        env_bots_endpoint,
+                        f"{fuzz_file_path}",
+                        "botname_1_no_capital.txt",
+                        "botname_2_to_3_capital.txt",
+                        "botname_2_to_3_capital.txt",
+                        self.args.rate,
+                        self.args.threads,
+                        self.args.environment_id,
+                        ffuf_flag,
+                        self.args.timeout_bots,
+                        self.args.proxy,
+                        self.args.delay,
+                    ):
+                        print(colorize_ffuf_output(line), end="")
+
+                    logging.info(
+                        f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.environment_id}.txt"
+                    )
+
+                    dfs = []
+
+                    for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                        if os.path.exists(ffuf_path):
+                            _df = pd.read_csv(ffuf_path)
+                            if not _df.empty:
+                                dfs.append(_df)
+
+                    if dfs:
+                        df = pd.concat(dfs, ignore_index=True)
+                        # Print found bots in green
+                        print(f"\n{GREEN}✓ Found {len(df)} bot(s)!{RESET}")
+                        # Transform the URL column
+                        transformed_urls = df["url"].apply(transform_url)
+                    else:
+                        transformed_urls = []
+                        print(f"\n{RED}No bots found{RESET}")
+
+                    url_file = f"url_output_{self.args.environment_id}.txt"
+                    url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
+
+                    # Save the result to a new text file
+                    with open(f"{url_file_path}", "w") as f:
+                        for url in transformed_urls:
+                            f.write(f"{url}\n")
+
+                    self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
+
+                    print(f"\nTransformed URLs saved to {url_file_path}")
+
+                    # Wait to verify network load is freed locally before testing connectivity to demo websites
+                    time.sleep(5)
+                    print("\nChecking accessible CoPilot demo websites")
+
+                    self.open_bots = run_pup_commands(self.existing_bots)
+
+                    print("Done, results saved under final_results/chat_exists_output.txt")
+
+                    print("\nTesting open bots for attached knowledge sources...")
+                    self.bot_has_knowledge = query_using_pup(self.open_bots)
+                    print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
+
+                else:
+                    print(f"{RED}Did not find a default solution publisher prefix{RESET}")
+                    logging.error("Did not find a default solution publisher prefix")
+
+            else:
+                print("No existing prefix value found for this environment, starting solution publisher prefix scan.")
+                logging.info("Running ffuf")
+
+                for value, popen in get_ffuf_results_prefix(
+                    env_bots_endpoint,
+                    "prefix_wordlist_char_fix_basic.txt",
+                    "suffix_wordlist_basic_1.txt",
+                    self.args.rate,
+                    self.args.threads,
+                    self.args.timeout_prefix,
+                    self.args.proxy,
+                    self.args.delay,
+                ):
+                    if value:
+                        fuzz1_value = value
+                        print(f"\n{GREEN}Found solution publisher prefix: {value}{RESET}")
+                        print(f"{GREEN}Proceeding to scan bot names{RESET}")
+                        break
+
+                fuzz_file_name = f"fuzz1_value_{self.args.environment_id}.txt"
+                fuzz_file_path = get_project_file_path("internal_results/prefix_fuzz_values", f"{fuzz_file_name}")
+
+                if fuzz1_value:
+                    self.default_solution_prefix = fuzz1_value
+                    with open(fuzz_file_path, "w") as file:
+                        file.write(fuzz1_value + "\n")
+
+                    # Continue with further logic using the new FUZZ1 wordlist
+                    logging.info("Running ffuf with new FUZZ1 values")
+
+                    for line, popen in get_ffuf_results(
+                        env_bots_endpoint,
+                        f"{fuzz_file_path}",
+                        "botname_1_no_capital.txt",
+                        "botname_2_to_3_capital.txt",
+                        "botname_2_to_3_capital.txt",
+                        self.args.rate,
+                        self.args.threads,
+                        self.args.environment_id,
+                        ffuf_flag,
+                        self.args.timeout_bots,
+                        self.args.proxy,
+                        self.args.delay,
+                    ):
+                        print(colorize_ffuf_output(line), end="")
+
+                    logging.info(
+                        f"FFUF executed successfully for the found solution publisher prefix, results saved to internal_results/ffuf_results/ffuf_results_{self.args.environment_id}.txt"
+                    )
+
+                    dfs = []
+
+                    for ffuf_path in [ffuf_path_1, ffuf_path_2, ffuf_path_3]:
+                        if os.path.exists(ffuf_path):
+                            _df = pd.read_csv(ffuf_path)
+                            if not _df.empty:
+                                dfs.append(_df)
+
+                    if dfs:
+                        df = pd.concat(dfs, ignore_index=True)
+                        # Print found bots in green
+                        print(f"\n{GREEN}✓ Found {len(df)} bot(s)!{RESET}")
+                        # Transform the URL column
+                        transformed_urls = df["url"].apply(transform_url)
+                    else:
+                        transformed_urls = []
+                        print(f"\n{RED}No bots found{RESET}")
+
+                    url_file = f"url_output_{self.args.environment_id}.txt"
+                    url_file_path = get_project_file_path("internal_results/url_results", f"{url_file}")
+
+                    # Save the result to a new text file
+                    with open(url_file_path, "w") as f:
+                        for url in transformed_urls:
+                            f.write(f"{url}\n")
+
+                    self.existing_bots = sort_unique_values_in_file(f"{url_file_path}")
+
+                    print(f"\nTransformed URLs saved to {url_file_path}")
+
+                    # Wait to verify network load is freed locally before testing connectivity to demo websites
+                    time.sleep(5)
+                    print("\nChecking accessible CoPilot demo websites")
+
+                    self.open_bots = run_pup_commands(self.existing_bots)
+
+                    print("Done, results saved under final_results/chat_exists_output.txt")
+
+                    print("\nTesting open bots for attached knowledge sources...")
+                    self.bot_has_knowledge = query_using_pup(self.open_bots)
+                    print("Done, extracted knowledge results saved under final_results/extracted_knowledge.xlsx")
+
+                else:
+                    print(f"{RED}Did not find a solution publisher prefix{RESET}")
                     logging.error("Did not find a solution publisher prefix")
 
         self.dump_results()

@@ -31,24 +31,25 @@ def write_to_file(values: list, filename: str):
             file.write(f"{value}\n")
 
 
-def get_amass_results(domain_type: str, timeout: int) -> bytes:
+def get_subfinder_results(domain_type: str, timeout: int) -> bytes:
     """
-    Run AMASS and return new tenant IDs and environment IDs.
+    Run subfinder and return new tenant IDs and environment IDs.
 
     :param domain_type: Tenant or environment (enumerate by the api.powerplatform.com subdomains)
-    :param timeout: The timeout (in seconds) for Amass to run
+    :param timeout: The timeout (in seconds) for subfinder to run
     """
-    command = ["amass", "enum", "-d", f"{domain_type}.api.powerplatform.com"]
-    start_time = time.time()
-    popen = subprocess.Popen(command, stdout=subprocess.PIPE, universal_newlines=True)  # nosec
+    command = ["subfinder", "-d", f"{domain_type}.api.powerplatform.com", "-all", "-silent", "-timeout", str(timeout)]
+    popen = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)  # nosec
     try:
         for stdout_line in iter(popen.stdout.readline, ""):
-            if time.time() - start_time > float(timeout):
-                popen.kill()
-                raise subprocess.TimeoutExpired(command, timeout)
-            yield stdout_line.strip(), popen
+            line = stdout_line.strip()
+            # Skip empty lines
+            if line:
+                yield line, popen
     finally:
         popen.stdout.close()
+        if popen.stderr:
+            popen.stderr.close()
         popen.wait()
 
 
@@ -92,27 +93,56 @@ class Enum:
         self.tenant_results = []
         self.run()
 
+    def _check_subfinder_installed(self) -> bool:
+        """Check if subfinder is installed."""
+        from shutil import which
+
+        if which("subfinder") is None:
+            logging.error("❌ subfinder is not installed!")
+            logging.error("")
+            logging.error("Please install subfinder:")
+            logging.error("  macOS: brew install subfinder")
+            logging.error("  Linux: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest")
+            logging.error("  Or run: python init_repo.py --install-external-tools")
+            return False
+        return True
+
     def run(self):
-        print(f"Starting to enumerate {self.args.enumerate}s, disconnect from VPN during this part for best results")
+        # Check if subfinder is installed
+        if not self._check_subfinder_installed():
+            return
+
+        print(f"Starting to enumerate {self.args.enumerate}s")
         print(f"Timeout defined to  {int(self.args.timeout) / 60} minutes")
         print("Enumeration results will be printed below and saved to the final_results directory")
-        try:
-            for line, popen in get_amass_results(self.args.enumerate, self.args.timeout):
-                subdomain = line.strip().split(" (FQDN) -->")[0]
-                if is_valid_subdomain(subdomain):
-                    formatted_subdomain = format_subdomain(subdomain, self.args.enumerate)
-                    if "enviro-nmen-t" not in formatted_subdomain:  # TODO: check if still relevant
-                        print(formatted_subdomain)
-                        self.tenant_results.append(formatted_subdomain)
-                else:
-                    logging.warning(f"Filtered out invalid subdomain: {subdomain}")
-        except subprocess.TimeoutExpired:
-            logging.error(f"Amass enumeration timed out after {self.args.timeout} seconds")
-            print(f"Amass enumeration timed out after {self.args.timeout} seconds")
-        finally:
-            # Ensure partial results are saved even if timeout occurs
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            unique_filename = f"{self.args.enumerate}_enumeration_results_{timestamp}"
-            amass_path = get_project_file_path("final_results", f"{unique_filename}.txt")
-            write_to_file(self.tenant_results, f"{amass_path}")
-            logging.info(f"{self.args.enumerate}s enumerated and saved to {amass_path}")
+        print("=" * 80)
+        print("")
+
+        start_time = time.time()
+        results_count = 0
+
+        for line, popen in get_subfinder_results(self.args.enumerate, self.args.timeout):
+            subdomain = line.strip()
+            if is_valid_subdomain(subdomain):
+                formatted_subdomain = format_subdomain(subdomain, self.args.enumerate)
+                if "enviro-nmen-t" not in formatted_subdomain:  # TODO: check if still relevant
+                    results_count += 1
+                    elapsed_time = int(time.time() - start_time)
+                    # Print in green for successful finds
+                    print(f"\033[92m✓ [{results_count}] Found ({elapsed_time}s elapsed): {formatted_subdomain}\033[0m")
+                    self.tenant_results.append(formatted_subdomain)
+            else:
+                logging.warning(f"Filtered out invalid subdomain: {subdomain}")
+
+        # Ensure results are saved
+        print("")
+        print("=" * 80)
+        total_time = int(time.time() - start_time)
+        print(f"Enumeration completed in {total_time}s - Total results found: {results_count}")
+
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        unique_filename = f"{self.args.enumerate}_enumeration_results_{timestamp}"
+        results_path = get_project_file_path("final_results", f"{unique_filename}.txt")
+        write_to_file(self.tenant_results, f"{results_path}")
+        logging.info(f"{self.args.enumerate}s enumerated and saved to {results_path}")
+        print(f"Results saved to: {results_path}")

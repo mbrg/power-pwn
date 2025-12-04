@@ -4,7 +4,7 @@
 		<br>
 		<br>
 		<a href="https://www.zenity.io">
-			<img src="/zenity_logo.png"/>
+			<img src="zenity_logo.png"/>
 		</a>
         <p>
         Empower your business, not the adversaries.
@@ -25,73 +25,134 @@
 [![twitter](https://img.shields.io/twitter/follow/mbrg0?icon=twitter&style=social&label=Follow)](https://twitter.com/intent/follow?screen_name=mbrg0)
 [![email me](https://img.shields.io/badge/michael.bargury-owasp.org-red?logo=Gmail)](mailto:michael.bargury@owasp.org)
 
-Power Pwn is an offensive security toolset for Microsoft 365.
-Check out our [Wiki](https://github.com/mbrg/power-pwn/wiki) for docs, guides and related talks!
+Power Pwn is an offensive and defensive security toolset for Microsoft 365 Power Platform and AI services.
 
-An review of the tool's basic modules is available here:
+**Key Features, among others:**
+
+- 💾 **PowerDump**: Comprehensive tenant scanning and data collection
+- 🔍 **Copilot Studio Hunter**: Discover and test misconfigured Copilot Studio bots exposed to unauthenticated users
+- 🤖 **Custom GPT Hunter**: Enumerate and analyze custom GPTs and agent builders
+- 🔎 **LLM Hound**: Discover publicly exposed AI agents across the internet using Shodan
+- 🎯 **Copilot M365**: Test Microsoft 365 Copilot for unauthorized data retrieval
+- 📄 **Power Pages**: Identify misconfigured Power Pages that leak Dataverse tables
+
+Please review the tools documentation for the full list of features:
+
+<img src="ppwn_help_menu.png"/>
+		<br>
+		<br>
+
+Check out our [Wiki](https://github.com/mbrg/power-pwn/wiki) for comprehensive documentation, guides, and related talks!
+
+A review of Power Pwn's PowerDump module is available here:
 
 [![BlackHat Arsenal USA 2023 - Power Pwn](https://img.youtube.com/vi/LpdckZyBwvs/0.jpg)](https://www.youtube.com/watch?v=LpdckZyBwvs)
 
 # Installation
 
-1. Install with `pip install powerpwn`.
-2. Please review the following modules' [Wiki](https://github.com/mbrg/power-pwn/wiki) pages for additional installation dependencies:
-   - [Powerdump](https://github.com/mbrg/power-pwn/wiki/Modules:-PowerDump)
-   - [Copilot Studio Hunter - deep-scan](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Deep-Scan)
-   - [Copilot Studio Hunter - tools-recon](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-tools-recon)
-   - [Copilot Studio Hunter - enum](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Enum)
-   - [CopilotM365](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Connector-and-Automator)
+For standard usage, install with:
+
+```bash
+pip install powerpwn
+```
+
+**For developers and advanced usage**, see our comprehensive [Installation Guide](INSTALLATION.md) which covers:
+
+- Full automated installation (Python + external tools)
+- Module-specific dependencies (ffuf, subfinder, Node.js, Puppeteer)
+- Platform-specific instructions (macOS, Linux, Windows)
+- Troubleshooting and verification steps
+
+Some modules require additional tools. Please review the following [Wiki](https://github.com/mbrg/power-pwn/wiki) pages for module-specific requirements:
+
+- [Powerdump](https://github.com/mbrg/power-pwn/wiki/Modules:-PowerDump)
+- [Copilot Studio Hunter - deep-scan](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Deep-Scan)
+- [Copilot Studio Hunter - tools-recon](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-tools-recon)
+- [Copilot Studio Hunter - enum](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Enum)
+- [CopilotM365](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Connector-and-Automator)
 
 ## Quick Guide for Developers
 
-1. Clone the repository and setup a virtual environment in your IDE. Install python packages by running:
+### Option 1: Full Installation (Recommended)
 
-```
-  python init_repo.py
-```
+Install Python packages and external tools (ffuf, subfinder, Node.js):
 
-2. If not active already, run the following to activate the virtual environment (.venv):
-
-```
-  .\.venv\Scripts\activate (Windows)
-
-  source .venv/bin/activate (Linux & MacOS)
+```bash
+python init_repo.py --install-external-tools
+source .venv/bin/activate  # Linux/macOS
+# or
+.\.venv\Scripts\activate  # Windows
 ```
 
-3. Verify all dependencies are installed:
+Supported on macOS and Linux. Windows requires manual tool installation.
 
+### Option 2: Python Only
+
+Install Python packages only (manual tool installation needed later):
+
+```bash
+python init_repo.py
+source .venv/bin/activate  # Linux/macOS
 ```
-  pip install .
+
+### Verify Installation
+
+```bash
+pip install .
+powerpwn --help
 ```
 
-4. If local changes aren't reflected when testing PPWN, try reinstalling the package in editable mode with `pip install -e .` to ensure updates take effect.
+**For detailed installation options, troubleshooting, and platform-specific guides, see [INSTALLATION.md](INSTALLATION.md)**
 
-**Notes**:
+### Development Tips
 
-1. To handle the GUI properly, please use Python 3.11 for the above virtual environment, if it is not already the default.
-2. If the project directory isn't set up correctly you can use this command (or one similar to it) to set it up manually:
+1. **Editable Mode**: If local changes aren't reflected when testing, reinstall in editable mode:
 
-   - `export PYTHONPATH=/[your_powerpwn_directory]/src:$PYTHONPATH` (Linux)
-   - `$env:PYTHONPATH = "C:\[your_powerpwn_directory]\src;" + $env:PYTHONPATH` (Windows PowerShell)
+   ```bash
+   pip install -e .
+   ```
 
-3. To handle the PowerDump module's GUI properly, please use Python 3.11 for the above `pip` version if it is not already the default. Alternatively, you can install the above within a Python 3.11 virtual environment.
-4. When pushing PR, you can run `black -C -l 150 {file to path}` to fix any formatting issues related to _black_.
+2. **Python Version**: Use Python 3.11 for GUI modules (PowerDump) to avoid compatibility issues.
+
+3. **PYTHONPATH Setup** (if needed):
+
+   - Linux/macOS: `export PYTHONPATH=/[your_powerpwn_directory]/src:$PYTHONPATH`
+   - Windows PowerShell: `$env:PYTHONPATH = "C:\[your_powerpwn_directory]\src;" + $env:PYTHONPATH`
+
+4. **Code Formatting**: Before submitting PRs, run:
+   ```bash
+   black -C -l 150 {file_path}
+   ```
 
 # Usage
 
 ## Quick Start
 
-1. For quickly getting started with scanning your tenant, please check the [powerdump](https://github.com/mbrg/power-pwn/wiki/Modules:-PowerDump) module here.
-2. For testing your M365 Copilot for retrieval of internal information (e.g., via a compromised user), please check the C365 modules:
+### 🎯 Common Use Cases
 
-- [whoami](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-M365-%E2%80%90-Whoami)
-- [C365 dump](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-M365-%E2%80%90-Dump)
+#### 1. Tenant Security Assessment
 
-3. For testing misconfigured Copilot Studio bots available to unauthenticated users please check the Copilot Hunter _deep-scan_ module [here](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Deep-Scan). Additional modules related to Copilot Studio here:
+Start with [PowerDump](https://github.com/mbrg/power-pwn/wiki/Modules:-PowerDump) to scan your Microsoft 365 tenant for security issues and collect comprehensive data.
 
-- [Copilot Studio Hunter - tools-recon](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Tools-Recon)
-- [Copilot Studio Hunter - enum](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Enum)
+#### 2. Test M365 Copilot Security
 
-4. To test misconfigured Power Pages which could allow for Dataverse tables to be leak, please check the [powerpages](https://github.com/mbrg/power-pwn/wiki/Modules:-Power-Pages) module.
+Evaluate your M365 Copilot deployment for unauthorized data retrieval:
 
-Please review the [Wiki](https://github.com/mbrg/power-pwn/wiki) for a full module list and detailed usage.
+- [Copilot M365 - whoami](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-M365-%E2%80%90-Whoami): Identify user context and permissions
+- [Copilot M365 - dump](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-M365-%E2%80%90-Dump): Test data exfiltration scenarios
+
+#### 3. Hunt for Exposed Copilot Studio Bots
+
+Test for misconfigured Copilot Studio bots accessible to unauthenticated users:
+
+- [Copilot Studio Hunter - deep-scan](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Deep-Scan): Deep security analysis
+- [Copilot Studio Hunter - tools-recon](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Tools-Recon): Discover bot capabilities
+- [Copilot Studio Hunter - enum](https://github.com/mbrg/power-pwn/wiki/Modules:-Copilot-Studio-Hunter-%E2%80%90-Enum): Enumerate available bots
+
+#### 4. Test Power Pages Security
+
+Identify misconfigured [Power Pages](https://github.com/mbrg/power-pwn/wiki/Modules:-Power-Pages) that could leak Dataverse tables.
+
+### 📚 Full Documentation
+
+Please review the [Wiki](https://github.com/mbrg/power-pwn/wiki) for a complete module list, detailed usage instructions, and advanced scenarios.
