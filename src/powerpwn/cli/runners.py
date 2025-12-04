@@ -168,12 +168,8 @@ def run_tenant_mcp_recon_command(args) -> None:
     # Run MCP recon with optional probing
     probe_enabled = not args.no_probe  # Default is True (probe), unless --no-probe is set
     urls_only = args.urls_only  # Default is False (full JSON), unless --urls-only is set
-    
-    mcp_recon = MCPRecon(
-        cache_path=scoped_cache_path,
-        probe_timeout=args.timeout,
-        max_concurrent_probes=args.max_concurrent,
-    )
+
+    mcp_recon = MCPRecon(cache_path=scoped_cache_path, probe_timeout=args.timeout, max_concurrent_probes=args.max_concurrent)
     output_file = mcp_recon.run(output_path=args.output, probe=probe_enabled, urls_only=urls_only)
 
     logger.info(f"MCP recon completed for tenant {tenant}. Results saved to: {output_file}")
@@ -273,19 +269,19 @@ def run_copilot_chat_command(args):
 def run_get_tenant_command(args) -> None:
     """
     Retrieve Azure AD tenant ID from a domain name.
-    
+
     Args:
         args: Command line arguments containing domain and optional timeout
     """
     domain = args.domain
     timeout = args.timeout
-    
+
     logger.info(f"{'=' * 70}")
     logger.info(f"Retrieving Tenant ID for domain: {domain}")
     logger.info(f"{'=' * 70}")
-    
+
     tenant_id = get_tenant_id(domain=domain, timeout=timeout)
-    
+
     if tenant_id:
         logger.info(f"\n{'=' * 70}")
         logger.info(f"✓ Tenant ID found:")
@@ -502,7 +498,9 @@ def run_llm_hound_command(args):
         # Run registry diving
         probe = not args.no_probe
         try:
-            results = asyncio.run(hunter.run_registry_diving(max_results=args.max_results, output_file=output_file, probe=probe, urls_only=args.urls_only))
+            results = asyncio.run(
+                hunter.run_registry_diving(max_results=args.max_results, output_file=output_file, probe=probe, urls_only=args.urls_only)
+            )
 
             # Print summary
             logger.info("\n" + "=" * 70)

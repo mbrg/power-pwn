@@ -4,4 +4,3 @@ Discovers Claude/OpenAI APIs, Model Context Protocol (MCP) servers, LLM proxies,
 """
 
 __version__ = "1.0.0"
-

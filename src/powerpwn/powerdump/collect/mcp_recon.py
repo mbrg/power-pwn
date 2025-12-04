@@ -311,7 +311,7 @@ class MCPRecon:
             logger.info(f"{'-' * 70}")
             try:
                 probe_results = asyncio.run(self.probe_servers(mcp_servers))
-                
+
                 # Log probe success/failure summary
                 if probe_results:
                     accessible_count = len([r for r in probe_results if r.get("accessible")])
