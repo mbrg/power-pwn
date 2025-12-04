@@ -113,7 +113,9 @@ class AgentBuilderToolsRecon:
             install_dir = self.script_dir.parent
             logger.info(f"Running npm install in {install_dir}...")
 
-            result = subprocess.run(["npm", "install"], cwd=install_dir, capture_output=True, text=True, timeout=300)  # nosec B603 B607 - Hardcoded npm install command
+            result = subprocess.run(
+                ["npm", "install"], cwd=install_dir, capture_output=True, text=True, timeout=300
+            )  # nosec B603 B607 - Hardcoded npm install command
 
             if result.returncode != 0:
                 logger.error(f"npm install failed: {result.stderr}")

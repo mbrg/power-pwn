@@ -193,7 +193,9 @@ class ProgressiveFFUF:
 
         try:
             # Start ffuf process - redirect stderr to DEVNULL to suppress calibration errors
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)  # nosec B603 - Controlled command list, security tool requirement
+            process = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True
+            )  # nosec B603 - Controlled command list, security tool requirement
 
             # Monitor output in real-time
             start_time = time.time()
