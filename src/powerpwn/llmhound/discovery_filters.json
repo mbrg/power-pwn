@@ -1,0 +1,508 @@
+{
+  "version": "1.0.0",
+  "description": "Modular Shodan search filters for discovering MCP servers and LLM API integrations",
+  "filter_categories": {
+    "infrastructure_based": {
+      "description": "Filters based on infrastructure stack and deployment patterns",
+      "filters": [
+        {
+          "name": "azure_mcp_servers",
+          "description": "MCP servers hosted on Azure infrastructure",
+          "query": "Azure MCP",
+          "tags": ["cloud", "azure", "infrastructure"]
+        },
+        {
+          "name": "vercel_mcp_deployments",
+          "description": "MCP servers deployed on Vercel platform",
+          "query": "Vercel MCP",
+          "tags": ["cloud", "vercel", "infrastructure"]
+        },
+        {
+          "name": "azure_app_service_mcp",
+          "description": "MCP servers on Azure App Service",
+          "query": "http.title:Azure sse port:443",
+          "tags": ["cloud", "azure", "app-service"]
+        }
+      ]
+    },
+    "protocol_based": {
+      "description": "Filters based on MCP protocol signatures and patterns",
+      "filters": [
+        {
+          "name": "sse_mcp_endpoints",
+          "description": "Server-Sent Events endpoints with MCP protocol",
+          "query": "http.html:text/event-stream jsonrpc",
+          "tags": ["protocol", "sse", "json-rpc"]
+        },
+        {
+          "name": "mcp_jsonrpc_servers",
+          "description": "JSON-RPC 2.0 servers with MCP methods",
+          "query": "jsonrpc:2.0 (initialize OR tools/list OR resources/list OR prompts/list)",
+          "tags": ["protocol", "json-rpc", "mcp-methods"]
+        },
+        {
+          "name": "mcp_sse_paths",
+          "description": "MCP servers using SSE protocol",
+          "query": "http.html:/sse",
+          "tags": ["protocol", "endpoints", "paths"]
+        },
+        {
+          "name": "common_mcp_paths",
+          "description": "Common MCP endpoint paths",
+          "query": "http.html:/mcp",
+          "tags": ["protocol", "endpoints", "paths"]
+        },
+        {
+          "name": "mcp_session_header",
+          "description": "MCP servers using Mcp-Session-Id header",
+          "query": "Mcp-Session-Id",
+          "tags": ["protocol", "headers", "session"]
+        },
+        {
+          "name": "sse_mcp_servers",
+          "description": "MCP servers using SSE protocol and port 443",
+          "query": "sse port:443",
+          "tags": ["protocol", "sse"]
+        }
+      ]
+    },
+    "port_based": {
+      "description": "Common ports used by MCP servers",
+      "filters": [
+        {
+          "name": "port_3000_mcp",
+          "description": "Development ports commonly used for MCP",
+          "query": "port:3000 mcp",
+          "tags": ["ports", "development"]
+        },
+        {
+          "name": "port_8000_mcp",
+          "description": "Development ports commonly used for MCP",
+          "query": "port:8000 mcp",
+          "tags": ["ports", "development"]
+        },
+        {
+          "name": "port_8080_mcp",
+          "description": "Development ports commonly used for MCP",
+          "query": "port:8080 mcp",
+          "tags": ["ports", "development"]
+        },
+        {
+          "name": "port_5000_mcp",
+          "description": "Development ports commonly used for MCP",
+          "query": "port:5000 mcp",
+          "tags": ["ports", "development"]
+        },
+                {
+          "name": "port_3000_sse",
+          "description": "Development ports commonly used for MCP",
+          "query": "port:3000 sse",
+          "tags": ["ports", "development"]
+        },
+        {
+          "name": "port_8000_sse",
+          "description": "Development ports commonly used for MCP",
+          "query": "port:8000 sse",
+          "tags": ["ports", "development"]
+        },
+        {
+          "name": "port_8080_sse",
+          "description": "Development ports commonly used for MCP",
+          "query": "port:8080 sse",
+          "tags": ["ports", "development"]
+        },
+        {
+          "name": "port_5000_sse",
+          "description": "Development ports commonly used for MCP",
+          "query": "port:5000 sse",
+          "tags": ["ports", "development"]
+        },
+        {
+          "name": "production_https_mcp",
+          "description": "Production HTTPS MCP endpoints",
+          "query": "port:443 jsonrpc",
+          "tags": ["ports", "production"]
+        }
+      ]
+    },
+    "combined_filters": {
+      "description": "Advanced combined filters for higher accuracy",
+      "filters": [
+        {
+          "name": "azure_mcp_comprehensive",
+          "description": "Comprehensive Azure MCP server detection",
+          "query": "product:Azure (text/event-stream OR jsonrpc) (tools OR resources OR prompts)",
+          "tags": ["combined", "azure", "high-confidence"]
+        },
+        {
+          "name": "mcp_protocol_complete",
+          "description": "Full MCP protocol signature",
+          "query": "jsonrpc:2.0 protocolVersion (2024-11-05 OR 2024-10-07) capabilities",
+          "tags": ["combined", "protocol", "high-confidence"]
+        },
+        {
+          "name": "vercel_mcp_complete",
+          "description": "Vercel-hosted MCP servers with protocol validation",
+          "query": "Server: Vercel (sse OR event-stream) jsonrpc",
+          "tags": ["combined", "vercel", "validated"]
+        }
+      ]
+    },
+    "core_mcp_markers": {
+      "description": "Textual MCP identifiers",
+      "filters": [
+        {
+          "name": "model_context_protocol",
+          "description": "Explicit Model Context Protocol references",
+          "query": "Model Context Protocol",
+          "tags": ["core", "explicit", "reference"]
+        },
+        {
+          "name": "mcp_server_variations",
+          "description": "Various MCP server naming patterns",
+          "query": "MCP server OR mcp-server OR MCPServer OR mcp server",
+          "tags": ["core", "naming", "variations"]
+        }
+      ]
+    },
+    "transport_layer": {
+      "description": "Transport layer indicators",
+      "filters": [
+        {
+          "name": "server_sent_events",
+          "description": "Server-Sent Events transport indicators",
+          "query": "text/event-stream OR Server-Sent Events OR event-stream",
+          "tags": ["transport", "sse", "streaming"]
+        },
+        {
+          "name": "sse_content_type",
+          "description": "SSE content-type header detection",
+          "query": "content-type: text/event-stream",
+          "tags": ["transport", "sse", "headers"]
+        }
+      ]
+    },
+    "jsonrpc_protocol": {
+      "description": "MCP JSON-RPC protocol indicators",
+      "filters": [
+        {
+          "name": "jsonrpc_2_0",
+          "description": "JSON-RPC 2.0 protocol markers",
+          "query": "jsonrpc: 2.0 OR jsonrpc 2.0 OR JSON-RPC 2.0",
+          "tags": ["jsonrpc", "protocol", "version"]
+        },
+        {
+          "name": "mcp_initialize_method",
+          "description": "MCP initialize method calls",
+          "query": "method: initialize",
+          "tags": ["jsonrpc", "method", "initialize"]
+        },
+        {
+          "name": "mcp_tools_methods",
+          "description": "MCP tools-related methods",
+          "query": "method: tools/list OR method: tools/call",
+          "tags": ["jsonrpc", "method", "tools"]
+        }
+      ]
+    },
+    "protocol_version": {
+      "description": "MCP protocol version indicators",
+      "filters": [
+        {
+          "name": "mcp_version_2024_11_05",
+          "description": "MCP protocol version 2024-11-05",
+          "query": "protocolVersion: 2024-11-05 OR protocolVersion 2024-11-05 OR 2024-11-05",
+          "tags": ["protocol", "version", "latest"]
+        }
+      ]
+    },
+    "endpoint_paths": {
+      "description": "Common MCP endpoint paths",
+      "filters": [
+        {
+          "name": "mcp_common_paths",
+          "description": "Common MCP endpoint paths and routes, including /.well-known/mcp.json",
+          "query": "/mcp OR /sse OR /messages OR /mcp/sse OR /api/mcp OR /v1/mcp OR /.well-known/mcp.json",
+          "tags": ["endpoints", "paths", "routes"]
+        },
+        {
+          "name": "mcp_http_methods",
+          "description": "MCP endpoints with HTTP methods",
+          "query": "GET /mcp OR POST /mcp OR GET /sse OR POST /messages",
+          "tags": ["endpoints", "http-methods"]
+        },
+        {
+          "name": "mcp_api_mcp",
+          "description": "MCP endpoints with API/mcp",
+          "query": "/api/mcp",
+          "tags": ["endpoints", "api", "mcp"]
+        }
+      ]
+    },
+    "framework_based": {
+      "description": "MCP framework and implementation indicators",
+      "filters": [
+        {
+          "name": "fastapi_mcp",
+          "description": "FastAPI-based MCP servers",
+          "query": "FastAPI mcp OR fastapi mcp",
+          "tags": ["framework", "python", "fastapi"]
+        },
+        {
+          "name": "fastmcp_framework",
+          "description": "FastMCP framework implementations",
+          "query": "FastMCP OR fastmcp",
+          "tags": ["framework", "python", "fastmcp"]
+        },
+        {
+          "name": "uvicorn_mcp",
+          "description": "Uvicorn-served MCP servers",
+          "query": "uvicorn mcp",
+          "tags": ["framework", "python", "uvicorn"]
+        },
+        {
+          "name": "python_mcp_implementations",
+          "description": "Python MCP implementations",
+          "query": "mcp-framework OR python-mcp OR mcp-python OR anthropic/mcp",
+          "tags": ["framework", "python", "implementation"]
+        },
+        {
+          "name": "fastapi_space_mcp",
+          "description": "FastAPI (with space) MCP servers",
+          "query": "fast api mcp",
+          "tags": ["framework", "python", "fastapi"]
+        },
+        {
+          "name": "oatpp_mcp",
+          "description": "Oat++ framework MCP servers",
+          "query": "oatpp mcp",
+          "tags": ["framework", "cpp", "oatpp"]
+        }
+      ]
+    },
+    "port_specific": {
+      "description": "Additional port-specific indicators",
+      "filters": [
+        {
+          "name": "port_3000_jsonrpc",
+          "description": "Port 3000 with JSON-RPC",
+          "query": "port:3000 jsonrpc",
+          "tags": ["ports", "3000", "jsonrpc"]
+        },
+        {
+          "name": "port_8000_jsonrpc",
+          "description": "Port 8000 with JSON-RPC",
+          "query": "port:8000 jsonrpc",
+          "tags": ["ports", "8000", "jsonrpc"]
+        },
+        {
+          "name": "port_8080_jsonrpc",
+          "description": "Port 8080 with JSON-RPC",
+          "query": "port:8080 jsonrpc",
+          "tags": ["ports", "8080", "jsonrpc"]
+        },
+        {
+          "name": "port_5000_jsonrpc",
+          "description": "Port 5000 with JSON-RPC",
+          "query": "port:5000 jsonrpc",
+          "tags": ["ports", "5000", "jsonrpc"]
+        },
+        {
+          "name": "port_3000_sse",
+          "description": "Port 3000 with Server-Sent Events",
+          "query": "port:3000 text/event-stream",
+          "tags": ["ports", "3000", "sse"]
+        },
+        {
+          "name": "port_8000_sse",
+          "description": "Port 8000 with Server-Sent Events",
+          "query": "port:8000 text/event-stream",
+          "tags": ["ports", "8000", "sse"]
+        },
+        {
+          "name": "port_8080_sse",
+          "description": "Port 8080 with Server-Sent Events",
+          "query": "port:8080 text/event-stream",
+          "tags": ["ports", "8080", "sse"]
+        },
+        {
+          "name": "port_5000_sse",
+          "description": "Port 5000 with Server-Sent Events",
+          "query": "port:5000 text/event-stream",
+          "tags": ["ports", "5000", "sse"]
+        },
+        {
+          "name": "port_8081_jsonrpc",
+          "description": "Port 8081 with JSON-RPC",
+          "query": "jsonrpc port:8081",
+          "tags": ["ports", "8081", "jsonrpc"]
+        }
+      ]
+    },
+    "cloud_platforms": {
+      "description": "Cloud platform specific indicators",
+      "filters": [
+        {
+          "name": "cloudflare_workers_mcp",
+          "description": "Cloudflare Workers MCP deployments",
+          "query": "cloudflare mcp OR workers.dev mcp",
+          "tags": ["cloud", "cloudflare", "workers"]
+        },
+        {
+          "name": "vercel_edge_mcp",
+          "description": "Vercel platform MCP servers",
+          "query": "vercel mcp",
+          "tags": ["cloud", "vercel", "edge"]
+        },
+        {
+          "name": "heroku_mcp",
+          "description": "Heroku-hosted MCP servers",
+          "query": "heroku mcp",
+          "tags": ["cloud", "heroku", "paas"]
+        },
+        {
+          "name": "railway_mcp",
+          "description": "Railway platform MCP servers",
+          "query": "railway mcp",
+          "tags": ["cloud", "railway", "paas"]
+        },
+        {
+          "name": "flyio_mcp",
+          "description": "Fly.io hosted MCP servers (with comma)",
+          "query": "org:\"Fly.io, Inc.\" mcp",
+          "tags": ["cloud", "flyio", "paas"]
+        },
+        {
+          "name": "flyio_mcp_alt",
+          "description": "Fly.io hosted MCP servers (without comma)",
+          "query": "org:\"Fly.io Inc.\" mcp",
+          "tags": ["cloud", "flyio", "paas"]
+        },
+        {
+          "name": "google_cloud_run_mcp",
+          "description": "Google Cloud Run MCP servers",
+          "query": "run.app mcp",
+          "tags": ["cloud", "google", "cloud-run"]
+        }
+      ]
+    },
+    "mcp_methods": {
+      "description": "MCP-specific method indicators",
+      "filters": [
+        {
+          "name": "tools_list_method",
+          "description": "Servers with tools/list method",
+          "query": "tools/list",
+          "tags": ["methods", "tools", "list"]
+        },
+        {
+          "name": "tools_call_method",
+          "description": "Servers with tools/call method",
+          "query": "tools/call",
+          "tags": ["methods", "tools", "call"]
+        },
+        {
+          "name": "resources_list_method",
+          "description": "Servers with resources/list method",
+          "query": "resources/list",
+          "tags": ["methods", "resources", "list"]
+        },
+        {
+          "name": "resources_read_method",
+          "description": "Servers with resources/read method",
+          "query": "resources/read",
+          "tags": ["methods", "resources", "read"]
+        },
+        {
+          "name": "prompts_list_method",
+          "description": "Servers with prompts/list method",
+          "query": "prompts/list",
+          "tags": ["methods", "prompts", "list"]
+        }
+      ]
+    },
+    "broad_searches": {
+      "description": "Broad indicators (more prone to false positives)",
+      "filters": [
+        {
+          "name": "mcp_keyword",
+          "description": "Simple MCP keyword indicator",
+          "query": "mcp",
+          "tags": ["broad", "keyword", "high-fp-rate"]
+        },
+        {
+          "name": "model_context_keyword",
+          "description": "Model context keyword indicator",
+          "query": "model context",
+          "tags": ["broad", "keyword", "moderate-fp-rate"]
+        },
+        {
+          "name": "context_protocol_keyword",
+          "description": "Context protocol keyword indicator",
+          "query": "context protocol",
+          "tags": ["broad", "keyword", "moderate-fp-rate"]
+        },
+        {
+          "name": "mcp_api_keyword",
+          "description": "MCP API keyword indicator",
+          "query": "MCP api",
+          "tags": ["broad", "keyword", "api"]
+        }
+      ]
+    },
+    "llm_api_integrations": {
+      "description": "Claude/OpenAI API integrations and proxies",
+      "filters": [
+        {
+          "name": "openapi_json",
+          "description": "OpenAPI JSON specification files",
+          "query": "openapi.json mcp",
+          "tags": ["openapi", "api-docs", "swagger", "mcp"]
+        },
+        {
+          "name": "claude_sdk",
+          "description": "Claude SDK implementations",
+          "query": "claude sdk",
+          "tags": ["claude", "sdk", "anthropic"]
+        },
+        {
+          "name": "claude_tools",
+          "description": "Claude tools and integrations",
+          "query": "claude tools",
+          "tags": ["claude", "tools", "anthropic"]
+        },
+        {
+          "name": "claude_api",
+          "description": "Claude API endpoints and proxies",
+          "query": "claude api",
+          "tags": ["claude", "api", "anthropic"]
+        },
+        {
+          "name": "chat_completions_api",
+          "description": "Chat completions API endpoints (OpenAI compatible)",
+          "query": "chat/completions",
+          "tags": ["openai", "api", "completions"]
+        },
+        {
+          "name": "uvicorn_claude",
+          "description": "Uvicorn servers running Claude integrations",
+          "query": "uvicorn claude",
+          "tags": ["uvicorn", "claude", "python"]
+        },
+        {
+          "name": "claude_to_openai",
+          "description": "Claude-to-OpenAI proxy implementations",
+          "query": "Claude-to-OpenAI",
+          "tags": ["claude", "openai", "proxy"]
+        },
+        {
+          "name": "copilot_api_swagger",
+          "description": "Copilot API swagger UIs and documentation endpoints",
+          "query": "http.html_hash:50465069",
+          "tags": ["copilot", "swagger", "api-docs"]
+        }
+      ]
+    }
+  }
+}
+
