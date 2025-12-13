@@ -7,7 +7,7 @@
 			<img src="zenity_logo.png"/>
 		</a>
         <p>
-        Empower your business, not the adversaries.
+        Secure AI Agents Everywhere.
         </p>
 	</p>
 	<hr>
