@@ -35,7 +35,7 @@ Power Pwn is an offensive and defensive security toolset for Microsoft 365 Power
 - 🎣 **PowerPhishing**: Abuse Power Platform for phishing campaigns and credential harvesting
 - 🤖 **Copilot Studio Hunter**: Discover and test misconfigured Copilot Studio bots exposed to unauthenticated users
 - 🤖 **Custom GPT Hunter**: Enumerate and analyze custom GPTs
-- 🤖 **Agent Builder Hunter**: Discover publicly available Agent Builder deployment and enumerate their capabilities
+- 🤖 **Agent Builder Hunter**: Discover publicly available Agent Builder deployments and enumerate their capabilities
 - 🔎 **LLM Hound**: Discover publicly exposed MCPs & AI middleware across the internet using Shodan
 - 🎯 **Copilot M365**: Test Microsoft 365 Copilot for unauthorized data retrieval
 - 📄 **Power Pages**: Identify misconfigured Power Pages that leak Dataverse tables
